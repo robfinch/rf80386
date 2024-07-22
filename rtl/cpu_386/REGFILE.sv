@@ -120,14 +120,14 @@ wire [31:0] esdi = es_base + (cs_desc.db ? edi : di);
 //
 always_comb
 	case({w,rrr})
-	4'd0:	rrro <= {{8{eax[7]}},eax[7:0]};
-	4'd1:	rrro <= {{8{ecx[7]}},ecx[7:0]};
-	4'd2:	rrro <= {{8{edx[7]}},edx[7:0]};
-	4'd3:	rrro <= {{8{ebx[7]}},ebx[7:0]};
-	4'd4:	rrro <= {{8{eax[15]}},eax[15:8]};
-	4'd5:	rrro <= {{8{ecx[15]}},ecx[15:8]};
-	4'd6:	rrro <= {{8{edx[15]}},edx[15:8]};
-	4'd7:	rrro <= {{8{ebx[15]}},ebx[15:8]};
+	4'd0:	rrro <= {{24{eax[7]}},eax[7:0]};
+	4'd1:	rrro <= {{24{ecx[7]}},ecx[7:0]};
+	4'd2:	rrro <= {{24{edx[7]}},edx[7:0]};
+	4'd3:	rrro <= {{24{ebx[7]}},ebx[7:0]};
+	4'd4:	rrro <= {{24{eax[15]}},eax[15:8]};
+	4'd5:	rrro <= {{24{ecx[15]}},ecx[15:8]};
+	4'd6:	rrro <= {{24{edx[15]}},edx[15:8]};
+	4'd7:	rrro <= {{24{ebx[15]}},ebx[15:8]};
 	4'd8:	rrro <= eax;
 	4'd9:	rrro <= ecx;
 	4'd10:	rrro <= edx;

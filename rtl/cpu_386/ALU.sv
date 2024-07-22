@@ -155,7 +155,7 @@ divr2 #(32) udiv2
 	.done(div32_done)
 );
 
-divr2 #(32) udiv3
+divr2 #(64) udiv3
 (
 	.rst(rst_i),
 	.clk(clk_i),
