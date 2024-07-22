@@ -218,9 +218,14 @@ rf80386_pkg::DECODE:
 	`NOP: tGoto(rf80386_pkg::IFETCH);
 	`HLT: if (pe_nmi | (irq_i & ie)) tGoto(rf80386_pkg::IFETCH);
 	`WAI: if (!busy_i) tGoto(rf80386_pkg::IFETCH);
-	`LOOP: begin ecx <= cx_dec; tGoto(rf80386_pkg::BRANCH1); end
-	`LOOPZ: begin ecx <= cx_dec; tGoto(rf80386_pkg::BRANCH1); end
-	`LOOPNZ: begin ecx <= cx_dec; tGoto(rf80386_pkg::BRANCH1); end
+	`LOOP,`LOOPZ,`LOOPNZ: 
+		begin
+			if (cs_desc.db)
+				ecx <= cx_dec;
+			else
+				ecx[15:0] <= cx_dec[15:0];
+			tGoto(rf80386_pkg::BRANCH1);
+		end
 	`Jcc: tGoto(rf80386_pkg::BRANCH1);
 	`JCXZ: tGoto(rf80386_pkg::BRANCH1);
 	`JMPS: tGoto(rf80386_pkg::BRANCH1);

@@ -151,7 +151,7 @@ wire NMI = nmi_i;
 `include "REGFILE.sv"	
 `include "CONTROL_LOGIC.sv"
 `include "WHICH_SEG.sv"
-evaluate_branch u4 (ir,cx,zf,cf,sf,vf,pf,take_br);
+evaluate_branch u4 (ir,ecx,zf,cf,sf,vf,pf,take_br);
 `include "ALU.sv"
 nmi_detector u6 (rst_i, clk_i, nmi_i, rst_nmi, pe_nmi);
 

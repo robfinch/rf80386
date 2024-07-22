@@ -78,15 +78,15 @@
 
 `endif
 
-module evaluate_branch(ir,cx,zf,cf,sf,vf,pf,take_br);
+module evaluate_branch(ir,ecx,zf,cf,sf,vf,pf,take_br);
 input [7:0] ir;
-input [15:0] cx;
+input [31:0] ecx;
 input zf,cf,sf,vf,pf;
 output take_br;
 
 reg take_br;
-wire cxo = cx==16'h0001;	// CX is one
-wire cxz = cx==16'h0000;	// CX is zero
+wire cxo = cs_desc.db ? ecx==32'h0001 : ecx[15:0]==16'h0001;	// CX is one
+wire cxz = cs_desc.db ? ecx==32'h0000 : ecx[15:0]==16'h0000;	// CX is zero
 
 always_comb
 	case(ir)
