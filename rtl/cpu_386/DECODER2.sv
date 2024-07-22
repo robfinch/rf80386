@@ -167,7 +167,12 @@ rf80386_pkg::DECODER2:
 				end
 			`PUSH_FS,`PUSH_GS:
 				begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-			`JccL:	begin jccl <= 1'b1; tGoto(rf80386_pkg::BRANCH1); end
+			`JccL:	
+				begin
+					ir <= {4'h7,ir2[3:0]};	// for eval_branch
+					jccl <= 1'b1;
+					tGoto(rf80386_pkg::BRANCH1);
+				end
 			default:	;
 			endcase
 		default:	;
