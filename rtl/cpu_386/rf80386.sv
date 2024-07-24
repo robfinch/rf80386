@@ -170,6 +170,8 @@ lfsr31 ulfsr1(rst_i, clk_i, 1'b1, 1'b0, lfsr31o);
 
 always_ff @(posedge CLK)
 	if (rst_i) begin
+		cr0 <= 'd0;
+		realMode <= 1'b1;
 		lidt <= 1'b0;
 		lgdt <= 1'b0;
 		lmsw <= 1'b0;

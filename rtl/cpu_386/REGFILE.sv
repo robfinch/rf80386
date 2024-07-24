@@ -39,6 +39,7 @@ reg [31:0] cr0;
 reg [31:0] rrro;			
 reg [31:0] rmo;				// register output (controlled by mod r/m byte)
 reg [31:0] rfso;
+wire realMode = ~cr0[0];
 
 reg pf;						// parity flag
 reg af;						// auxillary carry (half carry) flag
@@ -101,22 +102,34 @@ wire [15:0] bp = ebp[15:0];
 wire [15:0] si = esi[15:0];
 wire [15:0] di = edi[15:0];
 
-wire [31:0] cs_base = cs_desc.db ? {cs_desc.base_hi, cs_desc.base_lo} : {cs_desc.base_hi, cs_desc.base_lo} + {cs,`SEG_SHIFT};
-wire [31:0] ss_base = cs_desc.db ? {ss_desc.base_hi, ss_desc.base_lo} : {ss_desc.base_hi, ss_desc.base_lo} + {ss,`SEG_SHIFT};
-wire [31:0] ds_base = cs_desc.db ? {ds_desc.base_hi, ds_desc.base_lo} : {ds_desc.base_hi, ds_desc.base_lo} + {ds,`SEG_SHIFT};
-wire [31:0] es_base = cs_desc.db ? {es_desc.base_hi, es_desc.base_lo} : {es_desc.base_hi, es_desc.base_lo} + {es,`SEG_SHIFT};
-wire [31:0] fs_base = cs_desc.db ? {fs_desc.base_hi, fs_desc.base_lo} : {fs_desc.base_hi, fs_desc.base_lo} + {fs,`SEG_SHIFT};
-wire [31:0] gs_base = cs_desc.db ? {gs_desc.base_hi, gs_desc.base_lo} : {gs_desc.base_hi, gs_desc.base_lo} + {gs,`SEG_SHIFT};
+// A pipeline stage is inserted to the base address determination to avoid a
+// cascade of a lot of combo logic and improve the performance. The base values
+// are essentially static unless the segment register is changed. So, there will
+// be a delay in calculating the base address, but that only happens on a move
+// to a segment register. The value is always valid by the time it is needed for
+// addressing.
+
+reg [31:0] cs_base, ss_base, ds_base, es_base, fs_base, gs_base;
+
+always_ff @(posedge clk) cs_base <= ~realMode ? {cs_desc.base_hi, cs_desc.base_lo} : {cs_desc.base_hi, cs_desc.base_lo} + {12'h000,cs,`SEG_SHIFT};
+always_ff @(posedge clk) ss_base <= ~realMode ? {ss_desc.base_hi, ss_desc.base_lo} : {ss_desc.base_hi, ss_desc.base_lo} + {12'h000,ss,`SEG_SHIFT};
+always_ff @(posedge clk) ds_base <= ~realMode ? {ds_desc.base_hi, ds_desc.base_lo} : {ds_desc.base_hi, ds_desc.base_lo} + {12'h000,ds,`SEG_SHIFT};
+always_ff @(posedge clk) es_base <= ~realMode ? {es_desc.base_hi, es_desc.base_lo} : {es_desc.base_hi, es_desc.base_lo} + {12'h000,es,`SEG_SHIFT};
+always_ff @(posedge clk) fs_base <= ~realMode ? {fs_desc.base_hi, fs_desc.base_lo} : {fs_desc.base_hi, fs_desc.base_lo} + {12'h000,fs,`SEG_SHIFT};
+always_ff @(posedge clk) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base_lo} : {gs_desc.base_hi, gs_desc.base_lo} + {12'h000,gs,`SEG_SHIFT};
+
 wire [31:0] idt_base = {idt_desc.base_hi, idt_desc.base_lo};
 wire [31:0] gdt_base = {gdt_desc.base_hi, gdt_desc.base_lo};
 wire [31:0] ldt_base = {ldt_desc.base_hi, ldt_desc.base_lo};
 
 wire [31:0] csip = cs_base + eip;
-wire [31:0] sssp = ss_base + (cs_desc.db ? esp : sp);
-wire [31:0] dssi = ds_base + (cs_desc.db ? esi : si);
-wire [31:0] esdi = es_base + (cs_desc.db ? edi : di);
+wire [31:0] sssp = ss_base + (StkAddrSize==8'd32 ? esp : sp);
+wire [31:0] dssi = ds_base + (AddrSize==8'd32 ? esi : si);
+wire [31:0] esdi = es_base + (AddrSize==8'd32 ? edi : di);
 
 // Read port
+// Cannot easily pipeline this read port. rrr is set in the DECODE stage and
+// the register value is needed in the next clock cycle.
 //
 always_comb
 	case({w,rrr})
@@ -141,7 +154,7 @@ always_comb
 
 // Second Read port
 //
-always_comb
+always_ff @(posedge clk)
 	case({w,rm})
 	4'd0:	rmo <= {{24{eax[7]}},eax[7:0]};
 	4'd1:	rmo <= {{24{ecx[7]}},ecx[7:0]};
@@ -163,8 +176,10 @@ always_comb
 
 
 // Read segment registers
+// Needed only for moving the sreg to a reg in the EACALC. Plenty of room to
+// pipeline this, so it is.
 //
-always_comb
+always_ff @(posedge clk)
 	case(sreg3)
 	3'd0:	rfso <= es;
 	3'd1:	rfso <= cs;

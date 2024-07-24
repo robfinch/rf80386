@@ -57,10 +57,26 @@ rf80386_pkg::IFETCH:
 		$display("ECX=%h  EBP=%h", ecx, ebp);
 		$display("EDX=%h  ESP=%h", edx, esp);
 		// Reset all instruction processing flags at instruction fetch
-		if (cs_desc.db)
-			OperandSize = 8'd32;
-		else
-			OperandSize = 8'd16;
+		
+		// Default the size of operands and addresses, but not if there is a
+		// size prefix.
+		if (prefix1!=`OPSZ && prefix2!=`OPSZ) begin
+			if (cs_desc.db)
+				OperandSize = 8'd32;
+			else
+				OperandSize = 8'd16;
+		end
+		if (prefix1!=`ADSZ && prefix2!=`ADSZ) begin
+			if (cs_desc.db)
+				AddrSize = 8'd32;
+			else
+				AddrSize = 8'd16;
+			if (ss_desc.db)
+				StkAddrSize = 8'd32;
+			else
+				StkAddrSize = 8'd16;
+		end
+
 		mod <= 2'd0;
 		rrr <= 3'd0;
 		rm <= 3'd0;

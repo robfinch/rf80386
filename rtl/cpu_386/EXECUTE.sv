@@ -376,7 +376,10 @@ rf80386_pkg::EXECUTE:
 			begin
 				wrsregs <= 1'b1;
 				res <= alu_o;
-				tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::IFETCH);
+				if (realMode)
+					tGoto(rf80386_pkg::IFETCH);
+				else
+					tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::IFETCH);
 			end
 		`LODSB:
 			begin
@@ -395,7 +398,7 @@ rf80386_pkg::EXECUTE:
 				w <= 1'b1;
 				rrr <= 3'd0;
 				res <= a;
-				if (cs_desc.db) begin
+				if (OperandSize==8'd32) begin
 					if ( df) esi <= esi - 16'd4;
 					if (!df) esi <= esi + 16'd4;
 				end
@@ -411,7 +414,7 @@ rf80386_pkg::EXECUTE:
 				wrregs <= 1'b1;
 				rrr <= rm;
 				if (w) begin
-					if (cs_desc.db)
+					if (OperandSize==8'd32)
 						case(rrr)
 						3'b000:	// ROL
 							begin

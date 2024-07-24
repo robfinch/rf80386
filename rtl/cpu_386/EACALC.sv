@@ -222,7 +222,7 @@ rf80386_pkg::EACALC_SIB1:
 rf80386_pkg::EACALC_DISP16:
 	begin
 		disp32[15:0] <= bundle[15:0];
-		if (cs_desc.db) begin
+		if (OperandSize==8'd32) begin
 			disp32[31:16] <= bundle[31:16];
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;
@@ -260,7 +260,7 @@ rf80386_pkg::EACALC1:
 			`LSS,`LFS,`LGS:
 				begin
 					$display("EACALC1: tGoto(FETCH_DATA");
-					if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+					if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 						int_num <= 8'h0d;
 						tGoto(rf80386_pkg::INT2);
 					end
@@ -274,7 +274,7 @@ rf80386_pkg::EACALC1:
 					3'b011: begin ltr <= 1'b1; tGoto(rf80386_pkg::FETCH_DATA); end// LTR
 					default: tGoto(rf80386_pkg::FETCH_DATA);
 					endcase
-					if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+					if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 						int_num <= 8'h0d;
 						tGoto(rf80386_pkg::INT2);
 					end
@@ -287,20 +287,20 @@ rf80386_pkg::EACALC1:
 					3'b110:	begin lmsw <= 1'b1;	tGoto(rf80386_pkg::FETCH_DATA); end
 					default: tGoto(rf80386_pkg::FETCH_DATA);
 					endcase
-					if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+					if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 						int_num <= 8'h0d;
 						tGoto(rf80386_pkg::INT2);
 					end
 				end
 			8'h03:
-				if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+				if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 					int_num <= 8'h0d;
 					tGoto(rf80386_pkg::INT2);
 				end
 				else
 					tGoto(rf80386_pkg::FETCH_DATA);
 			default:
-				if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+				if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 					int_num <= 8'h0d;
 					tGoto(rf80386_pkg::INT2);
 				end
@@ -309,7 +309,7 @@ rf80386_pkg::EACALC1:
 			endcase
 		`MOV_I8M: tGoto(rf80386_pkg::FETCH_IMM8);
 		`MOV_I16M:
-			if (cs_desc.db ? eip > 32'hFFFFFFFC : eip==32'h0000FFFF) begin
+			if (OperandSize==8'd32 ? eip > 32'hFFFFFFFC : eip==32'h0000FFFF) begin
 				int_num <= 8'h0d;
 				tGoto(rf80386_pkg::INT2);
 			end
@@ -327,7 +327,7 @@ rf80386_pkg::EACALC1:
 		8'b1000100?:	// Move to memory
 			begin
 				$display("EACALC1: tGoto(STORE_DATA");
-				if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+				if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 					int_num <= 8'h0d;
 					tGoto(rf80386_pkg::INT2);
 				end
@@ -339,7 +339,7 @@ rf80386_pkg::EACALC1:
 		default:
 			begin
 				$display("EACALC1: tGoto(FETCH_DATA");
-				if (w && (cs_desc.db ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+				if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
 					int_num <= 8'h0d;
 					tGoto(rf80386_pkg::INT2);
 				end
