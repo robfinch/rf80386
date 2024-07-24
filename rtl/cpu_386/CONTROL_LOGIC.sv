@@ -185,7 +185,9 @@ wire is_prefix =
 	ir==`ES ||
 	ir==`SS ||
 	ir==`FS ||
-	ir==`GS
+	ir==`GS ||
+	ir==`OPSZ ||
+	ir==`ADSZ
 	;
 
 wire tgt_reg8 =

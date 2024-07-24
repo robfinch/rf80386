@@ -47,7 +47,7 @@ rf80386_pkg::DECODE:
 			else
 				OperandSize = 8'd32;
 			tGoto(rf80386_pkg::IFETCH);
-			end
+		end
 	`ADSZ:
 		begin
 			if (cs_desc.db)
@@ -59,7 +59,7 @@ rf80386_pkg::DECODE:
 			else
 				StkAddrSize = 8'd32;
 			tGoto(rf80386_pkg::IFETCH);
-			end
+		end
 	`MORE1: tGoto(rf80386_pkg::XI_FETCH);
 	`MORE2: tGoto(rf80386_pkg::XI_FETCH);
 	`EXTOP: tGoto(rf80386_pkg::XI_FETCH);
@@ -240,7 +240,7 @@ rf80386_pkg::DECODE:
 	`WAI: if (!busy_i) tGoto(rf80386_pkg::IFETCH);
 	`LOOP,`LOOPZ,`LOOPNZ: 
 		begin
-			if (cs_desc.db)
+			if (OperandSize==8'd32)
 				ecx <= cx_dec;
 			else
 				ecx[15:0] <= cx_dec[15:0];

@@ -51,11 +51,12 @@ rf80386_pkg::IFETCH:
 	begin
 		$display("\r\n******************************************************");
 		$display("time: %d", $time);
-		$display("CSIP: %h", csip);
-		$display("EAX=%h  ESI=%h", eax, esi);
-		$display("EBX=%h  EDI=%h", ebx, edi);
-		$display("ECX=%h  EBP=%h", ecx, ebp);
-		$display("EDX=%h  ESP=%h", edx, esp);
+		$display("CSIP: %h  CS=%h", csip, cs);
+		$display("EAX=%h  ESI=%h  DS=%h", eax, esi, ds);
+		$display("EBX=%h  EDI=%h  ES=%h", ebx, edi, es);
+		$display("ECX=%h  EBP=%h  FS=%h", ecx, ebp, fs);
+		$display("EDX=%h  ESP=%h  SS=%h", edx, esp, ss);
+		$display("GS=%h", gs);
 		// Reset all instruction processing flags at instruction fetch
 		
 		// Default the size of operands and addresses, but not if there is a

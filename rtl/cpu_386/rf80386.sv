@@ -171,7 +171,6 @@ lfsr31 ulfsr1(rst_i, clk_i, 1'b1, 1'b0, lfsr31o);
 always_ff @(posedge CLK)
 	if (rst_i) begin
 		cr0 <= 'd0;
-		realMode <= 1'b1;
 		lidt <= 1'b0;
 		lgdt <= 1'b0;
 		lmsw <= 1'b0;
@@ -195,7 +194,7 @@ always_ff @(posedge CLK)
 		cs <= `CS_RESET;
 		cs_desc <= {$bits(desc386_t){1'b0}};
 		cs_desc.db <= 1'b1;							// 32-bit mode
-		cs_desc.base_lo <= 24'hFF0000;	// base = 0
+		cs_desc.base_lo <= 24'hF00000;	// base = 0
 		cs_desc.base_hi <= 8'hFF;			
 		cs_desc.limit_lo <= 16'hFFFF;		// limit = max
 		cs_desc.limit_hi <= 4'hF;

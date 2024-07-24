@@ -43,7 +43,7 @@
 rf80386_pkg::BRANCH1:
 	if (take_br) begin
 		if (jccl) begin
-			if (cs_desc.db) begin
+			if (AddrSize==8'd32) begin
 				disp32 <= bundle[31:0];
 				eip <= eip + 4'd4;
 			end
@@ -60,7 +60,7 @@ rf80386_pkg::BRANCH1:
 	end
 	else begin
 		if (jccl) begin
-			if (cs_desc.db)
+			if (AddrSize==8'd32)
 				eip <= eip + 4'd4;
 			else
 				eip <= eip + 4'd2;

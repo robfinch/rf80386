@@ -111,12 +111,12 @@ wire [15:0] di = edi[15:0];
 
 reg [31:0] cs_base, ss_base, ds_base, es_base, fs_base, gs_base;
 
-always_ff @(posedge clk) cs_base <= ~realMode ? {cs_desc.base_hi, cs_desc.base_lo} : {cs_desc.base_hi, cs_desc.base_lo} + {12'h000,cs,`SEG_SHIFT};
-always_ff @(posedge clk) ss_base <= ~realMode ? {ss_desc.base_hi, ss_desc.base_lo} : {ss_desc.base_hi, ss_desc.base_lo} + {12'h000,ss,`SEG_SHIFT};
-always_ff @(posedge clk) ds_base <= ~realMode ? {ds_desc.base_hi, ds_desc.base_lo} : {ds_desc.base_hi, ds_desc.base_lo} + {12'h000,ds,`SEG_SHIFT};
-always_ff @(posedge clk) es_base <= ~realMode ? {es_desc.base_hi, es_desc.base_lo} : {es_desc.base_hi, es_desc.base_lo} + {12'h000,es,`SEG_SHIFT};
-always_ff @(posedge clk) fs_base <= ~realMode ? {fs_desc.base_hi, fs_desc.base_lo} : {fs_desc.base_hi, fs_desc.base_lo} + {12'h000,fs,`SEG_SHIFT};
-always_ff @(posedge clk) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base_lo} : {gs_desc.base_hi, gs_desc.base_lo} + {12'h000,gs,`SEG_SHIFT};
+always_ff @(posedge clk_i) cs_base <= ~realMode ? {cs_desc.base_hi, cs_desc.base_lo} : {cs_desc.base_hi, cs_desc.base_lo} + {12'h000,cs,`SEG_SHIFT};
+always_ff @(posedge clk_i) ss_base <= ~realMode ? {ss_desc.base_hi, ss_desc.base_lo} : {ss_desc.base_hi, ss_desc.base_lo} + {12'h000,ss,`SEG_SHIFT};
+always_ff @(posedge clk_i) ds_base <= ~realMode ? {ds_desc.base_hi, ds_desc.base_lo} : {ds_desc.base_hi, ds_desc.base_lo} + {12'h000,ds,`SEG_SHIFT};
+always_ff @(posedge clk_i) es_base <= ~realMode ? {es_desc.base_hi, es_desc.base_lo} : {es_desc.base_hi, es_desc.base_lo} + {12'h000,es,`SEG_SHIFT};
+always_ff @(posedge clk_i) fs_base <= ~realMode ? {fs_desc.base_hi, fs_desc.base_lo} : {fs_desc.base_hi, fs_desc.base_lo} + {12'h000,fs,`SEG_SHIFT};
+always_ff @(posedge clk_i) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base_lo} : {gs_desc.base_hi, gs_desc.base_lo} + {12'h000,gs,`SEG_SHIFT};
 
 wire [31:0] idt_base = {idt_desc.base_hi, idt_desc.base_lo};
 wire [31:0] gdt_base = {gdt_desc.base_hi, gdt_desc.base_lo};
@@ -154,7 +154,7 @@ always_comb
 
 // Second Read port
 //
-always_ff @(posedge clk)
+always_ff @(posedge clk_i)
 	case({w,rm})
 	4'd0:	rmo <= {{24{eax[7]}},eax[7:0]};
 	4'd1:	rmo <= {{24{ecx[7]}},ecx[7:0]};
@@ -179,7 +179,7 @@ always_ff @(posedge clk)
 // Needed only for moving the sreg to a reg in the EACALC. Plenty of room to
 // pipeline this, so it is.
 //
-always_ff @(posedge clk)
+always_ff @(posedge clk_i)
 	case(sreg3)
 	3'd0:	rfso <= es;
 	3'd1:	rfso <= cs;
