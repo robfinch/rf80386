@@ -47,7 +47,7 @@
 rf80386_pkg::EACALC:
 	begin
 
-		disp16 <= 32'h0000;
+		disp32 <= 32'h0000;
 
 		case(mod)
 

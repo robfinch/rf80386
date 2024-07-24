@@ -57,6 +57,10 @@ rf80386_pkg::IFETCH:
 		$display("ECX=%h  EBP=%h", ecx, ebp);
 		$display("EDX=%h  ESP=%h", edx, esp);
 		// Reset all instruction processing flags at instruction fetch
+		if (cs_desc.db)
+			OperandSize = 8'd32;
+		else
+			OperandSize = 8'd16;
 		mod <= 2'd0;
 		rrr <= 3'd0;
 		rm <= 3'd0;
@@ -112,7 +116,7 @@ rf80386_pkg::IFETCH:
 	end
 
 rf80386_pkg::IFETCH_ACK:
-	begin
+	if (ihit) begin
 		$display("CSIP: %h IR: %h",csip,bundle[7:0]);
 		bundle <= ibundle;
 		nack_ir();

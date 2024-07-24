@@ -46,7 +46,7 @@ rf80386_pkg::SCASW:
 		tGoto(rf80386_pkg::IFETCH);
 	else begin
 		ad <= esdi;
-		sel <= cs_desc.db ? 16'h000F : 16'h0003;
+		sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::SCASW1);
 	end
 rf80386_pkg::SCASW1:
@@ -55,9 +55,9 @@ rf80386_pkg::SCASW1:
 		a <= ax;
 		b <= {16'h0,dat[15:0]};
 		if (df)
-			edi <= cs_desc.db ? edi - 4'd4 : edi - 4'd2;
+			edi <= OperandSize==8'd32 ? edi - 4'd4 : edi - 4'd2;
 		else
-			edi <= cs_desc.db ? edi + 4'd4 : edi + 4'd2;
+			edi <= OperandSize==8'd32 ? edi + 4'd4 : edi + 4'd2;
 	end
 rf80386_pkg::SCASW2:
 	begin

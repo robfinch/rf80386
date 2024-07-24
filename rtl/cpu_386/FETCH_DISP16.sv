@@ -58,8 +58,8 @@ rf80386_pkg::FETCH_DISP16b:
 	// Flow control operations
 	//-----------------------------------------------------------------
 	`CALL: tGoto(rf80386_pkg::CALL);
-	`JMP: begin eip <= eip + disp16; tGoto(rf80386_pkg::IFETCH); end
-	`JMPS: begin eip <= eip + disp16; tGoto(rf80386_pkg::IFETCH); end
+	`JMP: begin eip <= eip + disp32; tGoto(rf80386_pkg::IFETCH); end
+	`JMPS: begin eip <= eip + disp32; tGoto(rf80386_pkg::IFETCH); end
 
 	//-----------------------------------------------------------------
 	// Memory Operations
@@ -68,14 +68,14 @@ rf80386_pkg::FETCH_DISP16b:
 	`MOV_AL2M,`MOV_AX2M:
 		begin
 			res <= eax;
-			ea <= seg_reg + disp16;
+			ea <= seg_reg + disp32;
 			tGoto(rf80386_pkg::STORE_DATA);
 		end
 	`MOV_M2AL,`MOV_M2AX:
 		begin
 			d <= 1'b0;
 			rrr <= 3'd0;
-			ea <= seg_reg + disp16;
+			ea <= seg_reg + disp32;
 			tGoto(rf80386_pkg::FETCH_DATA);
 		end
 
@@ -83,7 +83,7 @@ rf80386_pkg::FETCH_DISP16b:
 		if (hasFetchedData) begin
 			ir <= {4'b0,w,3'b0};
 			wrregs <= 1'b1;
-			res <= disp16;
+			res <= disp32;
 			tGoto(rf80386_pkg::IFETCH);
 		end
 		//else?
@@ -92,7 +92,7 @@ rf80386_pkg::FETCH_DISP16b:
 		begin
 			w <= ir[0];
 			tGoto(rf80386_pkg::STORE_DATA);
-			ea  <= ds_base + disp16;
+			ea  <= ds_base + disp32;
 			res <= ir[0] ? eax : {al,al,al,al};
 		end
 	default:	tGoto(rf80386_pkg::IFETCH);

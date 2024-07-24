@@ -40,6 +40,26 @@
 
 rf80386_pkg::DECODE:
 	casez(ir)
+	`OPSZ:
+		begin
+			if (cs_desc.db)
+				OperandSize = 8'd16;
+			else
+				OperandSize = 8'd32;
+			tGoto(rf80386_pkg::IFETCH);
+			end
+	`ADSZ:
+		begin
+			if (cs_desc.db)
+				AddrSize = 8'd16;
+			else
+				AddrSize = 8'd32;
+			if (ss_desc.db)
+				StkAddrSize = 8'd16;
+			else
+				StkAddrSize = 8'd32;
+			tGoto(rf80386_pkg::IFETCH);
+			end
 	`MORE1: tGoto(rf80386_pkg::XI_FETCH);
 	`MORE2: tGoto(rf80386_pkg::XI_FETCH);
 	`EXTOP: tGoto(rf80386_pkg::XI_FETCH);
@@ -64,7 +84,7 @@ rf80386_pkg::DECODE:
 		begin
 			w <= 1'b1;
 			rrr <= ir[2:0];
-			if (cs_desc.db ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
+			if (OperandSize==8'd32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
 				int_num <= 8'h0d;
 				tGoto(rf80386_pkg::INT2);
 			end
@@ -100,7 +120,7 @@ rf80386_pkg::DECODE:
 			w <= 1'b1;
 			a <= ax;
 			rrr <= 3'd0;
-			if (cs_desc.db ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
+			if (OperandSize==8'd32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
 				int_num <= 8'h0d;
 				tGoto(rf80386_pkg::INT2);
 			end
@@ -162,16 +182,16 @@ rf80386_pkg::DECODE:
 	//-----------------------------------------------------------------
 	// Stack Operations
 	//-----------------------------------------------------------------
-	`PUSH_REG: begin esp <= cs_desc.db ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSH_REG: begin esp <= OperandSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_DS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_ES: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_SS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_CS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSHF: begin esp <= cs_desc.db ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSHF: begin esp <= OperandSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSHA:
 		begin
 			tsp <= esp; 
-			if (cs_desc.db)
+			if (OperandSize==8'd32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -179,7 +199,7 @@ rf80386_pkg::DECODE:
 		end
 	`PUSHI,`PUSHI8:
 		begin
-			if (cs_desc.db)
+			if (OperandSize==8'd32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -193,7 +213,7 @@ rf80386_pkg::DECODE:
 	`POPA:	tGoto(rf80386_pkg::POPA);
 	`ENTER:	
 		begin
-			if (cs_desc.db)
+			if (OperandSize==8'd32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -201,7 +221,7 @@ rf80386_pkg::DECODE:
 		end
 	`LEAVE:
 		begin
-			if (cs_desc.db) begin
+			if (OperandSize==8'd32) begin
 				esp <= ebp;
 				ad <= ebp;
 			end
@@ -230,7 +250,22 @@ rf80386_pkg::DECODE:
 	`JCXZ: tGoto(rf80386_pkg::BRANCH1);
 	`JMPS: tGoto(rf80386_pkg::BRANCH1);
 	`JMPF: tGoto(rf80386_pkg::FETCH_OFFSET);
-	`CALL: begin esp <= sp_dec; tGoto(rf80386_pkg::FETCH_DISP16); end
+	`CALL:
+		begin
+			if (OperandSize==8'd32) begin
+				disp32 <= bundle[31:0];
+				bundle <= bundle[127:32];
+				eip <= eip + 4'd4;
+				esp <= esp - 4'd4;
+			end
+			else begin
+				disp32 <= {{16{bundle[15]}},bundle[15:0]};
+				bundle <= bundle[127:16];
+				eip[15:0] <= eip[15:0] + 4'd2;
+				esp[15:0] <= esp[15:0] - 4'd2;
+			end
+			tGoto(rf80386_pkg::FETCH_DISP16b);
+		end
 	`CALLF: begin esp <= sp_dec; tGoto(rf80386_pkg::FETCH_OFFSET); end
 	`RET: tGoto(rf80386_pkg::RETPOP);		// data16 is zero
 	`RETPOP: tGoto(rf80386_pkg::FETCH_STK_ADJ1);
@@ -301,15 +336,15 @@ rf80386_pkg::DECODE:
 	//-----------------------------------------------------------------
 	// disp16 instructions
 	//-----------------------------------------------------------------
-	`MOV_M2AL,`MOV_M2AX,`MOV_AL2M,`MOV_AX2M,`CALL,`JMP:
+	`MOV_M2AL,`MOV_M2AX,`MOV_AL2M,`MOV_AX2M,`JMP:
 		begin
 			if (cs_desc.db) begin
-				disp16 <= bundle[31:0];
+				disp32 <= bundle[31:0];
 				bundle <= bundle[127:32];
 				eip <= eip + 4'd4;
 			end
 			else begin
-				disp16 <= bundle[15:0];
+				disp32 <= {{16{bundle[15]}},bundle[15:0]};
 				bundle <= bundle[127:16];
 				eip <= eip + 4'd2;
 			end

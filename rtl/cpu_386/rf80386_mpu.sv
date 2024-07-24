@@ -25,7 +25,7 @@ wire ic_invline = 1'b0;
 wire brtgtv = 1'b0;
 wire icnop;
 wire [15:0] ip_asid=16'h0;
-wire [19:0] csip;
+wire [31:0] csip;
 wire [31:0] icpc;
 wire ihito;
 wire ihit;
@@ -61,7 +61,7 @@ uic1
 	.nop(brtgtv),
 	.nop_o(icnop),
 	.ip_asid(ip_asid),
-	.ip({20'd0,csip}),
+	.ip({6'd0,csip}),
 	.ip_o(icpc),
 	.ihit_o(ihito),
 	.ihit(ihit),
@@ -94,12 +94,13 @@ icctrl1
 	.ftam_full(ftaim_resp.rty),
 	.hit(ihit),
 //	.tlb_v(pc_tlb_v),
-	.tlb_v(1'b1),
+//	.tlb_v(1'b1),
 	.miss_vadr(ic_miss_adr),
 //	.miss_padr(pc_tlb_res),
 	.miss_padr(ic_miss_adr),
 //	.miss_asid(tlb_pc_entry.vpn.asid),
 	.miss_asid(ip_asid),
+	.miss_padr_v(1'b1),
 	.wr_ic(wr_ic),
 	.way(ic_wway),
 	.line_o(ic_line_o),

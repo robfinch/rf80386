@@ -1,0 +1,112 @@
+Sections:
+00: ".bss" (0-A)
+01: ".data" (0-A)
+02: ".text" (0-33)
+
+
+Source: "t386.asm"
+                      	     1: # t386.asm rf386 assembly language
+                      	     2: 
+                      	     3: 	.bss
+00:00000000 00        	     4: 	.space	10
+00:00000001 *
+                      	     5: 
+                      	     6: 	.data
+01:00000000 00        	     7: 	.space	10
+01:00000001 *
+                      	     8: 
+                      	     9: #	.org	0xFFFF0000
+                      	    10: 	.text
+                      	    11: #	.align	0
+                      	    12: .extern	_bootrom
+                      	    13: 
+                      	    14: _start:
+02:00000000 FA        	    15: 	cli	
+                      	    16: # initRealModeIDT
+02:00000001 31C0      	    17: 	xor %eax,%eax
+02:00000003 8ED8      	    18: 	mov %ax,%ds
+02:00000005 66B91100  	    19: 	mov $17,%cx
+                      	    20: aloop:
+                      	    21: 	movw $error,(%eax*4)
+                      	     ^-ERROR:2007
+                      	    22: 	movw $0xf000,2(%eax*4)
+                      	     ^-ERROR:2007
+02:00000009 6640      	    23: 	inc %ax
+02:0000000B E2FC      	    24: 	loop aloop
+                      	    25: 
+02:0000000D 31C0      	    26: 	xor %eax,%eax
+02:0000000F 8ED0      	    27: 	mov %ax,%ss
+02:00000011 BC0000FDFF	    28: 	mov $0xFFFD0000,%esp
+                      	    29: 
+                      	    30: #
+                      	    31: # Default exception handler and error routine
+                      	    32: #
+                      	    33: DefaultExcHandler:
+                      	    34: error:
+                      	    35: # CLI and HLT are privileged instructions, don't use them in ring3
+02:00000016 668CC8    	    36: 	mov %cs,%ax
+                      	    37: 
+                      	    38: # when in real mode, the jnz will be decoded together with test as
+                      	    39: # "test eax,0xfe750007" (66A9070075FE)
+02:00000019 66A90700  	    40: 	test $7,%ax     # 66 A9 07 00
+02:0000001D 75FE      	    41: .ring3: jnz .ring3 # 75 FE
+02:0000001F FA        	    42: 	cli
+02:00000020 F4        	    43: 	hlt
+02:00000021 EBF3      	    44: 	jmp error
+                      	    45: 
+                      	    46: 
+                      	    47: .rept 16
+                      	    48: 	nop
+                      	    49: .endr
+02:00000023 90        	     1R 	nop
+02:00000024 90        	     1R 	nop
+02:00000025 90        	     1R 	nop
+02:00000026 90        	     1R 	nop
+02:00000027 90        	     1R 	nop
+02:00000028 90        	     1R 	nop
+02:00000029 90        	     1R 	nop
+02:0000002A 90        	     1R 	nop
+02:0000002B 90        	     1R 	nop
+02:0000002C 90        	     1R 	nop
+02:0000002D 90        	     1R 	nop
+02:0000002E 90        	     1R 	nop
+02:0000002F 90        	     1R 	nop
+02:00000030 90        	     1R 	nop
+02:00000031 90        	     1R 	nop
+02:00000032 90        	     1R 	nop
+                      	    50: 	
+                      	    51: #	.type	_start,@function
+                      	    52: #	.size	_start,$-_start
+                      	    53: 
+                      	    54: #.include "Fibonacci.asm"
+                      	    55: #.include "serial.asm"
+                      	    56: #.include "xmodem.asm"
+                      	    57: #.include "bootrom.asm"
+                      	    58: 
+                      	    59: .global _disable_int
+                      	    60: .global _restore_int
+                      	    61: .extern _start_data
+                      	    62: .extern _start_rodata
+                      	    63: .extern _start_bss
+                      	    64: 
+
+
+Symbols by name:
+.ring3                          02:0000001D
+DefaultExcHandler               02:00000016
+_bootrom                        external EXP
+_disable_int                    external EXP
+_restore_int                    external EXP
+_start                          02:00000000
+_start_bss                      external EXP
+_start_data                     external EXP
+_start_rodata                   external EXP
+aloop                           02:00000009
+error                           02:00000016
+
+Symbols by value:
+00000000 _start
+00000009 aloop
+00000016 error
+00000016 DefaultExcHandler
+0000001D .ring3

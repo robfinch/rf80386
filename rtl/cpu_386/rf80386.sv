@@ -85,6 +85,9 @@ wire resn;
 wire resz;
 
 reg [2:0] cyc_type;			// type of bus sycle
+reg [7:0] OperandSize;
+reg [7:0] AddrSize;
+reg [7:0] StkAddrSize;
 reg lidt, lgdt, lmsw;
 reg lsl, ltr;
 reg sidt, sgdt, smsw;
@@ -111,13 +114,13 @@ reg [7:0] prefix1;
 reg [7:0] prefix2;
 reg [7:0] int_num;			// interrupt number to execute
 reg [63:0] dat;
-reg [15:0] seg_reg;			// segment register value for memory access
+reg [31:0] seg_reg;			// segment register value for memory access
 reg [15:0] data16;			// caches data
 reg [15:0] disp16;			// caches displacement
 reg [31:0] data32;
 reg [31:0] disp32;
 reg [31:0] offset;			// caches offset
-selector_t selector;		// caches selector
+rf80386_pkg::selector_t selector;		// caches selector
 reg [31:0] ea;				// effective address
 reg [31:0] ftmp;			// temporary frame pointer (ENTER)
 reg [39:0] desc;			// buffer for sescriptor
@@ -151,7 +154,7 @@ wire NMI = nmi_i;
 `include "REGFILE.sv"	
 `include "CONTROL_LOGIC.sv"
 `include "WHICH_SEG.sv"
-evaluate_branch u4 (ir,ecx,zf,cf,sf,vf,pf,take_br);
+evaluate_branch u4 (OperandSize==8'd32,ir,ecx,zf,cf,sf,vf,pf,take_br);
 `include "ALU.sv"
 nmi_detector u6 (rst_i, clk_i, nmi_i, rst_nmi, pe_nmi);
 
@@ -196,7 +199,19 @@ always_ff @(posedge CLK)
 		cs_desc.limit_hi <= 4'hF;
 		cs_desc.g <= 1'b1;							// 4096 bytes granularity
 		cs_desc.p <= 1'b1;							// segment is present
-		eip <= 32'h0000FFF0;
+		eip <= 32'h00000000;
+		ds <= 'd0;
+		ds_desc <= {$bits(desc386_t){1'b0}};
+		ds_desc.db <= 1'b1;							// 32-bit mode
+		ds_desc.base_lo <= 24'h000000;	// base = 0
+		ds_desc.base_hi <= 8'h00;			
+		ds_desc.limit_lo <= 16'hFFFF;		// limit = max
+		ds_desc.limit_hi <= 4'hF;
+		ds_desc.g <= 1'b1;							// 4096 bytes granularity
+		ds_desc.p <= 1'b1;							// segment is present
+		OperandSize = 8'd16;
+		AddrSize = 8'd16;
+		StkAddrSize = 8'd16;
 		ftam_req <= {$bits(fta_cmd_request128_t){1'b0}};
 		ir <= `NOP;
 		prefix1 <= 8'h00;
