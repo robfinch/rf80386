@@ -205,19 +205,8 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 		`INC_REG: alu_o <= a + 16'd1;
 		`DEC_REG: alu_o <= a - 16'd1;
 //		`IMUL: alu_o <= w ? p : wp[15:0];
-		`ALU_I2R8:
-			case(TTT)
-			3'd0:	alu_o <= a + b;			// ADD
-			3'd1:	alu_o <= a | b;			// OR
-			3'd2:	alu_o <= a + b + cf;	// ADC
-			3'd3:	alu_o <= a - b - cf;	// SBB
-			3'd4:	alu_o <= a & b;			// AND
-			3'd5:	alu_o <= a - b;			// SUB
-			3'd6:	alu_o <= a ^ b;			// XOR
-			default:	alu_o <= 32'h0000;
-			endcase
 		// ToDo: fix sign extension / extra immediate byte ?
-		`ALU_I2R16:
+		`ALU_I2R8,`ALU_I2R16,`ALU_I82R8,`ALU_I82R16:
 			case(TTT)
 			3'd0:	alu_o <= a + b;			// ADD
 			3'd1:	alu_o <= a | b;			// OR

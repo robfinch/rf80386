@@ -109,9 +109,9 @@ always_comb
 	`JLE:		take_br <= (sf ^ vf) | zf;
 	`JNLE:		take_br <= !((sf ^ vf) | zf);
 	`JCXZ:		take_br <= cxz;
-	`LOOP:		take_br <= !cxo;
-	`LOOPZ:		take_br <= !cxo && zf;
-	`LOOPNZ:	take_br <= !cxo && !zf;
+	`LOOP:		take_br <= !cxz;
+	`LOOPZ:		take_br <= !cxz && zf;
+	`LOOPNZ:	take_br <= !cxz && !zf;
 	default:	take_br <= 1'b0;
 	endcase
 

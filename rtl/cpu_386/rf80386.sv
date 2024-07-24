@@ -170,7 +170,8 @@ lfsr31 ulfsr1(rst_i, clk_i, 1'b1, 1'b0, lfsr31o);
 
 always_ff @(posedge CLK)
 	if (rst_i) begin
-		cr0 <= 'd0;
+		cr0 <= 32'd1;		// boot in protected mode
+//		cr0 <= 32'd0;		// boot in real mode
 		lidt <= 1'b0;
 		lgdt <= 1'b0;
 		lmsw <= 1'b0;
@@ -184,25 +185,42 @@ always_ff @(posedge CLK)
 		verr <= 1'b0;
 		verw <= 1'b0;
 		jccl <= 1'b0;
+		eax <= 32'h0;
+		ebx <= 32'h0;
+		ecx <= 32'h0;
+		edx <= 32'h0;
+		ebp <= 32'h0;
+		esp <= 32'h0;
+		esi <= 32'h0;
+		edi <= 32'h0;
 		pf <= 1'b0;
 		cf <= 1'b0;
 		df <= 1'b0;
 		vf <= 1'b0;
 		zf <= 1'b0;
 		ie <= 1'b0;
-		hasFetchedModrm <= 1'b0;
-		cs <= `CS_RESET;
+		cs <= 16'h0;
+		ds <= 16'h0;
+		es <= 16'h0;
+		fs <= 16'h0;
+		gs <= 16'h0;
+		ss <= 16'h0;
 		cs_desc <= {$bits(desc386_t){1'b0}};
+		ds_desc <= {$bits(desc386_t){1'b0}};
+		es_desc <= {$bits(desc386_t){1'b0}};
+		fs_desc <= {$bits(desc386_t){1'b0}};
+		gs_desc <= {$bits(desc386_t){1'b0}};
+		ss_desc <= {$bits(desc386_t){1'b0}};
+		hasFetchedModrm <= 1'b0;
+//		cs <= `CS_RESET;
 		cs_desc.db <= 1'b1;							// 32-bit mode
-		cs_desc.base_lo <= 24'hF00000;	// base = 0
-		cs_desc.base_hi <= 8'hFF;			
+		cs_desc.base_lo <= 24'h000000;	// base = 0
+		cs_desc.base_hi <= 8'h00;			
 		cs_desc.limit_lo <= 16'hFFFF;		// limit = max
 		cs_desc.limit_hi <= 4'hF;
 		cs_desc.g <= 1'b1;							// 4096 bytes granularity
 		cs_desc.p <= 1'b1;							// segment is present
-		eip <= 32'h00000000;
-		ds <= 'd0;
-		ds_desc <= {$bits(desc386_t){1'b0}};
+		eip <= 32'hFFFF0000;
 		ds_desc.db <= 1'b1;							// 32-bit mode
 		ds_desc.base_lo <= 24'h000000;	// base = 0
 		ds_desc.base_hi <= 8'h00;			
@@ -210,9 +228,9 @@ always_ff @(posedge CLK)
 		ds_desc.limit_hi <= 4'hF;
 		ds_desc.g <= 1'b1;							// 4096 bytes granularity
 		ds_desc.p <= 1'b1;							// segment is present
-		OperandSize = 8'd16;
-		AddrSize = 8'd16;
-		StkAddrSize = 8'd16;
+		OperandSize = 8'd32;
+		AddrSize = 8'd32;
+		StkAddrSize = 8'd32;
 		ftam_req <= {$bits(fta_cmd_request128_t){1'b0}};
 		ir <= `NOP;
 		prefix1 <= 8'h00;

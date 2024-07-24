@@ -42,7 +42,7 @@ rf80386_pkg::DECODE:
 	casez(ir)
 	`OPSZ:
 		begin
-			if (cs_desc.db)
+			if (cs_desc.db & ~realMode)
 				OperandSize = 8'd16;
 			else
 				OperandSize = 8'd32;
@@ -50,11 +50,11 @@ rf80386_pkg::DECODE:
 		end
 	`ADSZ:
 		begin
-			if (cs_desc.db)
+			if (cs_desc.db & ~realMode)
 				AddrSize = 8'd16;
 			else
 				AddrSize = 8'd32;
-			if (ss_desc.db)
+			if (ss_desc.db & ~realMode)
 				StkAddrSize = 8'd16;
 			else
 				StkAddrSize = 8'd32;
@@ -127,15 +127,15 @@ rf80386_pkg::DECODE:
 			else
 				tGoto(rf80386_pkg::FETCH_IMM16);
 		end
-	`ALU_I2R8:
+	`ALU_I2R8,`ALU_I2R16,`ALU_I82R8,`ALU_I82R16:
 		begin
-			tGoto(rf80386_pkg::FETCH_IMM8);
+			mod   <= bundle[7:6];
+			rrr   <= bundle[5:3];
+			sreg3 <= bundle[5:3];
+			TTT   <= bundle[5:3];
+			rm    <= bundle[2:0];
 			a <= rrro;
-		end
-	`ALU_I2R16:
-		begin
-			tGoto(rf80386_pkg::FETCH_IMM16);
-			a <= rrro;
+			tGoto(rf80386_pkg::EACALC);
 		end
 	`XCHG_AXR:
 		begin
@@ -365,20 +365,18 @@ rf80386_pkg::DECODE:
 		//-----------------------------------------------------------------
 		// MOD/RM instructions
 		//-----------------------------------------------------------------
-		$display("Fetching mod/rm, w=",w);
 		if (ir==`MOV_R2S || ir==`MOV_S2R)
 			w <= 1'b1;
 		if (ir==`LDS || ir==`LES)
 			w <= 1'b1;
 		if (fetch_modrm) begin
+			$display("Fetching mod/rm, w=",w);
 			mod   <= bundle[7:6];
 			rrr   <= bundle[5:3];
 			sreg3 <= bundle[5:3];
 			TTT   <= bundle[5:3];
 			rm    <= bundle[2:0];
-			$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
-			bundle <= bundle[127:8];
-			eip <= eip + 2'd1;
+			$display("Mod/RM=%b_%b_%b", bundle[7:6],bundle[5:3],bundle[2:0]);
 			tGoto(rf80386_pkg::EACALC);
 		end
 		else

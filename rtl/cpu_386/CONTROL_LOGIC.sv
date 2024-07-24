@@ -77,7 +77,10 @@ wire fetch_modrm =
 	ir==8'h62 ||	// BOUND
 	ir==8'h63 ||	// ARPL
 	ir==8'h69 || ir==8'h6B ||							// IMUL
-	ir[7:4]==4'h8 ||
+	ir==8'h80 || ir==8'h81 || ir==8'h82 || ir==8'h83 ||
+	ir==8'h84 || ir==8'h85 || ir==8'h86 || ir==8'h87 ||
+	ir==8'h88 || ir==8'h89 || ir==8'h8A || ir==8'h8B ||
+	ir==8'h8C || ir==8'h8D || ir==8'h8E || ir==8'h8F ||
 	(ir[7]==1'b0 && ir[6]==1'b0 && ir[2]==1'b0) ||		// arithmetic
 	(ir==8'h0F && ir2[7:4]==4'hA && ir2[2:1]==2'b10) ||
 	ir==8'hC4 || ir==8'hC5 ||							// LES / LDS

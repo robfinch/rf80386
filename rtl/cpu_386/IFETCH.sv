@@ -51,28 +51,28 @@ rf80386_pkg::IFETCH:
 	begin
 		$display("\r\n******************************************************");
 		$display("time: %d", $time);
-		$display("CSIP: %h  CS=%h", csip, cs);
-		$display("EAX=%h  ESI=%h  DS=%h", eax, esi, ds);
-		$display("EBX=%h  EDI=%h  ES=%h", ebx, edi, es);
-		$display("ECX=%h  EBP=%h  FS=%h", ecx, ebp, fs);
-		$display("EDX=%h  ESP=%h  SS=%h", edx, esp, ss);
-		$display("GS=%h", gs);
+		$display("CSIP: %h", csip);
+		$display("EAX=%h  ESI=%h", eax, esi);
+		$display("EBX=%h  EDI=%h", ebx, edi);
+		$display("ECX=%h  EBP=%h", ecx, ebp);
+		$display("EDX=%h  ESP=%h", edx, esp);
+		$display("CS=%h DS=%h ES=%h FS=%h GS=%h SS=%h", cs, ds, es, fs, gs, ss);
 		// Reset all instruction processing flags at instruction fetch
 		
 		// Default the size of operands and addresses, but not if there is a
 		// size prefix.
-		if (prefix1!=`OPSZ && prefix2!=`OPSZ) begin
-			if (cs_desc.db)
+		if (prefix1!=`OPSZ && prefix2!=`OPSZ && ir!=`OPSZ) begin
+			if (cs_desc.db & ~realMode)
 				OperandSize = 8'd32;
 			else
 				OperandSize = 8'd16;
 		end
-		if (prefix1!=`ADSZ && prefix2!=`ADSZ) begin
-			if (cs_desc.db)
+		if (prefix1!=`ADSZ && prefix2!=`ADSZ && ir!=`ADSZ) begin
+			if (cs_desc.db & ~realMode)
 				AddrSize = 8'd32;
 			else
 				AddrSize = 8'd16;
-			if (ss_desc.db)
+			if (ss_desc.db & ~realMode)
 				StkAddrSize = 8'd32;
 			else
 				StkAddrSize = 8'd16;
@@ -112,6 +112,18 @@ rf80386_pkg::IFETCH:
 		else begin
 			prefix1 <= 8'h00;
 			prefix2 <= 8'h00;
+			if (cs_desc.db & ~realMode)
+				OperandSize = 8'd32;
+			else
+				OperandSize = 8'd16;
+			if (cs_desc.db & ~realMode)
+				AddrSize = 8'd32;
+			else
+				AddrSize = 8'd16;
+			if (ss_desc.db & ~realMode)
+				StkAddrSize = 8'd32;
+			else
+				StkAddrSize = 8'd16;
 		end
 
     if (pe_nmi & checkForInts) begin

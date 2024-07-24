@@ -48,6 +48,8 @@ rf80386_pkg::EACALC:
 	begin
 
 		disp32 <= 32'h0000;
+		bundle <= bundle[127:8];
+		eip <= ip_inc;
 
 		case(mod)
 
@@ -55,80 +57,174 @@ rf80386_pkg::EACALC:
 			begin
 				tGoto(rf80386_pkg::EACALC1);
 				// ToDo: error on stack state
-				case({cs_desc.db,rm})
-				4'd0:	offset <= {16'h0,bx + si};
-				4'd1:	offset <= {16'h0,bx + di};
-				4'd2:	offset <= {16'h0,bp + si};
-				4'd3:	offset <= {16'h0,bp + di};
-				4'd4:	offset <= {16'h0,si};
-				4'd5:	offset <= {16'h0,di};
-				4'd6:	
-					begin
-						tGoto(rf80386_pkg::EACALC_DISP16);
-						offset <= 32'h0000;
-					end
-				4'd7:	offset <= {16'h0,bx};
-				4'd8:	offset <= eax;
-				4'd9:	offset <= ecx;
-				4'd10:	offset <= edx;
-				4'd11:	offset <= ebx;
-				4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
-				4'd13:	offset <= disp32;
-				4'd14:	offset <= esi;
-				4'd15:	offset <= edi;
-				endcase
+				if (realMode) begin
+					casez({AddrSize==8'd32,rm})
+					4'b0000:	offset <= {16'h0,bx + si};
+					4'b0001:	offset <= {16'h0,bx + di};
+					4'b0010:	offset <= {16'h0,bp + si};
+					4'b0011:	offset <= {16'h0,bp + di};
+					4'b0100:	offset <= {16'h0,si};
+					4'b0101:	offset <= {16'h0,di};
+					4'b0110:	
+						begin
+							tGoto(rf80386_pkg::EACALC_DISP16);
+							offset <= 32'h0000;
+						end
+					4'b0111:	offset <= {16'h0,bx};
+					4'b1000:	offset <= {ebx + esi};
+					4'b1001:	offset <= {ebx + edi};
+					4'b1010:	offset <= {ebp + esi};
+					4'b1011:	offset <= {ebp + edi};
+					4'b1100:	offset <= esi;
+					4'b1101:	offset <= edi;
+					4'b1110:	
+						begin
+							tGoto(rf80386_pkg::EACALC_DISP16);
+							offset <= 32'h0000;
+						end
+					4'b1111:	offset <= ebx;
+					endcase
+				end
+				else begin
+					casez({AddrSize==8'd32,rm})
+					4'd0:	offset <= {16'h0,ax};
+					4'd1:	offset <= {16'h0,cx};
+					4'd2:	offset <= {16'h0,dx};
+					4'd3:	offset <= {16'h0,bx};
+					4'd4:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd5:
+						begin
+							tGoto(rf80386_pkg::EACALC_DISP16);
+							offset <= 32'h0000;
+						end
+					4'd6:	offset <= {16'h0,si};
+					4'd7:	offset <= {16'h0,di};
+					4'd8:	offset <= eax;
+					4'd9:	offset <= ecx;
+					4'd10:	offset <= edx;
+					4'd11:	offset <= ebx;
+					4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd13:	offset <= disp32;
+					4'd14:	offset <= esi;
+					4'd15:	offset <= edi;
+					endcase
+				end
 			end
 
 		2'b01:
 			begin
 				tGoto(rf80386_pkg::EACALC_DISP8);
-				case({cs_desc.db,rm})
-				4'd0:	offset <= bx + si;
-				4'd1:	offset <= bx + di;
-				4'd2:	offset <= bp + si;
-				4'd3:	offset <= bp + di;
-				4'd4:	offset <= si;
-				4'd5:	offset <= di;
-				4'd6:	offset <= bp;
-				4'd7:	offset <= bx;
-				4'd8:	offset <= eax;
-				4'd9:	offset <= ecx;
-				4'd10:	offset <= edx;
-				4'd11:	offset <= ebx;
-				4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
-				4'd13:	offset <= ebp;
-				4'd14:	offset <= esi;
-				4'd15:	offset <= edi;
-				endcase
+				if (realMode) begin
+					case({AddrSize==8'd32,rm})
+					4'd0:	offset <= bx + si;
+					4'd1:	offset <= bx + di;
+					4'd2:	offset <= bp + si;
+					4'd3:	offset <= bp + di;
+					4'd4:	offset <= si;
+					4'd5:	offset <= di;
+					4'd6:	offset <= bp;
+					4'd7:	offset <= bx;
+					4'd8:	offset <= ebx + esi;
+					4'd9:	offset <= ebx + edi;
+					4'd10:	offset <= ebp + esi;
+					4'd11:	offset <= ebp + edi;
+					4'd12:	offset <= esi;
+					4'd13:	offset <= edi;
+					4'd14:	offset <= ebp;
+					4'd15:	offset <= ebx;
+					endcase
+				end
+				else begin
+					case({AddrSize==8'd32,rm})
+					4'd0:	offset <= bx + si;
+					4'd1:	offset <= bx + di;
+					4'd2:	offset <= bp + si;
+					4'd3:	offset <= bp + di;
+					4'd4:	offset <= si;
+					4'd5:	offset <= di;
+					4'd6:	offset <= bp;
+					4'd7:	offset <= bx;
+					4'd8:	offset <= eax;
+					4'd9:	offset <= ecx;
+					4'd10:	offset <= edx;
+					4'd11:	offset <= ebx;
+					4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd13:	offset <= ebp;
+					4'd14:	offset <= esi;
+					4'd15:	offset <= edi;
+					endcase
+				end
 			end
 
 		2'b10:
 			begin
 				tGoto(rf80386_pkg::EACALC_DISP16);
-				case({cs_desc.db,rm})
-				4'd0:	offset <= bx + si;
-				4'd1:	offset <= bx + di;
-				4'd2:	offset <= bp + si;
-				4'd3:	offset <= bp + di;
-				4'd4:	offset <= si;
-				4'd5:	offset <= di;
-				4'd6:	offset <= bp;
-				4'd7:	offset <= bx;
-				4'd8:	offset <= eax;
-				4'd9:	offset <= ecx;
-				4'd10:	offset <= edx;
-				4'd11:	offset <= ebx;
-				4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
-				4'd13:	offset <= ebp;
-				4'd14:	offset <= esi;
-				4'd15:	offset <= edi;
-				endcase
+				if (realMode) begin
+					case({AddrSize==8'd32,rm})
+					4'd0:	offset <= bx + si;
+					4'd1:	offset <= bx + di;
+					4'd2:	offset <= bp + si;
+					4'd3:	offset <= bp + di;
+					4'd4:	offset <= si;
+					4'd5:	offset <= di;
+					4'd6:	offset <= bp;
+					4'd7:	offset <= bx;
+					4'd8:	offset <= ebx + esi;
+					4'd9:	offset <= ebx + edi;
+					4'd10:	offset <= ebp + esi;
+					4'd11:	offset <= ebp + edi;
+					4'd12:	offset <= esi;
+					4'd13:	offset <= edi;
+					4'd14:	offset <= ebp;
+					4'd15:	offset <= ebx;
+					endcase
+				end
+				else begin
+					case({AddrSize==8'd32,rm})
+					4'd0:	offset <= bx + si;
+					4'd1:	offset <= bx + di;
+					4'd2:	offset <= bp + si;
+					4'd3:	offset <= bp + di;
+					4'd4:	offset <= si;
+					4'd5:	offset <= di;
+					4'd6:	offset <= bp;
+					4'd7:	offset <= bx;
+					4'd8:	offset <= eax;
+					4'd9:	offset <= ecx;
+					4'd10:	offset <= edx;
+					4'd11:	offset <= ebx;
+					4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd13:	offset <= ebp;
+					4'd14:	offset <= esi;
+					4'd15:	offset <= edi;
+					endcase
+				end
 			end
 
 		2'b11:
 			begin
 				tGoto(rf80386_pkg::EXECUTE);
 				case(ir)
+				`ALU_I2R8:
+					begin
+						a <= rrro;
+						tGoto(rf80386_pkg::FETCH_IMM8);
+					end
+				`ALU_I2R16:
+					begin
+						a <= rrro;
+						tGoto(rf80386_pkg::FETCH_IMM16);
+					end
+				`ALU_I82R8:
+					begin
+						a <= rrro;
+						tGoto(rf80386_pkg::FETCH_IMM8);
+					end
+				`ALU_I82R16:
+					begin
+						a <= rrro;
+						tGoto(rf80386_pkg::FETCH_IMM8);
+					end
 				`MOV_I8M:
 					begin
 						rrr <= rm;
@@ -222,7 +318,7 @@ rf80386_pkg::EACALC_SIB1:
 rf80386_pkg::EACALC_DISP16:
 	begin
 		disp32[15:0] <= bundle[15:0];
-		if (OperandSize==8'd32) begin
+		if (AddrSize==8'd32) begin
 			disp32[31:16] <= bundle[31:16];
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;

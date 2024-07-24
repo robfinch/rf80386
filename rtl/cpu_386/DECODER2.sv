@@ -95,8 +95,6 @@ rf80386_pkg::DECODER2:
 					TTT   <= bundle[5:3];
 					rm    <= bundle[2:0];
 					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
-					bundle <= bundle[127:8];
-					eip <= eip + 2'd1;
 					tGoto(rf80386_pkg::EACALC);
 				end
 			`BSF,`BSR,`BT,`BTCI,`BTR,`BTS:
@@ -107,8 +105,6 @@ rf80386_pkg::DECODER2:
 					TTT   <= bundle[5:3];
 					rm    <= bundle[2:0];
 					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
-					bundle <= bundle[127:7];
-					eip <= eip + 4'd1;
 					tGoto(rf80386_pkg::EACALC);		// override state transition
 				end
 			`LxDT:
@@ -126,8 +122,6 @@ rf80386_pkg::DECODER2:
 					TTT   <= bundle[5:3];
 					rm    <= bundle[2:0];
 					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
-					bundle <= bundle[127:8];
-					eip <= eip + 4'd1;
 					tGoto(rf80386_pkg::EACALC);		// override state transition
 				end
 			`LLDT:
@@ -144,8 +138,6 @@ rf80386_pkg::DECODER2:
 					TTT   <= bundle[5:3];
 					rm    <= bundle[2:0];
 					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
-					bundle <= bundle[127:8];
-					eip <= eip + 4'd1;
 					tGoto(rf80386_pkg::EACALC);		// override state transition
 				end
 			`BSWAP:

@@ -56,7 +56,7 @@ rf80386_pkg::FETCH_IMM8:
 
 rf80386_pkg::FETCH_IMM16:
 	begin
-		if (cs_desc.db) begin
+		if (OperandSize==8'd32) begin
 			b <= bundle[31:0];
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;
