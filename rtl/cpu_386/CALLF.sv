@@ -49,7 +49,7 @@ rf80386_pkg::CALLF1:
 	end
 rf80386_pkg::CALLF2:
 	begin
-		if (cs_desc.db)
+		if (StkAddrSize==8'd32)
 			esp <= esp - 4'd4;
 		else
 			esp <= esp - 4'd2;
@@ -59,7 +59,7 @@ rf80386_pkg::CALLF3:
 	begin
 		ad <= sssp;
 		dat <= eip;
-		if (cs_desc.db)
+		if (StkAddrSize==8'd32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;

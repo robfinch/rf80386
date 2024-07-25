@@ -130,11 +130,10 @@ rf80386_pkg::DECODE:
 	`ALU_I2R8,`ALU_I2R16,`ALU_I82R8,`ALU_I82R16:
 		begin
 			mod   <= bundle[7:6];
-			rrr   <= bundle[5:3];
+			rrr   <= bundle[2:0];
 			sreg3 <= bundle[5:3];
 			TTT   <= bundle[5:3];
 			rm    <= bundle[2:0];
-			a <= rrro;
 			tGoto(rf80386_pkg::EACALC);
 		end
 	`XCHG_AXR:
@@ -182,16 +181,16 @@ rf80386_pkg::DECODE:
 	//-----------------------------------------------------------------
 	// Stack Operations
 	//-----------------------------------------------------------------
-	`PUSH_REG: begin esp <= OperandSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSH_REG: begin esp <= StkAddrSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_DS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_ES: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_SS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_CS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSHF: begin esp <= OperandSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSHF: begin esp <= StkAddrSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSHA:
 		begin
 			tsp <= esp; 
-			if (OperandSize==8'd32)
+			if (StkAddrSize==8'd32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -199,7 +198,7 @@ rf80386_pkg::DECODE:
 		end
 	`PUSHI,`PUSHI8:
 		begin
-			if (OperandSize==8'd32)
+			if (StkAddrSize==8'd32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -252,21 +251,19 @@ rf80386_pkg::DECODE:
 	`JMPF: tGoto(rf80386_pkg::FETCH_OFFSET);
 	`CALL:
 		begin
-			if (OperandSize==8'd32) begin
+			if (AddrSize==8'd32) begin
 				disp32 <= bundle[31:0];
 				bundle <= bundle[127:32];
 				eip <= eip + 4'd4;
-				esp <= esp - 4'd4;
 			end
 			else begin
 				disp32 <= {{16{bundle[15]}},bundle[15:0]};
 				bundle <= bundle[127:16];
 				eip[15:0] <= eip[15:0] + 4'd2;
-				esp[15:0] <= esp[15:0] - 4'd2;
 			end
 			tGoto(rf80386_pkg::FETCH_DISP16b);
 		end
-	`CALLF: begin esp <= sp_dec; tGoto(rf80386_pkg::FETCH_OFFSET); end
+	`CALLF: begin tGoto(rf80386_pkg::FETCH_OFFSET); end
 	`RET: tGoto(rf80386_pkg::RETPOP);		// data16 is zero
 	`RETPOP: tGoto(rf80386_pkg::FETCH_STK_ADJ1);
 	`RETF: tGoto(rf80386_pkg::RETFPOP);	// data16 is zero

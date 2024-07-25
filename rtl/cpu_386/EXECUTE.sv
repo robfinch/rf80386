@@ -77,7 +77,18 @@ rf80386_pkg::EXECUTE:
 		`DAA:
 			tGoto(rf80386_pkg::IFETCH);
 
-		`ALU_I2R8,`ALU_I2R16,`ALU_I82R8,`ALU_I82R16,
+		`ALU_I2R8,`ALU_I2R16,`ALU_I82R8,`ALU_I82R16:
+			begin
+				tGoto(rf80386_pkg::IFETCH);
+				wrregs <= TTT!=3'd7;	// CMP does not update regs
+				res <= alu_o;
+				pf <= pres;
+				af <= carry   (1'b0,a[3],b[3],alu_o[3]);
+				cf <= carry   (1'b0,amsb,bmsb,resn);
+				vf <= overflow(1'b0,amsb,bmsb,resn);
+				sf <= resn;
+				zf <= resz;
+			end
 		`ADD,`ADD_ALI8,`ADD_AXI16,`ADC,`ADC_ALI8,`ADC_AXI16:
 			begin
 				tGoto(rf80386_pkg::IFETCH);

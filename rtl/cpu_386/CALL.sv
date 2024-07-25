@@ -37,7 +37,7 @@
 
 rf80386_pkg::CALL:
 	begin
-		if (cs_desc.db)
+		if (StkAddrSize==8'd32)
 			esp <= esp - 4'd4;
 		else
 			esp <= esp - 4'd2;
@@ -47,7 +47,7 @@ rf80386_pkg::CALL1:
 	begin
 		ad <= sssp;
 		dat <= eip;
-		if (cs_desc.db)
+		if (StkAddrSize==8'd32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;
@@ -55,6 +55,6 @@ rf80386_pkg::CALL1:
 	end
 rf80386_pkg::CALL2:
 	begin
-		eip <= eip + disp16;
+		eip <= eip + disp32;
 		tGoto(rf80386_pkg::IFETCH);
 	end

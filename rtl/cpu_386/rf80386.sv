@@ -228,6 +228,13 @@ always_ff @(posedge CLK)
 		ds_desc.limit_hi <= 4'hF;
 		ds_desc.g <= 1'b1;							// 4096 bytes granularity
 		ds_desc.p <= 1'b1;							// segment is present
+		ss_desc.db <= 1'b1;							// 32-bit mode
+		ss_desc.base_lo <= 24'h000000;	// base = 0
+		ss_desc.base_hi <= 8'h00;			
+		ss_desc.limit_lo <= 16'hFFFF;		// limit = max
+		ss_desc.limit_hi <= 4'hF;
+		ss_desc.g <= 1'b1;							// 4096 bytes granularity
+		ss_desc.p <= 1'b1;							// segment is present
 		OperandSize = 8'd32;
 		AddrSize = 8'd32;
 		StkAddrSize = 8'd32;

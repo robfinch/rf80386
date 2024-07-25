@@ -207,22 +207,22 @@ rf80386_pkg::EACALC:
 				case(ir)
 				`ALU_I2R8:
 					begin
-						a <= rrro;
+						a <= rmo;
 						tGoto(rf80386_pkg::FETCH_IMM8);
 					end
 				`ALU_I2R16:
 					begin
-						a <= rrro;
+						a <= rmo;
 						tGoto(rf80386_pkg::FETCH_IMM16);
 					end
 				`ALU_I82R8:
 					begin
-						a <= rrro;
+						a <= rmo;
 						tGoto(rf80386_pkg::FETCH_IMM8);
 					end
 				`ALU_I82R16:
 					begin
-						a <= rrro;
+						a <= rmo;
 						tGoto(rf80386_pkg::FETCH_IMM8);
 					end
 				`MOV_I8M:

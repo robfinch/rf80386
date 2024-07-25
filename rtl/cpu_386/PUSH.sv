@@ -38,7 +38,7 @@
 rf80386_pkg::PUSH:
 	begin
 		// Note SP is predecremented at the decode stage
-		if (cs_desc.db)
+		if (AddrSize==8'd32)
 			case(ir)
 			`EXTOP:			
 				case(ir2)

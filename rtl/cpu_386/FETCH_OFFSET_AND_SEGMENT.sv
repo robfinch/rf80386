@@ -47,7 +47,7 @@
 
 rf80386_pkg::FETCH_OFFSET:
 	begin
-		if (cs_desc.db) begin
+		if (AddrSize==8'd32) begin
 			{selector[15:0],offset[31:0]} <= bundle[47:0];
 			bundle <= bundle[127:48];
 			eip <= eip + 4'd6;

@@ -237,7 +237,7 @@ begin
 	3'd1:	sndx = ecx << sib[7:6];
 	3'd2: sndx = edx << sib[7:6];
 	3'd3:	sndx = ebx << sib[7:6];
-	3'd4: sndx = esp << sib[7:6];
+	3'd4: sndx = 32'h0;
 	3'd5:	sndx = ebp << sib[7:6];
 	3'd6: sndx = esi << sib[7:6];
 	3'd7:	sndx = edi << sib[7:6];

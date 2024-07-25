@@ -215,7 +215,7 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 			3'd4:	alu_o <= a & b;			// AND
 			3'd5:	alu_o <= a - b;			// SUB
 			3'd6:	alu_o <= a ^ b;			// XOR
-			default:	alu_o <= 32'h0000;
+			3'd7:	alu_o <= a - b;			// CMP
 			endcase
 		8'hF6,8'hF7:
 			begin
