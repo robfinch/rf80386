@@ -48,6 +48,8 @@ rf80386_pkg::EACALC:
 	begin
 
 		disp32 <= 32'h0000;
+		
+		// Absorb mod/rm
 		bundle <= bundle[127:8];
 		eip <= ip_inc;
 
@@ -204,7 +206,7 @@ rf80386_pkg::EACALC:
 		2'b11:
 			begin
 				tGoto(rf80386_pkg::EXECUTE);
-				case(ir)
+				casez(ir)
 				`ALU_I2R8:
 					begin
 						a <= rmo;
@@ -276,11 +278,24 @@ rf80386_pkg::EACALC:
 					end
 					else
 						b <= rmo;
-				default:
-				    begin
-						if (d) begin
+				`CMP:
+					begin
+						if (~d) begin
 							a <= rmo;
 							b <= rrro;
+						end
+						else begin
+							a <= rrro;
+							b <= rmo;
+						end
+					end
+				default:
+				  begin
+						// d=1 value goes to register, d=0 value comes from reg.
+						if (~d) begin
+							a <= rmo;
+							b <= rrro;
+							rrr <= rm;
 						end
 						else begin
 							a <= rrro;

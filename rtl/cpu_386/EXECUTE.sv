@@ -348,7 +348,13 @@ rf80386_pkg::EXECUTE:
 				rrr <= 3'd0;
 				tGoto(rf80386_pkg::IFETCH);
 			end
-		`MOV_RR8,`MOV_RR16,
+		`MOV_RR8,`MOV_RR16:
+			begin
+				tGoto(rf80386_pkg::IFETCH);
+				wrregs <= 1'b1;
+				rrr <= rm;
+				res <= alu_o;
+			end
 		`MOV_MR,
 		`MOV_M2AL,`MOV_M2AX,
 		`MOV_I2AL,`MOV_I2DL,`MOV_I2CL,`MOV_I2BL,`MOV_I2AH,`MOV_I2DH,`MOV_I2CH,`MOV_I2BH,
@@ -621,7 +627,7 @@ rf80386_pkg::EXECUTE:
 				default:
 					begin
 						af <= carry   (1'b0,a[3],b[3],alu_o[3]);
-						if (cs_desc.db)
+						if (OperandSize==8'd32)
 							vf <= overflow(1'b0,a[31],b[31],alu_o[31]);
 						else
 							vf <= overflow(1'b0,a[15],b[15],alu_o[15]);

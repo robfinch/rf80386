@@ -154,7 +154,7 @@ always_comb
 
 // Second Read port
 //
-always_ff @(posedge clk_i)
+always_comb
 	case({w,rm})
 	4'd0:	rmo <= {{24{eax[7]}},eax[7:0]};
 	4'd1:	rmo <= {{24{ecx[7]}},ecx[7:0]};

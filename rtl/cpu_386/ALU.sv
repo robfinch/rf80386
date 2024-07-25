@@ -184,8 +184,9 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 		casez(ir)
 		`MOV_M2AL,`MOV_M2AX,`LDS,`LES:
 			alu_o <= a;
+		`MOV_RR8,`MOV_RR16:
+			alu_o <= b;
 		`MOV_MR,`MOV_R2S,
-		`MOV_RR8,`MOV_RR16,
 		`MOV_I8M,`MOV_I16M,
 		`MOV_I2AL,`MOV_I2DL,`MOV_I2CL,`MOV_I2BL,`MOV_I2AH,`MOV_I2DH,`MOV_I2CH,`MOV_I2BH,
 		`MOV_I2AX,`MOV_I2DX,`MOV_I2CX,`MOV_I2BX,`MOV_I2SP,`MOV_I2BP,`MOV_I2SI,`MOV_I2DI:
@@ -200,7 +201,8 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 		`TEST,`TEST_ALI8,`TEST_AXI16: alu_o <= a & b;
 		`OR, `OR_ALI8, `OR_AXI16:  alu_o <= a | b;
 		`XOR,`XOR_ALI8,`XOR_AXI16: alu_o <= a ^ b;
-		`CMP,`CMP_ALI8,`CMP_AXI16: alu_o <= a - b;
+		`CMP:	alu_o <= a - b;
+		`CMP_ALI8,`CMP_AXI16: alu_o <= a - b;
 		`SCASB,`SCASW,`CMPSB,`CMPSW: alu_o <= a - b;
 		`INC_REG: alu_o <= a + 16'd1;
 		`DEC_REG: alu_o <= a - 16'd1;
@@ -339,10 +341,10 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 	end
 
 assign pres = ~^alu_o[7:0];
-assign reszw = cs_desc.db ? alu_o==32'h0000 : alu_o[15:0]==16'h0000;
+assign reszw = OperandSize==8'd32 ? alu_o==32'h0000 : alu_o[15:0]==16'h0000;
 assign reszb = alu_o[7:0]==8'h00;
 assign resnb = alu_o[7];
-assign resnw = cs_desc.db ? alu_o[31] : alu_o[15];
+assign resnw = OperandSize==8'd32 ? alu_o[31] : alu_o[15];
 
 assign resz = w ? reszw : reszb;
 assign resn = w ? resnw : resnb;
