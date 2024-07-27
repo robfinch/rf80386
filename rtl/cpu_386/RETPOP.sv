@@ -42,12 +42,12 @@
 rf80386_pkg::RETPOP:
 	begin
 		ad <= sssp;
-		sel <= cs_desc.db ? 16'h000F : 16'h0003;
+		sel <= AddrSize==8'd32 ? 16'h000F : 16'h0003;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETPOP_NACK);
 	end
 rf80386_pkg::RETPOP_NACK:
 	begin
-		if (cs_desc.db) begin
+		if (AddrSize==8'd32) begin
 			esp <= esp + 4'd4;
 			eip <= dat[31:0];
 		end
@@ -60,8 +60,13 @@ rf80386_pkg::RETPOP_NACK:
 rf80386_pkg::RETPOP1:
 	begin
 		tGoto(rf80386_pkg::IFETCH);
-		wrregs <= 1'b1;
-		w <= 1'b1;
-		rrr <= 3'd4;
-		res <= esp + data32;
+		if (ir==`RETPOP) begin
+			wrregs <= 1'b1;
+			w <= 1'b1;
+			rrr <= 3'd4;
+			if (OperandSize==8'd32)
+				res <= esp + {bundle[15:0],1'b0};
+			else
+				res <= esp + bundle[15:0];
+		end
 	end

@@ -13,9 +13,20 @@ CFLAGS = -w -S -fno-exceptions -a21 -finline0
 #
 
 TEST:
+	del bootrom.bin
 	del t386.bin
-	vasmx86_std_win32.exe -Fvobj -Lbpl=5 -L t386.lst -mi386 t386.asm -o t386.o
-	vlink -M -T t386.cmd -brawbin1 t386.o -o rom.bin
+	vbcci386 $(CFLAGS2) ..\boot\bootrom.c
+	vbcci386 $(CFLAGS2) ..\boot\debug.c
+	vbcci386 $(CFLAGS2) Fibonacci.c
+	copy ..\boot\bootrom.asm .
+	copy ..\boot\debug.asm .
+	vasmx86_std.exe -Fvobj -Lbpl=5 -L bootrom.lst -mi386 bootrom.asm -o bootrom.o
+	vasmx86_std.exe -Fvobj -Lbpl=5 -L debug.lst -mi386 debug.asm -o debug.o
+	vasmx86_std.exe -Fvobj -Lbpl=5 -L dbg.lst -mi386 dbg.asm -o dbg.o
+	vasmx86_std.exe -Fvobj -Lbpl=5 -L t386.lst -mi386 t386.asm -o t386.o
+	vasmx86_std.exe -Fvobj -L fibonacci.lst fibonacci.asm -o fibonacci.o
+	vlink -M -T t386.cmd -brawbin1 t386.o bootrom.o debug.o dbg.o -o rom.bin
+#	vlink -M -T t386.cmd -brawbin1 t386.o Fibonacci.o -o rom.bin
 	bin2ver rom.bin -b128 m -mod65536
 	bin2ver rom.bin -b128 -mod65536
 

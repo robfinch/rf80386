@@ -1,5 +1,7 @@
 # t386.asm rf386 assembly language
 
+	.set POST_PORT,0x190
+
 	.bss
 	.space	10
 
@@ -8,24 +10,34 @@
 
 #	.org	0xFFFF0000
 	.text
+	.code32
 #	.align	0
 .extern	_bootrom
+.extern _Fibonacci
+
+.include "x86_e.asm"
+.include "macros_m.asm"
 
 _start:
 	cli	
-# initRealModeIDT
-	xor %eax,%eax
-	mov %ax,%ds
+# init IDT
 	mov $17,%cx
-aloop:
-	movw $error,(%eax*4)
-	movw $0xf000,2(%eax*4)
-	inc %ax
-	loop aloop
+	movl $error,%edx
+	movl $0xfff90000,%eax
+	movl $error,%edx
+.aloop:
+	movw %dx,(%eax)
+	movw $0xf000,2(%eax)
+#	movw $error,(,%eax,4)
+#	movw $0xf000,2(,%eax,4)
+	addl $4,%eax
+	loop .aloop
 
-	xor %eax,%eax
-	mov %ax,%ss
 	mov $0xFFFD0000,%esp
+	jmp _bootrom
+
+#	pushl $10
+#	call _Fibonacci
 
 #
 # Default exception handler and error routine

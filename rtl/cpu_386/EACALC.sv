@@ -93,7 +93,11 @@ rf80386_pkg::EACALC:
 					4'd1:	offset <= {16'h0,cx};
 					4'd2:	offset <= {16'h0,dx};
 					4'd3:	offset <= {16'h0,bx};
-					4'd4:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd4:	
+						begin
+							tGoto(rf80386_pkg::EACALC_SIB);
+							offset <= 32'h0000;
+						end
 					4'd5:
 						begin
 							tGoto(rf80386_pkg::EACALC_DISP16);
@@ -105,8 +109,16 @@ rf80386_pkg::EACALC:
 					4'd9:	offset <= ecx;
 					4'd10:	offset <= edx;
 					4'd11:	offset <= ebx;
-					4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
-					4'd13:	offset <= disp32;
+					4'd12:
+						begin
+							tGoto(rf80386_pkg::EACALC_SIB);
+							offset <= 32'h0000;
+						end
+					4'd13:
+						begin
+							tGoto(rf80386_pkg::EACALC_DISP16);
+							offset <= 32'h0000;
+						end
 					4'd14:	offset <= esi;
 					4'd15:	offset <= edi;
 					endcase
@@ -150,7 +162,11 @@ rf80386_pkg::EACALC:
 					4'd9:	offset <= ecx;
 					4'd10:	offset <= edx;
 					4'd11:	offset <= ebx;
-					4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd12:
+						begin
+							tGoto(rf80386_pkg::EACALC_SIB);
+							offset <= 32'h0000;
+						end
 					4'd13:	offset <= ebp;
 					4'd14:	offset <= esi;
 					4'd15:	offset <= edi;
@@ -195,7 +211,11 @@ rf80386_pkg::EACALC:
 					4'd9:	offset <= ecx;
 					4'd10:	offset <= edx;
 					4'd11:	offset <= ebx;
-					4'd12:	tGoto(rf80386_pkg::EACALC_SIB);
+					4'd12:
+						begin
+							tGoto(rf80386_pkg::EACALC_SIB);
+							offset <= 32'h0000;
+						end
 					4'd13:	offset <= ebp;
 					4'd14:	offset <= esi;
 					4'd15:	offset <= edi;
@@ -207,6 +227,7 @@ rf80386_pkg::EACALC:
 			begin
 				tGoto(rf80386_pkg::EXECUTE);
 				casez(ir)
+				`SHI8,`SHI16,
 				`ALU_I2R8:
 					begin
 						a <= rmo;
@@ -460,7 +481,7 @@ rf80386_pkg::EACALC1:
 					case(rrr)
 					3'b011: tGoto(rf80386_pkg::CALLF);	// CAll FAR indirect
 					3'b101: tGoto(rf80386_pkg::JUMP_VECTOR1);	// JMP FAR indirect
-					3'b110:	begin d <= 1'b0; tGoto(rf80386_pkg::FETCH_DATA); end// for a push
+					3'b110:	begin d <= 1'b0; tGoto(rf80386_pkg::PUSH); end// for a push
 					default: ;
 					endcase
 				end

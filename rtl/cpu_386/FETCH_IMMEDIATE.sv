@@ -48,27 +48,31 @@
 
 rf80386_pkg::FETCH_IMM8:
 	begin
-		case(ir)
-		`ALU_I2R8:
-			begin
-				a <= rmo;
-			end
-		`ALU_I2R16:
-			begin
-				a <= rmo;
-			end
-		`ALU_I82R8:
-			begin
-				a <= rmo;
-			end
-		`ALU_I82R16:
-			begin
-				a <= rmo;
-			end
-		default:	;
-		endcase
-
-		b <= {{24{bundle[7]}},bundle[7:0]};
+		if (ir==`SHI8 || ir==`SHI16) begin
+			shftamt <= bundle[4:0];
+		end
+		else begin
+			case(ir)
+			`ALU_I2R8:
+				begin
+					a <= rmo;
+				end
+			`ALU_I2R16:
+				begin
+					a <= rmo;
+				end
+			`ALU_I82R8:
+				begin
+					a <= rmo;
+				end
+			`ALU_I82R16:
+				begin
+					a <= rmo;
+				end
+			default:	;
+			endcase
+			b <= {{24{bundle[7]}},bundle[7:0]};
+		end
 		bundle <= bundle[127:8];
 		eip <= eip + 2'd1;
 		tGoto(rf80386_pkg::EXECUTE);

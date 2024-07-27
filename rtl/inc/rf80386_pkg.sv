@@ -144,6 +144,8 @@ package rf80386_pkg;
 `define ARPL	8'h63
 `define FS		8'h64
 `define GS		8'h65
+`define OPSZ	8'h66
+`define ADSZ	8'h67
 `define PUSHI	8'h68
 `define IMULI	8'h69
 `define PUSHI8	8'h6A
@@ -186,6 +188,8 @@ package rf80386_pkg;
 
 `define ALU_I2R8	8'h80
 `define ALU_I2R16	8'h81
+`define ALU_I82R8	8'h82
+`define ALU_I82R16 8'h83
 `define TEST        8'b1000010?
 `define XCHG_MEM	8'h86
 `define MOV_RR8		8'h88
@@ -643,20 +647,24 @@ typedef enum logic [8:0] {
 
 	LOAD,
 	LOAD_ACK,
+	LOAD1,
 	LOAD2,
 	LOAD2_ACK,
 	STORE,
 	STORE_ACK,
+	STORE1,
 	STORE2,
 	STORE2_ACK,
 	IRQ_LOAD,
 	IRQ_LOAD_ACK,
 	LOAD_IO,
 	LOAD_IO_ACK,
+	LOAD_IO1,
 	LOAD_IO2,
 	LOAD_IO2_ACK,
 	STORE_IO,
 	STORE_IO_ACK,
+	STORE_IO1,
 	STORE_IO2,
 	STORE_IO2_ACK,
 

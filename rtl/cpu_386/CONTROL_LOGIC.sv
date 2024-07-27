@@ -83,9 +83,9 @@ wire fetch_modrm =
 	ir==8'h8C || ir==8'h8D || ir==8'h8E || ir==8'h8F ||
 	(ir[7]==1'b0 && ir[6]==1'b0 && ir[2]==1'b0) ||		// arithmetic
 	(ir==8'h0F && ir2[7:4]==4'hA && ir2[2:1]==2'b10) ||
+	ir==8'hC0 || ir==8'hC1 ||							// shift / rotate
 	ir==8'hC4 || ir==8'hC5 ||							// LES / LDS
 	ir==8'hC6 || ir==8'hC7 || 							// MOV I
-	ir==8'hC0 || ir==8'hC1 ||							// shift / rotate
 	ir==8'hD0 || ir==8'hD1 || ir==8'hD2 || ir==8'hD3 ||	// shift / rotate
 	ir==8'hF6 || ir==8'hF7 ||							// NOT / NEG / TEST / MUL / IMUL / DIV / IDIV
 	ir==8'hFE || ir==8'hFF								// INC / DEC / CALL

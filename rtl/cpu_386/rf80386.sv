@@ -142,6 +142,7 @@ reg cyc_done;
 reg [31:0] tsp;
 reg [31:0] sndx;		// scaled index
 int_gate386_t igate;
+reg [3:0] tid;
 
 reg nmi_armed;
 reg rst_nmi;				// reset the nmi flag
@@ -170,6 +171,7 @@ lfsr31 ulfsr1(rst_i, clk_i, 1'b1, 1'b0, lfsr31o);
 
 always_ff @(posedge CLK)
 	if (rst_i) begin
+		tid <= 4'd1;
 		cr0 <= 32'd1;		// boot in protected mode
 //		cr0 <= 32'd0;		// boot in real mode
 		lidt <= 1'b0;
@@ -393,10 +395,23 @@ endtask
 
 task tClearBus;
 begin
+	ftam_req.cmd <= fta_bus_pkg::CMD_NONE;
+	ftam_req.tid.tranid <= 4'd0;
 	ftam_req.cyc <= LOW;
 	ftam_req.stb <= LOW;
 	ftam_req.we <= LOW;
 	ftam_req.sel <= 16'h0;
+end
+endtask
+
+task tSetTid;
+begin
+	ftam_req.tid.tranid <= tid + 2'd1;
+	tid <= tid + 2'd1;
+	if (tid==4'd15) begin
+		ftam_req.tid.tranid <= 4'd1;
+		tid <= 4'd1;
+	end
 end
 endtask
 

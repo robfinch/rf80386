@@ -125,6 +125,9 @@ rf80386 #(.CORENO(CORENO), .CID(1)) ucpu1
 // External bus arbiter. Simple priority encoded.
 
 always_comb
+	ftatm_req <= 'd0;
+
+always_comb
 begin
 	
 	ftatm_resp = {$bits(fta_cmd_response128_t){1'd0}};
@@ -161,7 +164,7 @@ begin
 	
 end
 
-always_ff @(posedge clk)
+always_comb	//ff @(posedge clk)
 	if (ftatm_req.cyc)
 		fta_req <= ftatm_req;
 	else if (ftaim_req.cyc)

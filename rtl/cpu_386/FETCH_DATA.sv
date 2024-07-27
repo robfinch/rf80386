@@ -57,7 +57,7 @@ rf80386_pkg::FETCH_DATA:
 	end
 rf80386_pkg::FETCH_DATA1:
 	begin
-		if (cs_desc.db) begin
+		if (OperandSize==8'd32) begin
 			if (ir==`BOUND) begin
 				a <= dat[31:0];
 				b <= dat[63:32];
@@ -123,8 +123,8 @@ rf80386_pkg::FETCH_DATA1:
 		8'h80:	tGoto(rf80386_pkg::FETCH_IMM8);
 		8'h81:	tGoto(rf80386_pkg::FETCH_IMM16);
 		8'h83:	tGoto(rf80386_pkg::FETCH_IMM8);
-		8'hC0:	tGoto(rf80386_pkg::FETCH_IMM8);
-		8'hC1:	tGoto(rf80386_pkg::FETCH_IMM8);
+		`SHI8:	tGoto(rf80386_pkg::FETCH_IMM8);
+		`SHI16:	tGoto(rf80386_pkg::FETCH_IMM8);
 		8'hC6:	tGoto(rf80386_pkg::FETCH_IMM8);
 		8'hC7:	tGoto(rf80386_pkg::FETCH_IMM16);
 		8'hF6:	tGoto(rf80386_pkg::FETCH_IMM8);

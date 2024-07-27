@@ -64,10 +64,15 @@ rf80386_pkg::RETFPOP1:
 	end
 rf80386_pkg::RETFPOP2:
 	begin
-		wrregs <= 1'b1;
-		w <= 1'b1;
-		rrr <= 3'd4;
-		res <= esp + data32;
+		if (ir==`RETFPOP) begin
+			wrregs <= 1'b1;
+			w <= 1'b1;
+			rrr <= 3'd4;
+			if (OperandSize==8'd32)
+				res <= esp + {bundle[15:0],1'b0};
+			else
+				res <= esp + bundle[15:0];
+		end
 		cs <= selector;
 		if (cs != selector)
 			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);

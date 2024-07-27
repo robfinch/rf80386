@@ -352,13 +352,6 @@ rf80386_pkg::DECODE:
 		begin
 		if (v) shftamt <= cl[4:0];
 		else shftamt <= 4'd1;
-		case(ir)
-		8'hC0,8'hC1:
-			begin
-				shftamt <= bundle[7:0];
-				eip <= eip + 2'd1;
-			end
-		endcase
 		//-----------------------------------------------------------------
 		// MOD/RM instructions
 		//-----------------------------------------------------------------

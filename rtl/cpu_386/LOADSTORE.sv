@@ -40,6 +40,8 @@
 rf80386_pkg::LOAD:
 	begin
 		ea <= ad;
+		tSetTid();
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -54,15 +56,16 @@ rf80386_pkg::LOAD:
 		tGoto(rf80386_pkg::LOAD_ACK);
 	end
 rf80386_pkg::LOAD_ACK:
-	if (ftam_resp.ack) begin
+	if (ftam_resp.ack && ftam_resp.tid.tranid==tid) begin
 		dat <= (ftam_resp.dat >> {ad[3:0],3'b0}) & ls_mask;
 		if (|sel_shift[19:16])
 			tGoto(rf80386_pkg::LOAD2);
 		else
 			tReturn();
 	end
-	else if (rty_i && !cyc_done) begin
+	else if (rty_i) begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -80,6 +83,8 @@ rf80386_pkg::LOAD_ACK:
 rf80386_pkg::LOAD2:
 	begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		tSetTid();
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -94,12 +99,13 @@ rf80386_pkg::LOAD2:
 		tGoto(rf80386_pkg::LOAD2_ACK);
 	end
 rf80386_pkg::LOAD2_ACK:
-	if (ftam_resp.ack) begin
+	if (ftam_resp.ack && ftam_resp.tid.tranid==tid) begin
 		dat <= (dat | (ftam_resp.dat << {5'd16-ad[3:0],3'b0})) & ls_mask;
 		tReturn();
 	end
-	else if (rty_i && !cyc_done) begin
+	else if (rty_i) begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -118,6 +124,7 @@ rf80386_pkg::LOAD2_ACK:
 rf80386_pkg::STORE:
 	begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -135,6 +142,7 @@ rf80386_pkg::STORE:
 rf80386_pkg::STORE_ACK:
 	if (rty_i) begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -157,6 +165,7 @@ rf80386_pkg::STORE_ACK:
 rf80386_pkg::STORE2:
 	begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -173,6 +182,7 @@ rf80386_pkg::STORE2:
 rf80386_pkg::STORE2_ACK:
 	if (rty_i) begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::CLASSIC;
@@ -191,6 +201,8 @@ rf80386_pkg::STORE2_ACK:
 rf80386_pkg::IRQ_LOAD:
 	begin
 		ea <= ad;
+		tSetTid();
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IRQA;
@@ -205,12 +217,13 @@ rf80386_pkg::IRQ_LOAD:
 		tGoto(rf80386_pkg::IRQ_LOAD_ACK);
 	end
 rf80386_pkg::IRQ_LOAD_ACK:
-	if (ftam_resp.ack) begin
+	if (ftam_resp.ack && ftam_resp.tid.tranid==tid) begin
 		dat <= ftam_resp.dat[7:0];
 		tReturn();
 	end
-	else if (rty_i && !cyc_done) begin
+	else if (rty_i) begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IRQA;
@@ -229,6 +242,8 @@ rf80386_pkg::IRQ_LOAD_ACK:
 rf80386_pkg::LOAD_IO:
 	begin
 		ea <= ad;
+		tSetTid();
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -243,15 +258,16 @@ rf80386_pkg::LOAD_IO:
 		tGoto(rf80386_pkg::LOAD_IO_ACK);
 	end
 rf80386_pkg::LOAD_IO_ACK:
-	if (ftam_resp.ack) begin
+	if (ftam_resp.ack && ftam_resp.tid.tranid==tid) begin
 		dat <= (ftam_resp.dat >> {ad[3:0],3'b0}) & ls_mask;
 		if (|sel_shift[19:16])
 			tGoto(rf80386_pkg::LOAD2);
 		else
 			tReturn();
 	end
-	else if (rty_i && !cyc_done) begin
+	else if (rty_i) begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -269,6 +285,8 @@ rf80386_pkg::LOAD_IO_ACK:
 rf80386_pkg::LOAD_IO2:
 	begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		tSetTid();
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -283,12 +301,13 @@ rf80386_pkg::LOAD_IO2:
 		tGoto(rf80386_pkg::LOAD_IO2_ACK);
 	end
 rf80386_pkg::LOAD_IO2_ACK:
-	if (ftam_resp.ack) begin
+	if (ftam_resp.ack && ftam_resp.tid.tranid==tid) begin
 		dat <= (dat | (ftam_resp.dat << {5'd16-ad[3:0],3'b0})) & ls_mask;
 		tReturn();
 	end
-	else if (rty_i && !cyc_done) begin
+	else if (rty_i) begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -307,6 +326,7 @@ rf80386_pkg::LOAD_IO2_ACK:
 rf80386_pkg::STORE_IO:
 	begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -324,6 +344,7 @@ rf80386_pkg::STORE_IO:
 rf80386_pkg::STORE_IO_ACK:
 	if (rty_i) begin
 		ea <= ad;
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -346,6 +367,7 @@ rf80386_pkg::STORE_IO_ACK:
 rf80386_pkg::STORE_IO2:
 	begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;
@@ -362,6 +384,7 @@ rf80386_pkg::STORE_IO2:
 rf80386_pkg::STORE_IO2_ACK:
 	if (rty_i) begin
 		ea <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
+		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
 		ftam_req.cti <= fta_bus_pkg::IO;

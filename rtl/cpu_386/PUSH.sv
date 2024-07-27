@@ -61,7 +61,7 @@ rf80386_pkg::PUSH:
 			`PUSHF:   begin ad <= sssp; sel <= 16'h000F; dat <= flags[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			`PUSHI:		begin ad <= sssp; sel <= 16'h000F; dat <= bundle[31:0]; eip <= eip + 4'd4; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			`PUSHI8:	begin ad <= sssp; sel <= 16'h000F; dat <= {{24{bundle[7]}},bundle[7:0]}; eip <= eip + 4'd1; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			8'hFF:	begin ad <= sssp; sel <= 16'h000F; dat <= a[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			8'hFF:	begin ad <= sssp; sel <= 16'h000F; dat <= ea[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			default:	tGoto(rf80386_pkg::RESET);	// only gets here if there's a hardware error
 			endcase
 		else
@@ -87,7 +87,7 @@ rf80386_pkg::PUSH:
 			`PUSHF:   begin ad <= sssp; sel <= 16'h0003; dat <= flags[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			`PUSHI:		begin ad <= sssp; sel <= 16'h0003; dat <= bundle[15:0]; eip <= eip + 4'd2; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			`PUSHI8:	begin ad <= sssp; sel <= 16'h0003; dat <= {{8{bundle[7]}},bundle[7:0]}; eip <= eip + 4'd1; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			8'hFF:	begin ad <= sssp; sel <= 16'h0003; dat <= a[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			8'hFF:	begin ad <= sssp; sel <= 16'h0003; dat <= ea[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			default:	tGoto(rf80386_pkg::RESET);	// only gets here if there's a hardware error
 			endcase
 	end
