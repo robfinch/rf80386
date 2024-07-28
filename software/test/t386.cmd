@@ -1,11 +1,7 @@
 ENTRY (_start)
 
 MEMORY {
-	TEST_PGTBL : ORIGIN = 0xFFF80000, LENGTH = 64k
-}
-
-MEMORY {
-	TEST_IDT : ORIGIN = 0xFFF90000, LENGTH = 0x400
+	TEST_PGTBL : ORIGIN = 0xFFF80000, LENGTH = 128k
 }
 
 MEMORY {
@@ -53,10 +49,6 @@ SECTIONS {
 		. = 0xfff80000;
 		*(.pgtbl);
 	} >TEST_PGTBL
-	.idt: {
-		. = 0xfff90000;
-		(*.idt);
-	} >TEST_IDT
 	.bss: {
 		. = 0xfffd0000;
 		_start_bss = .;

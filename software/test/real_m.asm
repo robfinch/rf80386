@@ -23,8 +23,8 @@
 	xor %eax,%eax
 	mov $17,%cx
 aloop\@:
-	movw $error,(%eax*4)
-	movw $C_SEG_REAL,2(%eax*4)
+	movw $error,(,%eax,4)
+	movw $C_SEG_REAL,2(,%eax,4)
 	inc %ax
 	loop aloop\@
 .endm
@@ -42,8 +42,8 @@ aloop\@:
 .macro realModeExcInit arg1,arg2
 	mov $IDT_SEG_REAL,%ax
 	mov %ax,%ds
-	movw \arg2,(\arg1*4)
-	movw $C_SEG_REAL,2(\arg1*4)
+	movw \arg2,(,\arg1,4)
+	movw $C_SEG_REAL,2(,\arg1,4)
 .endm
 
 # Checks exc result and restores the default handler
@@ -59,8 +59,8 @@ aloop\@:
 	jne error
 	mov $0,%ax
 	mov %ax,%ds
-	movw $error,(\arg1*4)
-	movw $C_SEG_REAL,2(\arg1*4)
+	movw $error,(,\arg1,4)
+	movw $C_SEG_REAL,2(,\arg1,4)
 .endm
 
 
@@ -68,7 +68,7 @@ aloop\@:
 # %1: vector
 # %2: instruction to execute that causes a fault
 
-.macro realModeFaultTest 2+
+.macro realModeFaultTest arg1,arg2
 	realModeExcInit \arg1,continue\@
 	mov $S_SEG_REAL,%ax
 	mov %ax,%ss

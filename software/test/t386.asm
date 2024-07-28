@@ -125,23 +125,23 @@ header:
 _start:
 	cli	
 # init IDT
-	mov $17,%cx
-	movl $error,%edx
-	movl $0xfff90000,%eax
-	movl $error,%edx
-.aloop:
-	movw %dx,(%eax)
-	movw $0xf000,2(%eax)
-#	movw $error,(,%eax,4)
-#	movw $0xf000,2(,%eax,4)
-	addl $4,%eax
-	loop .aloop
+#	mov $17,%cx
+#	movl $error,%edx
+#	movl $0xfff90000,%eax
+#	movl $error,%edx
+#.aloop:
+#	movw %dx,(%eax)
+#	movw $0xf000,2(%eax)
+##	movw $error,(,%eax,4)
+##	movw $0xf000,2(,%eax,4)
+#	addl $4,%eax
+#	loop .aloop
 
 	mov $ESP_REAL,%esp
 
-; ==============================================================================
-;	Real mode tests
-; ==============================================================================
+# ==============================================================================
+#	Real mode tests
+# ==============================================================================
 
 .include "real_m.asm"
 #-------------------------------------------------------------------------------
