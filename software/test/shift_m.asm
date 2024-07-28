@@ -10,24 +10,7 @@
 #   Uses: AX, CL, Flags
 #
 
-# (A)
 .macro testShiftBFlags arg1,arg2,arg3,arg4,arg5
-	mov \arg4,%ax
-	push %ax
-	popf
-	mov $0xff,%ah
-	mov \arg2,%al
-	mov \arg3,%cl
-	\arg1 %cl,%al
-	pushf
-	pop %ax
-	and $PS_ARITH,%ax
-	cmp \arg5,%ax
-	jne error
-.endm
-
-# (B)
-.macro tsbf arg1,arg2,arg3,arg4,arg5
 	mov \arg4,%ax
 	push %ax
 	popf

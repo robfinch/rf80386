@@ -67,23 +67,31 @@
 
 #
 # memory map:
+#  FFF80000-FFF8FFFF page table
 #  FFF90000-FFF903FF real mode IDT
 #  FFF90400-FFF904FF protected mode IDT
 #  FFF90500-FFF9077F protected mode GDT
 #  FFF90800-FFF90FFF protected mode LDT
-#  01000-01FFF page directory
-#  FFF80000-FFF8FFFF page table
-#  FFF94000-FFF94FFF TSS
+#  FFFA0000-FFFAFFFF read only data
 #  FFFC0000-FFFCFFFF stack
+#  01000-01FFF page directory
+#  FFF94000-FFF94FFF TSS
 #  20000-9FFFF tests
 #
+
+.set rodata_seg,0xa000
+.set TEST_BASE,0x20000
+.set TEST_BASE1,TEST_BASE+0x00000
+.set TEST_BASE2,TEST_BASE+0x40000
 
 
 	.bss
 	.space	10
 
-	.data
-	.space	10
+	.rodata
+idt_addr:
+	.2byte 0x400
+	.4byte 0xFFF90000		# Linear address of table
 
 #	.org	0xFFFF0000
 	.text
@@ -97,13 +105,14 @@
 #
 .set C_SEG_REAL,0x0000
 .set S_SEG_REAL,0xC000
-.set IDT_SEG_REAL,0x9040
+.set IDT_SEG_REAL,0x9000
+.set IDT_SEG_PROT,0x9040
 .set GDT_SEG_REAL,0x9050
 .set GDT_SEG_LIMIT,0x2FF
 .set D1_SEG_REAL,TEST_BASE1 >> 4
 .set D2_SEG_REAL,TEST_BASE2 >> 4
 
-.set ESP_REAL,0xfffcfffc
+.set ESP_REAL,0xfffc
 
 
 .include "x86_e.asm"
@@ -130,6 +139,29 @@ _start:
 
 	mov $ESP_REAL,%esp
 
+; ==============================================================================
+;	Real mode tests
+; ==============================================================================
+
+.include "real_m.asm"
+#-------------------------------------------------------------------------------
+	POST $0
+#-------------------------------------------------------------------------------
+#
+#   Real mode initialisation
+#
+	mov $rodata_seg,%ax
+	mov %ax,%ds
+	lidt idt_addr
+	initRealModeIDT
+	mov $S_SEG_REAL,%ax
+	mov %ax,%ss
+	mov $ESP_REAL,%sp
+	mov $D1_SEG_REAL,%dx
+	mov %dx,%ds
+	mov $D2_SEG_REAL,%dx
+	mov %dx,%es
+
 #-------------------------------------------------------------------------------
 	POST $1
 #-------------------------------------------------------------------------------
@@ -140,7 +172,31 @@ _start:
 	testJcc 8
 	testJcc 16
 
-	
+#
+#   Loops
+#
+.include "loop_m.asm"
+	testLoop
+	testLoopZ
+	testLoopNZ
+
+#-------------------------------------------------------------------------------
+	POST $2
+#-------------------------------------------------------------------------------
+#
+#   Quick tests of unsigned 32-bit multiplication and division
+#   Thorough arithmetical and logical tests are done later
+#
+	mov $0x80000001,%eax
+	imul %eax
+	mov $0x44332211,%eax
+	mov %eax,%ebx
+	mov $0x88776655,%ecx
+	mul %ecx
+	div %ecx
+	cmp %ebx,%eax
+	jne error
+
 #-------------------------------------------------------------------------------
 	POST $0xE0
 #-------------------------------------------------------------------------------
@@ -156,19 +212,18 @@ _start:
 	#  AF when cl>0: always 1
 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
 
-	tsbf sarb, $0x81, 	$1, 	$0, 	$(PS_CF|PS_AF|PS_OF)
-	tsbf sarb, $0x82,   $2,  $0,     $(PS_CF|PS_AF)
-	testShiftBFlags   sarb, $0x80,   $8,  $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-
-	#testShiftBFlags   sarb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   sarb, $0x80,   $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   sarb, $0x00,   $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   sarb, $0x80,   $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   sarb, $0x00,   $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   sarb, $0x80,   $32, $0,     $0
-	#testShiftWFlags   sarw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftWFlags   sarw, $0x0000, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftWFlags   sarw, $0x8000, $32, $0,     $0
+	#testShiftBFlags sarb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
+	#testShiftBFlags sarb, $0x82, $2, $0, $(PS_CF|PS_AF)
+	#testShiftBFlags sarb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF)
+	#testShiftBFlags sarb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+	#testShiftBFlags sarb, $0x80,   $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
+	#testShiftBFlags sarb, $0x00,   $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+	#testShiftBFlags sarb, $0x80,   $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
+	#testShiftBFlags sarb, $0x00,   $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+	#testShiftBFlags sarb, $0x80,   $32, $0,     $0
+	#testShiftWFlags sarw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
+	#testShiftWFlags sarw, $0x0000, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+	#testShiftWFlags sarw, $0x8000, $32, $0,     $0
 
 	# SHL al,cl - SHL ax,cl
 	# undefined flags:

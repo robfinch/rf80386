@@ -46,23 +46,43 @@ rf80386_pkg::INT:
 	end
 rf80386_pkg::INT2:
 	begin
-		ad <= idt_base + {int_num,3'd0};
-		sel <= 16'h00FF;
+		if (realMode) begin
+			ad <= idt_base + {int_num,2'd0};
+			sel <= 16'h000F;
+		end
+		else begin
+			ad <= idt_base + {int_num,3'd0};
+			sel <= 16'h00FF;
+		end
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::INT3);
 	end
 rf80386_pkg::INT3:
 	begin
-		offset[15: 0] <= igate.offset_lo;
-		offset[31:16] <= igate.offset_hi;
-		selector <= igate.selector;
-		esp <= esp - 4'd4;
+		if (realMode) begin
+			offset[15:0] <= dat[15:0];
+			offset[31:16] <= 16'h0;
+			selector <= dat[31:16];
+			esp <= esp - 4'd2;
+		end
+		else begin
+			offset[15: 0] <= igate.offset_lo;
+			offset[31:16] <= igate.offset_hi;
+			selector <= igate.selector;
+			esp <= esp - 4'd4;
+		end
 		tGoto(rf80386_pkg::INT4);
 	end
 rf80386_pkg::INT4:
 	begin
 		ad <= sssp;
-		sel <= 16'h000F;
-		dat <= flags[31:0];
+		if (realMode) begin
+			sel <= 16'h0003;
+			dat <= flags[15:0];
+		end
+		else begin
+			sel <= 16'h000F;
+			dat <= flags[31:0];
+		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::INT5);
 	end
 rf80386_pkg::INT5:
@@ -79,19 +99,31 @@ rf80386_pkg::INT6:
 	end
 rf80386_pkg::INT7:
 	begin
-		esp <= esp - 4'd4;
+		if (realMode)
+			esp <= esp - 4'd2;
+		else
+			esp <= esp - 4'd4;
 		tGoto(rf80386_pkg::INT8);
 	end
 rf80386_pkg::INT8:
 	begin
 		ad <= sssp;
-		sel <= 16'h000F;
-		dat <= ir_ip;
+		if (realMode) begin
+			sel <= 16'h0003;
+			dat <= ir_ip[15:0];
+		end
+		else begin
+			sel <= 16'h000F;
+			dat <= ir_ip;
+		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::INT9);
 	end
 rf80386_pkg::INT9:
 	begin
 		cs <= selector;
 		eip <= offset;
-		tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
+		if (realMode)
+			tGoto(rf80386_pkg::IFETCH);
+		else
+			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
 	end

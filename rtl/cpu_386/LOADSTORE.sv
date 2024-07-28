@@ -208,7 +208,7 @@ rf80386_pkg::IRQ_LOAD:
 		ftam_req.cti <= fta_bus_pkg::IRQA;
 		ftam_req.cyc <= HIGH;
 		ftam_req.stb <= HIGH;
-		ftam_req.sel <= 16'hFFFF;
+		ftam_req.sel <= 16'h0001;
 		ftam_req.we <= LOW;
 		ftam_req.vadr <= ad;
 		ftam_req.padr <= ad;
@@ -229,7 +229,7 @@ rf80386_pkg::IRQ_LOAD_ACK:
 		ftam_req.cti <= fta_bus_pkg::IRQA;
 		ftam_req.cyc <= HIGH;
 		ftam_req.stb <= HIGH;
-		ftam_req.sel <= 16'hFFFF;
+		ftam_req.sel <= 16'h0001;
 		ftam_req.we <= LOW;
 		ftam_req.vadr <= ad;
 		ftam_req.padr <= ad;
