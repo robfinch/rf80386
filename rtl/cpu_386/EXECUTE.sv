@@ -221,45 +221,57 @@ rf80386_pkg::EXECUTE:
 				3'd4:
 					begin
 						if (w) begin
-							if (cs_desc.db) begin
+							if (OperandSize==8'd32) begin
 								eax <= p64[31:0];
 								edx <= p64[63:32];
 								cf <= p64[63:32]!=32'd0;
 								vf <= p64[63:32]!=32'd0;
+								sf <= p64[32];
+								zf <= p64==64'd0;
 							end
 							else begin
 								eax[15:0] <= p32[15:0];
 								edx[15:0] <= p32[31:16];
 								cf <= p32[31:16]!=16'd0;
 								vf <= p32[31:16]!=16'd0;
+								sf <= p32[16];
+								zf <= p32==32'd0;
 							end
 						end
 						else begin
 							eax[15:0] <= p16;
 							cf <= p16[15:8]!=8'd0;
 							vf <= p16[15:8]!=8'd0;
+							sf <= p16[8];
+							zf <= p16==16'd0;
 						end
 					end
 				3'd5:
 					begin
 						if (w) begin
-							if (cs_desc.db) begin
+							if (OperandSize==8'd32) begin
 								eax <= wp[31:0];
 								edx <= wp[63:32];
-								cf <= p64[63:32]!=16'd0;
-								vf <= p64[63:32]!=16'd0;
+								cf <= wp[63:32]!=16'd0;
+								vf <= wp[63:32]!=16'd0;
+								sf <= wp[32];
+								zf <= wp==64'd0;
 							end
 							else begin
 								eax[15:0] <= wp[15:0];
 								edx[15:0] <= wp[31:16];
-								cf <= p32[31:16]!=16'd0;
-								vf <= p32[31:16]!=16'd0;
+								cf <= wp[31:16]!=16'd0;
+								vf <= wp[31:16]!=16'd0;
+								sf <= wp[16];
+								zf <= wp[31:0]==32'd0;
 							end
 						end
 						else begin
 							eax[15:0] <= p;
 							cf <= p[15:8]!=8'd0;
 							vf <= p[15:8]!=8'd0;
+							sf <= p[8];
+							zf <= p[15:0]==16'h0;
 						end
 					end
 				3'd6,3'd7:
@@ -451,6 +463,7 @@ rf80386_pkg::EXECUTE:
 							begin
 								res <= shlco32[31:0]|shlco32[63:32];
 								cf <= shlco32[32];
+								vf <= shlo32[32]^shlo32[31];
 							end
 						3'b011:	// RCR
 							begin
@@ -461,8 +474,8 @@ rf80386_pkg::EXECUTE:
 						3'b100:	// SHL
 							begin
 								res <= shlo32[31:0];
-								cf <= shlo32[32];
-								vf <= shlo32[32]^shlo32[31];
+								cf <= |shlo32[63:32];
+								vf <= b[31] ? ~&shlo32[63:31] : |shlo32[63:31];
 							end
 						3'b101:	// SHR
 							begin
@@ -508,8 +521,8 @@ rf80386_pkg::EXECUTE:
 						3'b100:	// SHL
 							begin
 								res <= shlo16[15:0];
-								cf <= shlo16[16];
-								vf <= shlo16[16]^shlo16[15];
+								cf <= |shlo16[63:16];
+								vf <= b[15] ? ~&shlo16[63:15] : |shlo16[63:15];
 							end
 						3'b101:	// SHR
 							begin
@@ -556,8 +569,8 @@ rf80386_pkg::EXECUTE:
 					3'b100:	// SHL
 						begin
 							res <= shlo8[7:0];
-							cf <= shlo8[8];
-							vf <= shlo8[8]^shlo8[7];
+							cf <= |shlo8[63:8];
+							vf <= b[7] ? ~&shlo8[63:7] : |shlo8[63:7];
 						end
 					3'b101:	// SHR
 						begin

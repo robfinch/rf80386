@@ -41,13 +41,13 @@ rf80386_pkg::POP:
 		case(ir)
 		`POP_AX,`POP_CX,`POP_BX,`POP_DX,
 		`POP_SI,`POP_DI,`POP_BP,`POP_SP:
-			sel <= cs_desc.db ? 16'h000F : 16'h0003;
+			sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
 		`POP_SS,`POP_ES,`POP_DS:
 			sel <= 16'h0003;
 		`POPF:
-			sel <= cs_desc.db ? 16'h000F : 16'h0003;
+			sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
 		`POP_MEM:
-			sel <= cs_desc.db ? 16'h000F : 16'h0003;
+			sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
 		default: ;
 		endcase
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POP1);
@@ -63,40 +63,63 @@ rf80386_pkg::POP1:
 		`POP_AX,`POP_CX,`POP_BX,`POP_DX,
 		`POP_SI,`POP_DI,`POP_BP,`POP_SP:
 			begin
-				esp <= cs_desc.db ? esp + 4'd4 : esp + 4'd2;
+				esp <= OperandSize==8'd32 ? esp + 4'd4 : esp + 4'd2;
 				wrregs <= 1'b1;
 			end
 		`POP_SS:
 			begin
 				esp <= esp + 4'd2;
-				if (dat[15:0] != ss)
+				if (realMode)
+					begin rrr <= 3'd2; wrsregs <= 1'b1; end
+				else if (dat[15:0] != ss)
 					tGosub(rf80386_pkg::LOAD_SS_DESC,rf80386_pkg::IFETCH);
-			end
-		`POP_ES:
-			begin
-				esp <= esp + 4'd2;
-				if (dat[15:0] != es)
-					tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
 			end
 		`POP_DS:
 			begin
 				esp <= esp + 4'd2;
-				if (dat[15:0] != ds)
+				if (realMode)
+					begin rrr <= 3'd3; wrsregs <= 1'b1; end
+				else if (dat[15:0] != ds)
 					tGosub(rf80386_pkg::LOAD_DS_DESC,rf80386_pkg::IFETCH);
 			end
+		`POP_ES:
+			begin
+				esp <= esp + 4'd2;
+				if (realMode)
+					begin rrr <= 3'd0; wrsregs <= 1'b1; end
+				else if (dat[15:0] != es)
+					tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
+			end
 		`POPF:
-			esp <= cs_desc.db ? esp + 4'd4 : esp + 4'd2;
+			esp <= OperandSize==8'd32 ? esp + 4'd4 : esp + 4'd2;
 		`POP_MEM:
 			begin
-				esp <= cs_desc.db ? esp + 4'd4 : esp + 4'd2;
+				esp <= OperandSize==8'd32 ? esp + 4'd4 : esp + 4'd2;
 				tGoto(rf80386_pkg::STORE_DATA);
 			end
+		`EXTOP:
+			case(ir2)
+			8'hA1:	// POP_FS
+				begin
+					esp <= esp + 4'd2;
+					if (realMode)
+						begin rrr <= 3'd4; wrsregs <= 1'b1; end
+					else if (dat[15:0] != fs)
+						tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
+				end
+			8'hA9:	// POP_GS
+				begin
+					esp <= esp + 4'd2;
+					if (realMode)
+						begin rrr <= 3'd5; wrsregs <= 1'b1; end
+					else if (dat[15:0] != gs)
+						tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
+				end
+			default:	;
+			endcase
 		default: ;
 		endcase
 		case(ir)
-		`POP_SS: begin rrr <= 3'd2; wrsregs <= 1'b1; end
-		`POP_ES: begin rrr <= 3'd0; wrsregs <= 1'b1; end
-		`POP_DS: begin rrr <= 3'd3; wrsregs <= 1'b1; end
 		`POPF:
 			begin
 				cf <= dat[0];

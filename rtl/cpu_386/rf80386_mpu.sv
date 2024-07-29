@@ -144,14 +144,22 @@ begin
 	ftadm_resp[1].tid = ftadm_req[1].tid;
 		
 	// Cancel retry if bus aquired.
-	if (ftatm_req.cyc)
+	if (ftatm_req.cyc) begin
 		ftatm_resp.rty = 1'b0;
-	else if (ftaim_req.cyc)
+		ftatm_resp.tid = 'd0;
+	end
+	else if (ftaim_req.cyc) begin
 		ftaim_resp.rty = 1'b0;
-	else if (ftadm_req[0].cyc)
+		ftaim_resp.tid = 'd0;
+	end
+	else if (ftadm_req[0].cyc) begin
 		ftadm_resp[0].rty = 1'b0;
-	else if (ftadm_req[1].cyc)
+		ftadm_resp[0].tid = 'd0;
+	end
+	else if (ftadm_req[1].cyc) begin
 		ftadm_resp[1].rty = 1'b0;
+		ftadm_resp[1].tid = 'd0;
+	end
 
 	// Route bus responses.
 	case(fta_resp1.tid.channel)

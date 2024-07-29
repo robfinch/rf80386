@@ -64,10 +64,10 @@ reg [31:0] alu_o;
 reg [31:0] a;
 reg [31:0] b;
 reg [31:0] c;
-wire amsb = w ? (cs_desc.db ? a[31] : a[15]) : a[7];
-wire bmsb = w ? (cs_desc.db ? b[31] : b[15]) : b[7];
-wire [31:0] as = cs_desc.db ? {!a[31],a[30:0]}: {!a[15],a[14:0]};
-wire [31:0] bs = cs_desc.db ? {!b[31],b[30:0]}: {!b[15],b[14:0]};
+wire amsb = w ? (OperandSize==8'd32 ? a[31] : a[15]) : a[7];
+wire bmsb = w ? (OperandSize==8'd32 ? b[31] : b[15]) : b[7];
+wire [31:0] as = OperandSize==8'd32 ? {!a[31],a[30:0]}: {!a[15],a[14:0]};
+wire [31:0] bs = OperandSize==8'd32 ? {!b[31],b[30:0]}: {!b[15],b[14:0]};
 wire signed [31:0] sa = a;
 wire signed [31:0] sb = b;
 wire signed [7:0] als = a[7:0];
@@ -91,19 +91,19 @@ wire eq  = cs_desc.db ? a == b : a[15:0]==b[15:0];
 wire ltu = cs_desc.db ? a < b : a[15:0] < b[15:0];
 wire lt  = as < bs;
 
-wire [64:0] shlo32 = {32'h0000,b} << shftamt;
+wire [64:0] shlo32 = {{32{b[31]}},b} << shftamt;
 wire [63:0] shruo32 = {b,32'h0000} >> shftamt;
 wire [63:0] shro32 = ~(~{b,32'h0} >> shftamt);
 wire [64:0] shlco32 = {32'h0000,b,cf} << shftamt;
 wire [64:0] shrcuo32 = {cf,b,32'h0000} >> shftamt;
 
-wire [32:0] shlo16 = {16'h0000,b[15:0]} << shftamt;
+wire [64:0] shlo16 = {{48{b[15]}},b[15:0]} << shftamt;
 wire [31:0] shruo16 = {b[15:0],16'h0000} >> shftamt;
 wire [31:0] shro16 = ~(~{b,16'h0} >> shftamt);
 wire [32:0] shlco16 = {16'h0000,b[15:0],cf} << shftamt;
 wire [32:0] shrcuo16 = {cf,b[15:0],16'h0000} >> shftamt;
 
-wire [16:0] shlo8 = {8'h00,b[7:0]} << shftamt;
+wire [64:0] shlo8 = {{56{b[7]}},b[7:0]} << shftamt;
 wire [15:0] shruo8 = {b[7:0],8'h00} >> shftamt;
 wire [15:0] shro8 = ~(~{b[7:0],8'h00} >> shftamt);
 wire [16:0] shlco8 = {8'h00,b,cf} << shftamt;
@@ -128,7 +128,7 @@ divr2 #(16) udiv1
 	.ce(1'b1),
 	.ld(ld_div16),
 	.su(TTT[0]),
-	.ri(1'b0),
+	.ri(1'b1),
 	.a(ax),
 	.b(b[7:0]),
 	.i(8'h00),
@@ -145,7 +145,7 @@ divr2 #(32) udiv2
 	.ce(1'b1),
 	.ld(ld_div32),
 	.su(TTT[0]),
-	.ri(1'b0),
+	.ri(1'b1),
 	.a({dx,ax}),
 	.b(b[15:0]),
 	.i(16'h0000),
@@ -162,7 +162,7 @@ divr2 #(64) udiv3
 	.ce(1'b1),
 	.ld(ld_div64),
 	.su(TTT[0]),
-	.ri(1'b0),
+	.ri(1'b1),
 	.a({edx,eax}),
 	.b(b),
 	.i(32'h0000),
@@ -225,8 +225,8 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 			3'd0:	alu_o <= a & b;			// TEST
 			3'd2:	alu_o <= ~b;			// NOT
 			3'd3:	alu_o <= -b;			// NEG
-			3'd4:	alu_o <= w ? (cs_desc.db ? p64[31:0] : p32[15:0]) : p16;		// MUL
-			3'd5:	alu_o <= w ? (cs_desc.db ? wp[31:0] : wp[15:0]) : p[15:0];	// IMUL
+			3'd4:	alu_o <= w ? (OperandSize==8'd32 ? p64[31:0] : p32[15:0]) : p16;		// MUL
+			3'd5:	alu_o <= w ? (OperandSize==8'd32 ? wp[31:0] : wp[15:0]) : p[15:0];	// IMUL
 			3'd6:	alu_o <= 32'h0000;		// DIV
 			3'd7:	alu_o <= 32'h0000;		// IDIV
 			default:	alu_o <= 32'h0000;

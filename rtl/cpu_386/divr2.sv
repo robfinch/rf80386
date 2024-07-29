@@ -61,14 +61,15 @@ localparam DMSB = WID-1;
 reg [7:0] cnt;			// iteration count
 
 reg [1:0] ad;
-reg [WID/2-1:0] r0;
+reg [WID/2:0] r0;
 reg [WID-1:0] q0;
 reg [WID-1:0] aa;
 reg [WID/2-1:0] bb;
 reg [WID-1:0] q;
 reg [WID/2-1:0] r;
 
-wire [WID/2:0] dif = r0 - bb;
+wire b0 = bb <= r0[WID/2-1:0];
+wire [WID/2:0] dif = r0[WID/2-1:0] - bb;
 reg [2:0] state;
 reg divByZero;
 
@@ -79,16 +80,14 @@ if (rst) begin
 	divByZero <= 1'b0;
 	q <= {WID{1'b0}};
 	r <= {WID/2{1'b0}};
-	r0 <= {WID/2{1'b0}};
+	r0 <= {WID/2+1{1'b0}};
 	q0 <= {WID{1'b0}};
 end
 else if (ce) begin
-case(state)
-IDLE:
 	if (ld) begin
 		state <= DIV;
 		cnt <= 8'd0;
-		r0 <= {WID/2{1'b0}};
+		r0 <= {WID/2+1{1'b0}};
 		if (su) begin
 			q0 <= a[WID-1] ? -a : a;
 			bb <= ri ? (b[WID/2-1] ? -b : b) : (i[WID/2-1] ? -i : i);
@@ -103,16 +102,18 @@ IDLE:
 			state <= IDLE;
 		end
 	end
+case(state)
+IDLE:	;
 DIV:
 	if (cnt <= WID) begin
 		cnt <= cnt + 8'd1;
-		q0[0] <= ~dif[WID/2-1];
+		q0[0] <= b0;//~dif[WID/2-1];
 		q0[WID-1:1] <= q0[WID-2:0];
 		r0[0] <= q0[WID-1];
-		if (~dif[WID/2-1])
-			r0[WID/2-1:1] <= dif[WID/2-1:0];
+		if (b0)
+			r0[WID/2:1] <= dif[WID/2-1:0];
 		else
-			r0[WID/2-1:1] <= r0  [WID/2-2:0];
+			r0[WID/2:1] <= r0  [WID/2-1:0];
 	end
 	else
 		state <= SGN;
@@ -123,9 +124,9 @@ SGN:
 		else
 			q <= q0;
 		if (a[WID-1] & su)
-			r <= -r0[WID/2-1:1];
+			r <= -r0[WID/2:1];
 		else
-			r <= r0[WID/2-1:1];
+			r <= r0[WID/2:1];
 		state <= IDLE;
 	end
 default:

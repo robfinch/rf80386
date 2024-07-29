@@ -145,6 +145,17 @@ rf80386_pkg::IFETCH:
 		end
 		// Flags for shifts and rotates
 		if (wrvz) begin
+			case(TTT)
+			3'b000:	af <= res[4];	// ROL
+			3'b001:	af <= cf;			// ROR
+			3'b010:	af <= res[4];	// RCL
+			3'b011:	af <= cf;			// RCR
+			3'b100:	af <= res[4];	// SHL
+			3'b101:	af <= cf;			// SHR
+			3'b110:	;
+			3'b111:	af <= cf;			// SAR
+			endcase
+			pf <= ~^res[7:0];
 			if (w) begin
 				if (OperandSize==8'd32) begin
 					zf <= res[31:0]==32'h00;

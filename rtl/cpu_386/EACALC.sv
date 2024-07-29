@@ -293,12 +293,16 @@ rf80386_pkg::EACALC:
 					// 101 = IMUL
 					// 110 = DIV
 					// 111 = IDIV
-					if (rrr==3'b000) begin	// TEST
-						a <= rmo;
-						tGoto(w ? rf80386_pkg::FETCH_IMM16 : rf80386_pkg::FETCH_IMM8);
+					begin
+						if (rrr==3'b000) begin	// TEST
+							a <= rmo;
+							tGoto(w ? rf80386_pkg::FETCH_IMM16 : rf80386_pkg::FETCH_IMM8);
+						end
+						else begin
+							a <= eax;
+							b <= rmo;
+						end
 					end
-					else
-						b <= rmo;
 				`CMP:
 					begin
 						if (~d) begin

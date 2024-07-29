@@ -144,6 +144,7 @@ reg [31:0] tsp;
 reg [31:0] sndx;		// scaled index
 int_gate386_t igate;
 reg [3:0] tid;
+reg [4:0] rty_wait;
 
 reg nmi_armed;
 reg rst_nmi;				// reset the nmi flag
@@ -173,6 +174,7 @@ lfsr31 ulfsr1(rst_i, clk_i, 1'b1, 1'b0, lfsr31o);
 always_ff @(posedge CLK)
 	if (rst_i) begin
 		tid <= 4'd1;
+		rty_wait <= 5'd0;
 //		cr0 <= 32'd1;		// boot in protected mode
 		cr0 <= 32'd0;		// boot in real mode
 		lidt <= 1'b0;
@@ -280,7 +282,7 @@ always_ff @(posedge CLK)
 		wrsregs <= 1'b0;
 		ld_div16 <= 1'b0;
 		ld_div32 <= 1'b0;
-
+		
 		tClearBus();
 
 `include "WRITEBACK.sv"
