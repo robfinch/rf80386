@@ -442,7 +442,10 @@ rf80386_pkg::EXECUTE:
 			begin
 				tGoto(rf80386_pkg::IFETCH);
 				wrvz <= 1'b1;
-				wrregs <= 1'b1;
+				if (mod==2'd3)
+					wrregs <= 1'b1;
+				else
+					tGosub(rf80386_pkg::STORE_DATA,rf80386_pkg::IFETCH);
 				rrr <= rm;
 				if (w) begin
 					if (OperandSize==8'd32)
