@@ -1,112 +1,2376 @@
 Sections:
-00: ".bss" (0-A)
-01: ".data" (0-A)
-02: ".text" (0-33)
+00: ".pgtbl" (0-A)
+01: ".bss" (0-A)
+02: ".data" (0-A)
+03: ".rodata" (0-6)
+04: ".text" (0-4ED)
 
 
 Source: "t386.asm"
-                      	     1: # t386.asm rf386 assembly language
-                      	     2: 
-                      	     3: 	.bss
-00:00000000 00        	     4: 	.space	10
-00:00000001 *
-                      	     5: 
-                      	     6: 	.data
-01:00000000 00        	     7: 	.space	10
-01:00000001 *
-                      	     8: 
-                      	     9: #	.org	0xFFFF0000
-                      	    10: 	.text
-                      	    11: #	.align	0
-                      	    12: .extern	_bootrom
-                      	    13: 
-                      	    14: _start:
-02:00000000 FA        	    15: 	cli	
-                      	    16: # initRealModeIDT
-02:00000001 31C0      	    17: 	xor %eax,%eax
-02:00000003 8ED8      	    18: 	mov %ax,%ds
-02:00000005 66B91100  	    19: 	mov $17,%cx
-                      	    20: aloop:
-                      	    21: 	movw $error,(%eax*4)
-                      	     ^-ERROR:2007
-                      	    22: 	movw $0xf000,2(%eax*4)
-                      	     ^-ERROR:2007
-02:00000009 6640      	    23: 	inc %ax
-02:0000000B E2FC      	    24: 	loop aloop
-                      	    25: 
-02:0000000D 31C0      	    26: 	xor %eax,%eax
-02:0000000F 8ED0      	    27: 	mov %ax,%ss
-02:00000011 BC0000FDFF	    28: 	mov $0xFFFD0000,%esp
-                      	    29: 
-                      	    30: #
-                      	    31: # Default exception handler and error routine
-                      	    32: #
-                      	    33: DefaultExcHandler:
-                      	    34: error:
-                      	    35: # CLI and HLT are privileged instructions, don't use them in ring3
-02:00000016 668CC8    	    36: 	mov %cs,%ax
-                      	    37: 
-                      	    38: # when in real mode, the jnz will be decoded together with test as
-                      	    39: # "test eax,0xfe750007" (66A9070075FE)
-02:00000019 66A90700  	    40: 	test $7,%ax     # 66 A9 07 00
-02:0000001D 75FE      	    41: .ring3: jnz .ring3 # 75 FE
-02:0000001F FA        	    42: 	cli
-02:00000020 F4        	    43: 	hlt
-02:00000021 EBF3      	    44: 	jmp error
-                      	    45: 
-                      	    46: 
-                      	    47: .rept 16
-                      	    48: 	nop
-                      	    49: .endr
-02:00000023 90        	     1R 	nop
-02:00000024 90        	     1R 	nop
-02:00000025 90        	     1R 	nop
-02:00000026 90        	     1R 	nop
-02:00000027 90        	     1R 	nop
-02:00000028 90        	     1R 	nop
-02:00000029 90        	     1R 	nop
-02:0000002A 90        	     1R 	nop
-02:0000002B 90        	     1R 	nop
-02:0000002C 90        	     1R 	nop
-02:0000002D 90        	     1R 	nop
-02:0000002E 90        	     1R 	nop
-02:0000002F 90        	     1R 	nop
-02:00000030 90        	     1R 	nop
-02:00000031 90        	     1R 	nop
-02:00000032 90        	     1R 	nop
-                      	    50: 	
-                      	    51: #	.type	_start,@function
-                      	    52: #	.size	_start,$-_start
-                      	    53: 
-                      	    54: #.include "Fibonacci.asm"
-                      	    55: #.include "serial.asm"
-                      	    56: #.include "xmodem.asm"
-                      	    57: #.include "bootrom.asm"
+                      	     1: # t386.asm rf386 cpu test
+                      	     2: # Port to vasm standard syntax including mods.
+                      	     3: # (c) 2024 Robert Finch <robfinch@finitron.ca>
+                      	     4: #
+                      	     5: # Original work from test386.asm
+                      	     6: #   Copyright (C) 2012-2015 Jeff Parsons <Jeff@pcjs.org>
+                      	     7: #   Copyright (C) 2017-2021 Marco Bortolin <barotto@gmail.com>
+                      	     8: #
+                      	     9: #   This file is a derivative work of PCjs
+                      	    10: #   https://www.pcjs.org/software/pcx86/test/cpu/80386/test386.asm
+                      	    11: #
+                      	    12: #   test386.asm is free software: you can redistribute it and/or modify it under
+                      	    13: #   the terms of the GNU General Public License as published by the Free
+                      	    14: #   Software Foundation, either version 3 of the License, or (at your option)
+                      	    15: #   any later version.
+                      	    16: #
+                      	    17: #   test386.asm is distributed in the hope that it will be useful, but WITHOUT ANY
+                      	    18: #   WARRANTY without even the implied warranty of MERCHANTABILITY or FITNESS
+                      	    19: #   FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+                      	    20: #   details.
+                      	    21: #
+                      	    22: #   You should have received a copy of the GNU General Public License along with
+                      	    23: #   test386.asm.  If not see <http://www.gnu.org/licenses/gpl.html>.
+                      	    24: #
+                      	    25: #   This program was originally developed for IBMulator
+                      	    26: #   https://barotto.github.io/IBMulator
+                      	    27: #
+                      	    28: #   Overview
+                      	    29: #   --------
+                      	    30: #   This file is designed to run as a test ROM, loaded in place of the BIOS.
+                      	    31: #   Its pourpose is to test the CPU, reporting its status to the POST port and
+                      	    32: #   its computational results in ASCII form to various configurable ports.
+                      	    33: #   A 80386 or later CPU is required. This ROM is designed to test an emulator
+                      	    34: #   CPU and was never tested on real hardware.
+                      	    35: #
+                      	    36: #   It must be installed at physical address 0xffff0000 and aliased at physical
+                      	    37: #   address 0xffff0000.  The jump at resetVector should align with the CPU reset
+                      	    38: #   address 0xfffffff0, which will transfer control to f000:0045.  From that
+                      	    39: #   point on, all memory accesses should remain within the first 1MB.
+                      	    40: #
+                      	    41: 
+                      	    42: #
+                      	    43: # WARNING
+                      	    44: #
+                      	    45: #   A word of caution before you start developing.
+                      	    46: #   NASM (2.11.08) generates [ebp + ebp] for [ebp*2] (i.e. no base register),
+                      	    47: #   which are not the same thing: [ebp+ebp] references the SS segment, [ebp*2]
+                      	    48: #   references the DS segment.
+                      	    49: #   NASM developers think [ebp*2] and [ebp+ebp] are the same, but that is true
+                      	    50: #   only assuming a flat memory model. Until the time NASM authors realize their
+                      	    51: #   mistake (any assumption of a flat memory model should be optional), you can
+                      	    52: #   disable this behaviour by writing: [nosplit ebp*2].
+                      	    53: #
+                      	    54: #	NASM Assembly            Translated               Assembled
+                      	    55: #	mov eax,[ebp*2]          mov eax,[ebp+ebp*1+0x0]  8B442D00
+                      	    56: #	mov eax,[nosplit ebp*2]  mov eax,[ebp*2+0x0]      8B046D00000000
+                      	    57: #
                       	    58: 
-                      	    59: .global _disable_int
-                      	    60: .global _restore_int
-                      	    61: .extern _start_data
-                      	    62: .extern _start_rodata
-                      	    63: .extern _start_bss
+                      	    59: .macro cpyright
+                      	    60: 	.ascii "t386.asm (c) 2024 Robert Finch (C) 2012-2015 Jeff Parsons, (C) 2017-2021 Marco Bortolin ",0
+                      	    61: .endm
+                      	    62: .macro RELEASE
+                      	    63: 	.ascii "??/??/24",0
+                      	    64: .endm
+                      	    65: 
+                      	    66: 	.set POST_PORT,0x190
+                      	    67: 
+                      	    68: #
+                      	    69: # memory map:
+                      	    70: #  80000-8FFFF page table
+                      	    71: #  90000-903FF real mode IDT
+                      	    72: #  90400-904FF protected mode IDT
+                      	    73: #  90500-9077F protected mode GDT
+                      	    74: #  90800-90FFF protected mode LDT
+                      	    75: #  A0000-AFFFF read only data
+                      	    76: #  C0000-CFFFF stack
+                      	    77: #  01000-01FFF page directory
+                      	    78: #  94000-94FFF TSS
+                      	    79: #  20000-9FFFF tests
+                      	    80: #
+                      	    81: 
+                      	    82: .set realmd_mask,0x0000ffff
+                      	    83: .set rodata_seg,0x0fffa000
+                      	    84: .set start_rodata,0xfffa0000
+                      	    85: .set TEST_BASE,0x20000
+                      	    86: .set TEST_BASE1,TEST_BASE+0x00000
+                      	    87: .set TEST_BASE2,TEST_BASE+0x40000
+                      	    88: 
+                      	    89: 	.section .pgtbl
+00:00000000 00        	    90: 	.space 10
+00:00000001 *
+                      	    91: 
+                      	    92: 	.bss
+01:00000000 00        	    93: 	.space	10
+01:00000001 *
+                      	    94: 
+                      	    95: 	.data
+02:00000000 00        	    96: 	.space	10
+02:00000001 *
+                      	    97: 
+                      	    98: 	.rodata
+                      	    99: idt_addr:
+03:00000000 0004      	   100: 	.2byte 0x400
+03:00000002 0000F9FF  	   101: 	.4byte 0xFFF90000		# Linear address of table
+                      	   102: 
+                      	   103: #	.org	0xF0000
+                      	   104: 	.text
+                      	   105: 	.code16
+                      	   106: #	.align	0
+                      	   107: .extern	_bootrom
+                      	   108: .extern _Fibonacci
+                      	   109: 
+                      	   110: #
+                      	   111: #   Real mode segments
+                      	   112: #
+                      	   113: .set C_SEG_REAL,0x0000
+                      	   114: .set S_SEG_REAL,0xC000
+                      	   115: .set IDT_SEG_REAL,0x9000
+                      	   116: .set IDT_SEG_PROT,0x9040
+                      	   117: .set GDT_SEG_REAL,0x9050
+                      	   118: .set GDT_SEG_LIMIT,0x2FF
+                      	   119: .set D1_SEG_REAL,TEST_BASE1 >> 4
+                      	   120: .set D2_SEG_REAL,TEST_BASE2 >> 4
+                      	   121: 
+                      	   122: .set ESP_REAL,0xfffc
+                      	   123: 
+                      	   124: 
+                      	   125: .include "x86_e.asm"
+
+Source: "x86_e.asm"
+                      	     1: .set PS_CF,0x0001
+                      	     2: .set PS_PF,0x0004
+                      	     3: .set PS_AF,0x0010
+                      	     4: .set PS_ZF,0x0040
+                      	     5: .set PS_SF,0x0080
+                      	     6: .set PS_TF,0x0100
+                      	     7: .set PS_IF,0x0200
+                      	     8: .set PS_DF,0x0400
+                      	     9: .set PS_OF,0x0800
+                      	    10: .set PS_ARITH,(PS_CF | PS_PF | PS_AF | PS_ZF | PS_SF | PS_OF)
+                      	    11: .set PS_LOGIC,(PS_CF | PS_PF | PS_ZF | PS_SF | PS_OF)
+                      	    12: .set PS_MULTIPLY,(PS_CF | PS_OF) # only CF and OF are "defined" following MUL or IMUL
+                      	    13: .set PS_DIVIDE,0 # none of the Processor Status flags are "defined" following DIV or IDIV
+                      	    14: .set PS_SHIFTS_1,(PS_CF | PS_SF | PS_ZF | PS_PF | PS_OF)
+                      	    15: .set PS_SHIFTS_R,(PS_CF | PS_SF | PS_ZF | PS_PF)
+                      	    16: 
+                      	    17: .set CR0_MSW_PE,0x0001
+                      	    18: .set CR0_PG,0x80000000	# set if paging enabled
+                      	    19: 
+                      	    20: .set ACC_TYPE_GATE386_INT,0x0E00
+                      	    21: .set ACC_TYPE_GATE386_CALL,0x0C00
+                      	    22: .set ACC_TYPE_SEG,0x1000
+                      	    23: .set ACC_PRESENT,0x8000
+                      	    24: .set ACC_TYPE_CODE_R,0x1a00
+                      	    25: .set ACC_TYPE_CONFORMING,0x0400
+                      	    26: .set ACC_TYPE_DATA_R,0x1000
+                      	    27: .set ACC_TYPE_DATA_W,0x1200
+                      	    28: .set ACC_TYPE_LDT,0x0200
+                      	    29: .set ACC_TYPE_TSS,0x0900
+                      	    30: 
+                      	    31: .set ACC_DPL_0,0x0000
+                      	    32: .set ACC_DPL_1,0x2000
+                      	    33: .set ACC_DPL_2,0x4000
+                      	    34: .set ACC_DPL_3,0x6000
+                      	    35: 
+                      	    36: .set EXT_NONE,0x0000
+                      	    37: .set EXT_16BIT,EXT_NONE
+                      	    38: .set EXT_32BIT,0x0040 # size bit
+                      	    39: .set EXT_PAGE,0x0080 # granularity bit
+                      	    40: 
+                      	    41: #PTE_FRAME     equ 0xfffff000
+                      	    42: #PTE_DIRTY     equ 0x00000040 ; page has been modified
+                      	    43: #PTE_ACCESSED  equ 0x00000020 ; page has been accessed
+                      	    44: #PTE_USER      equ 0x00000004 ; set for user level (CPL 3), clear for supervisor level (CPL 0-2)
+                      	    45: #PTE_WRITE     equ 0x00000002 ; set for read/write, clear for read-only (affects CPL 3 only)
+                      	    46: #PTE_PRESENT   equ 0x00000001 ; set for present page, clear for not-present page
+                      	    47: 
+                      	    48: #PTE_PRESENT_BIT   equ 0000001b
+                      	    49: #PTE_WRITE_BIT     equ 0000010b
+                      	    50: #PTE_USER_BIT      equ 0000100b
+                      	    51: #PTE_ACCESSED_BIT  equ 0100000b
+                      	    52: #PTE_DIRTY_BIT     equ 1000000b
+                      	    53: 
+                      	    54: .set EX_DE,0
+                      	    55: .set EX_DB,1
+                      	    56: .set EX_BP,3
+                      	    57: .set EX_OF,4
+                      	    58: .set EX_BR,5
+                      	    59: .set EX_UD,6
+                      	    60: .set EX_NM,7
+                      	    61: .set EX_DF,8
+                      	    62: .set EX_MP,9
+                      	    63: .set EX_TS,10
+                      	    64: .set EX_NP,11
+                      	    65: .set EX_SS,12
+                      	    66: .set EX_GP,13
+                      	    67: .set EX_PF,14
+                      	    68: .set EX_MF,15
+                      	    69: 
+
+Source: "t386.asm"
+                      	   126: .include "macros_m.asm"
+
+Source: "macros_m.asm"
+                      	     1: #
+                      	     2: #   Output a byte to the POST port, destroys al and dx
+                      	     3: #
+                      	     4: .macro POST arg1
+                      	     5: 	movb \arg1,%al
+                      	     6: 	movw $POST_PORT,%dx
+                      	     7: 	out %al,%dx
+                      	     8: .endm
+                      	     9: 
+                      	    10: #
+                      	    11: # Initializes an interrupt gate in system memory.
+                      	    12: # This is the body of procedures used in 16 and 32-bit code segments.
+                      	    13: #
+                      	    14: #    7                             0 7                             0
+                      	    15: #   ╔═══════════════════════════════╤═════�
+                      	    16: # +7║                          OFFSET 31-16                         ║+6
+                      	    17: #   ╟───┬───────┬───┬───────────────┬─────�
+                      	    18: # +5║ P │  DPL  │ 0 │ 1   1   1   0 │            UNUSED             ║+4
+                      	    19: #   ╟───┴───┴───┴───┴───┴───┴───┴───┴─────�
+                      	    20: # +3║                           SELECTOR                            ║+2
+                      	    21: #   ╟───────────────────────────────┴─────�
+                      	    22: # +1║                          OFFSET 15-0                          ║ 0
+                      	    23: #   ╚═══════════════════════════════╧═════�
+                      	    24: #    15                                                            0
+                      	    25: #
+                      	    26: # DS:EBX pointer to IDT
+                      	    27: # EAX vector
+                      	    28: # ESI selector
+                      	    29: # EDI offset
+                      	    30: # DX DPL (use ACC_DPL_* equs)
+                      	    31: #
+                      	    32: .macro initIntGate
+                      	    33: 	shl $3,%eax
+                      	    34: 	add	%eax,%ebx
+                      	    35: 	movw %di,(%ebx)
+                      	    36: 	movw %si,2(%ebx)
+                      	    37: 	orw $ACC_TYPE_GATE386_INT | ACC_PRESENT, %dx
+                      	    38: 	movw %dx,4(%ebx)
+                      	    39: 	shr $16,%edi
+                      	    40: 	movw %di,6(%ebx)
+                      	    41: .endm
+                      	    42: 
+                      	    43: #
+                      	    44: # Set a descriptor in system memory.
+                      	    45: # This is the body of procedures used in 16 and 32-bit code segments.
+                      	    46: #
+                      	    47: #    7                             0 7                             0
+                      	    48: #   ╔═══════════════════════════════╤═══╤═�
+                      	    49: # +7║            BASE 31-24         │ G │B/D│ 0 │AVL│  LIMIT 19-16  ║+6
+                      	    50: #   ╟───┬───────┬───┬───────────┬───┼───┴─�
+                      	    51: # +5║ P │  DPL  │ S │    TYPE    (A)│          BASE 23-16           ║+4
+                      	    52: #   ╟───┴───┴───┴───┴───┴───┴───┴───┴─────�
+                      	    53: # +3║                           BASE 15-0                           ║+2
+                      	    54: #   ╟───────────────────────────────┴─────�
+                      	    55: # +1║                           LIMIT 15-0                          ║ 0
+                      	    56: #   ╚═══════════════════════════════╧═════�
+                      	    57: #    15                                                            0
+                      	    58: #
+                      	    59: # DS:EBX pointer to the descriptor table
+                      	    60: # EAX segment selector
+                      	    61: # ESI base
+                      	    62: # EDI limit
+                      	    63: # DL ext nibble (upper 4 bits)
+                      	    64: # DH acc byte (P|DPL|S|TYPE|A)
+                      	    65: #
+                      	    66: .macro initDescriptor
+                      	    67: 	and $0xFFF8,%eax
+                      	    68: 	add %eax,%ebx
+                      	    69: 	movw %di,(%ebx)						# LIMIT 15-0
+                      	    70: 	movw %si,2(%ebx)					# BASE 15-0
+                      	    71: 	shr $16,%esi
+                      	    72: 	mov %si,%ax								# AX := BASE 31-16
+                      	    73: 	movb %al,4(%ebx)					# BASE 23-16
+                      	    74: 	movb %dh,5(%ebx)					# acc byte
+                      	    75: 	shr $16,%edi
+                      	    76: 	mov %di,%cx
+                      	    77: 	and $0x0f,%cl
+                      	    78: 	movb %cl,6(%ebx)					# LIMIT 19-16
+                      	    79: 	and $0xf0,%dl
+                      	    80: 	orb %dl,6(%ebx)						# ext nybble
+                      	    81: 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    82: .endm
+                      	    83: 
+                      	    84: 
+                      	    85: .macro advTestBase
+                      	    86: 	.set TEST_BASE1,TEST_BASE1+0x1000
+                      	    87: 	.set TEST_BASE2,TEST_BASE2+0x1000
+                      	    88: .endm
+                      	    89: 
+
+Source: "t386.asm"
+                      	   127: .include "shift_m.asm"
+
+Source: "shift_m.asm"
+                      	     1: #
+                      	     2: #   Executes a byte shift operation and checks the resulting flags.
+                      	     3: #
+                      	     4: #   %1 operation
+                      	     5: #   %2 al: byte operand
+                      	     6: #   %3 cl: shift count
+                      	     7: #   %4 flags: value of flags before %1 execution
+                      	     8: #   %5 flags: expected value of flags after %1 execution (cmp with PS_ARITH mask)
+                      	     9: #
+                      	    10: #   Uses: AX, CL, Flags
+                      	    11: #
+                      	    12: 
+                      	    13: .macro testShiftBFlags arg1,arg2,arg3,arg4,arg5
+                      	    14: 	mov \arg4,%ax
+                      	    15: 	push %ax
+                      	    16: 	popf
+                      	    17: 	mov $0xff,%ah
+                      	    18: 	mov \arg2,%al
+                      	    19: 	mov \arg3,%cl
+                      	    20: 	\arg1 %cl,%al
+                      	    21: 	pushf
+                      	    22: 	pop %ax
+                      	    23: 	and $PS_ARITH,%ax
+                      	    24: 	cmp \arg5,%ax
+                      	    25: 	jne error
+                      	    26: .endm
+                      	    27: 
+                      	    28: #
+                      	    29: #   Executes a word shift operation and checks the resulting flags.
+                      	    30: #
+                      	    31: #   %1 operation
+                      	    32: #   %2 ax: word operand
+                      	    33: #   %3 cl: shift count
+                      	    34: #   %4 flags: value of flags before %1 execution
+                      	    35: #   %5 flags: expected value of flags after %1 execution (cmp with PS_ARITH mask)
+                      	    36: #
+                      	    37: #   Uses: AX, CL, Flags
+                      	    38: #
+                      	    39: .macro testShiftWFlags arg1,arg2,arg3,arg4,arg5
+                      	    40: 	mov \arg4,%ax
+                      	    41: 	push %ax
+                      	    42: 	popf
+                      	    43: 	mov \arg2,%ax
+                      	    44: 	mov \arg3,%cl
+                      	    45: 	\arg1 %cl,%ax
+                      	    46: 	pushf
+                      	    47: 	pop %ax
+                      	    48: 	and $PS_ARITH,%ax
+                      	    49: 	cmp \arg5,%ax
+                      	    50: 	jne error
+                      	    51: .endm
+                      	    52: 
+
+Source: "t386.asm"
+                      	   128: 
+                      	   129: _start:
+04:00000000 EB59      	   130: 	jmp _start1
+                      	   131: header:
+                      	   132: 	cpyright
+04:00000002 743338362E	     1M 	.ascii "t386.asm (c) 2024 Robert Finch (C) 2012-2015 Jeff Parsons, (C) 2017-2021 Marco Bortolin ",0
+04:00000007 61736D2028
+04:0000000C 6329203230
+04:00000011 323420526F
+04:00000016 6265727420
+04:0000001B 46696E6368
+04:00000020 2028432920
+04:00000025 323031322D
+04:0000002A 3230313520
+04:0000002F 4A65666620
+04:00000034 506172736F
+04:00000039 6E732C2028
+04:0000003E 4329203230
+04:00000043 31372D3230
+04:00000048 3231204D61
+04:0000004D 72636F2042
+04:00000052 6F72746F6C
+04:00000057 696E20
+04:0000005A 00
+                      	   133: 
+                      	   134: _start1:
+04:0000005B FA        	   135: 	cli	
+                      	   136: # init IDT
+                      	   137: #	mov $17,%cx
+                      	   138: #	movl $error,%edx
+                      	   139: #	movl $0xfff90000,%eax
+                      	   140: #	movl $error,%edx
+                      	   141: #.aloop:
+                      	   142: #	movw %dx,(%eax)
+                      	   143: #	movw $0xf000,2(%eax)
+                      	   144: ##	movw $error,(,%eax,4)
+                      	   145: ##	movw $0xf000,2(,%eax,4)
+                      	   146: #	addl $4,%eax
+                      	   147: #	loop .aloop
+                      	   148: 
+                      	   149: #	mov $ESP_REAL,%esp
+                      	   150: 
+                      	   151: # ==============================================================================
+                      	   152: #	Real mode tests
+                      	   153: # ==============================================================================
+                      	   154: 
+                      	   155: .include "real_m.asm"
+
+Source: "real_m.asm"
+                      	     1: #
+                      	     2: # Advances the base address of data segments used by tests, D1_SEG_REAL and
+                      	     3: # D2_SEG_REAL.
+                      	     4: #
+                      	     5: # Loads DS with D1_SEG_REAL and ES with D2_SEG_REAL.
+                      	     6: #
+                      	     7: .macro advTestSegReal
+                      	     8: 	advTestBase
+                      	     9: 	.set D1_SEG_REAL,TEST_BASE1 >> 4
+                      	    10: 	.set D2_SEG_REAL,TEST_BASE2 >> 4
+                      	    11: 	mov $D1_SEG_REAL,%dx
+                      	    12: 	mov %dx,%ds
+                      	    13: 	mov $D2_SEG_REAL,%dx
+                      	    14: 	mov %dx,%es
+                      	    15: .endm
+                      	    16: 
+                      	    17: #
+                      	    18: # Initializes the real mode IDT with C_SEG_REAL:error
+                      	    19: # This code is called in real mode.
+                      	    20: #
+                      	    21: .macro initRealModeIDT
+                      	    22: 	mov $IDT_SEG_REAL,%ax
+                      	    23: 	mov %ax,%ds
+                      	    24: 	xor %di,%di
+                      	    25: 	mov $17,%cx
+                      	    26: aloop\@:
+                      	    27: 	movw $error,(%di)
+                      	    28: 	movw $C_SEG_REAL,2(%di)
+                      	    29: 	add $4,%di
+                      	    30: 	loop aloop\@
+                      	    31: .endm
+                      	    32: 
+                      	    33: 
+                      	    34: #
+                      	    35: # Exception handling testing in real mode
+                      	    36: #
+                      	    37: 
+                      	    38: # Initialises an exc handler
+                      	    39: # %1: vector
+                      	    40: # %2: handler IP
+                      	    41: # Trashes AX,DS
+                      	    42: 
+                      	    43: .macro realModeExcInit arg1,arg2
+                      	    44: 	mov $IDT_SEG_REAL,%ax
+                      	    45: 	mov %ax,%ds
+                      	    46: 	movw \arg2,(,\arg1,4)
+                      	    47: 	movw $C_SEG_REAL,2(,\arg1,4)
+                      	    48: .endm
+                      	    49: 
+                      	    50: # Checks exc result and restores the default handler
+                      	    51: # %1: vector
+                      	    52: # %2: expected pushed value of IP
+                      	    53: # Trashes AX,DS
+                      	    54: 
+                      	    55: .macro realModeExcCheck arg1,arg2
+                      	    56: 	cmp $ESP_REAL-6,%sp
+                      	    57: 	jne error
+                      	    58: 	cmpw $C_SEG_REAL,(%ss:ESP_REAL-4)
+                      	    59: 	cmpw \arg2,(%ss:ESP_REAL-6)
+                      	    60: 	jne error
+                      	    61: 	mov $0,%ax
+                      	    62: 	mov %ax,%ds
+                      	    63: 	movw $error,(,\arg1,4)
+                      	    64: 	movw $C_SEG_REAL,2(,\arg1,4)
+                      	    65: .endm
+                      	    66: 
+                      	    67: 
+                      	    68: # Tests a fault
+                      	    69: # %1: vector
+                      	    70: # %2: instruction to execute that causes a fault
+                      	    71: 
+                      	    72: .macro realModeFaultTest arg1,arg2
+                      	    73: 	realModeExcInit \arg1,continue\@
+                      	    74: 	mov $S_SEG_REAL,%ax
+                      	    75: 	mov %ax,%ss
+                      	    76: 	mov $ESP_REAL,%sp
+                      	    77: test\@:
+                      	    78: 	\arg2
+                      	    79: 	jmp error
+                      	    80: continue\@:
+                      	    81: 	realModeExcCheck \arg1,test\@
+                      	    82: .endm
+                      	    83: 
+
+Source: "t386.asm"
+                      	   156: #-------------------------------------------------------------------------------
+                      	   157: 	POST $0
+04:0000005C B000      	     1M 	movb $0,%al
+04:0000005E BA9001    	     2M 	movw $POST_PORT,%dx
+04:00000061 EE        	     3M 	out %al,%dx
+                      	   158: #-------------------------------------------------------------------------------
+                      	   159: #
+                      	   160: #   Real mode initialisation
+                      	   161: #
+04:00000062 B800A0    	   162: 	mov $rodata_seg & realmd_mask,%ax
+04:00000065 8ED8      	   163: 	mov %ax,%ds
+04:00000067 0F011E0000	   164: 	lidt idt_addr-start_rodata
+                      	   165: 	initRealModeIDT
+04:0000006C B80090    	     1M 	mov $IDT_SEG_REAL,%ax
+04:0000006F 8ED8      	     2M 	mov %ax,%ds
+04:00000071 31FF      	     3M 	xor %di,%di
+04:00000073 B91100    	     4M 	mov $17,%cx
+                      	     5M aloop7:
+04:00000076 C705D204  	     6M 	movw $error,(%di)
+04:0000007A C745020000	     7M 	movw $C_SEG_REAL,2(%di)
+04:0000007F 83C704    	     8M 	add $4,%di
+04:00000082 E2F2      	     9M 	loop aloop7
+04:00000084 B800C0    	   166: 	mov $S_SEG_REAL,%ax
+04:00000087 8ED0      	   167: 	mov %ax,%ss
+04:00000089 BCFCFF    	   168: 	mov $ESP_REAL,%sp
+04:0000008C BA0020    	   169: 	mov $D1_SEG_REAL,%dx
+04:0000008F 8EDA      	   170: 	mov %dx,%ds
+04:00000091 BA0060    	   171: 	mov $D2_SEG_REAL,%dx
+04:00000094 8EC2      	   172: 	mov %dx,%es
+                      	   173: 
+                      	   174: #-------------------------------------------------------------------------------
+                      	   175: 	POST $1
+04:00000096 B001      	     1M 	movb $1,%al
+04:00000098 BA9001    	     2M 	movw $POST_PORT,%dx
+04:0000009B EE        	     3M 	out %al,%dx
+                      	   176: #-------------------------------------------------------------------------------
+                      	   177: #
+                      	   178: #   Conditional jumps
+                      	   179: #
+                      	   180: .include "jcc_m.asm"
+
+Source: "jcc_m.asm"
+                      	     1: #
+                      	     2: # Tests conditional relative jumps.
+                      	     3: # Uses: AX, ECX, Flags
+                      	     4: #
+                      	     5: # Opcodes tested, with positive and negative offsets:
+                      	     6: #
+                      	     7: # rel8  rel16/32 mnemonic condition
+                      	     8: # 70    0F80     JO       OF=1
+                      	     9: # 71    0F81     JNO      OF=0
+                      	    10: # 72    0F82     JC       CF=1
+                      	    11: # 73    0F83     JNC      CF=0
+                      	    12: # 74    0F84     JZ       ZF=1
+                      	    13: # 75    0F85     JNZ      ZF=0
+                      	    14: # 76    0F86     JBE      CF=1 || ZF=1
+                      	    15: # 77    0F87     JA       CF=0 && ZF=0
+                      	    16: # 78    0F88     JS       SF=1
+                      	    17: # 79    0F89     JNS      SF=0
+                      	    18: # 7A    0F8A     JP       PF=1
+                      	    19: # 7B    0F8B     JNP      PF=0
+                      	    20: # 7C    0F8C     JL       SF!=OF
+                      	    21: # 7D    0F8D     JNL      SF=OF
+                      	    22: # 7E    0F8E     JLE      ZF=1 || SF!=OF
+                      	    23: # 7F    0F8F     JNLE     ZF=0 && SF=OF
+                      	    24: # E3             JCXZ     CX=0
+                      	    25: # E3             JECXZ    ECX=0
+                      	    26: #
+                      	    27: .macro testJcc arg1
+                      	    28: 	mov $PS_CF,%ah
+                      	    29: 	sahf         # dont use the stack (pushf/popf)
+                      	    30: 	jnc err1\@ 	# 73 / 0F83   JNC  CF=0
+                      	    31: 	jc jcok\@ 	# 72 / 0F82   JC   CF=1
+                      	    32: 	hlt
+                      	    33: jz\@:
+                      	    34: 	mov $PS_ZF,%ah
+                      	    35: 	sahf
+                      	    36: 	jnz err1\@ 	# 75 / 0F85   JNZ  ZF=0
+                      	    37: 	jz jzok\@ 	# 74 / 0F84   JZ   ZF=1
+                      	    38: 	hlt
+                      	    39: jp\@:
+                      	    40: 	mov $PS_PF,%ah
+                      	    41: 	sahf
+                      	    42: 	jnp err1\@ 	# 7B / 0F8B   JNP  PF=0
+                      	    43: 	jp jpok\@ 	# 7A / 0F8A   JP   PF=1
+                      	    44: 	hlt
+                      	    45: js\@:
+                      	    46: 	mov $PS_SF,%ah
+                      	    47: 	sahf
+                      	    48: 	jns err1\@ 	# 79 / 0F89   JNS  SF=0
+                      	    49: 	js jsok\@ 	# 78 / 0F88   JS   SF=1
+                      	    50: 	hlt
+                      	    51: jna\@:
+                      	    52: 	mov $PS_ZF|PS_CF,%ah
+                      	    53: 	sahf
+                      	    54: 	ja err1\@  	# 77 / 0F87   JA   CF=0 && ZF=0
+                      	    55: 	jna jnaok\@ # 76 / 0F86   JBE  CF=1 || ZF=1
+                      	    56: next1\@:
+                      	    57: 	jmp jnc\@
+                      	    58: 
+                      	    59: .if \arg1==16
+                      	    60: 	.rept 128
+                      	    61: 		hlt
+                      	    62: 	.endr
+                      	    63: .endif
                       	    64: 
+                      	    65: err1\@:
+                      	    66: 	hlt
+                      	    67: 
+                      	    68: # test negative offsets
+                      	    69: jcok\@:   jc   jz\@
+                      	    70: jzok\@:   jz   jp\@
+                      	    71: jpok\@:   jp   js\@
+                      	    72: jsok\@:   js   jna\@
+                      	    73: jnaok\@:  jna  next1\@
+                      	    74: 
+                      	    75: 
+                      	    76: jnc\@:
+                      	    77: 	mov $PS_SF|PS_ZF|PS_AF|PS_PF,%ah
+                      	    78: 	sahf
+                      	    79: 	mov $0,%ax
+                      	    80: 	sahf
+                      	    81: 	jnc   jncok\@ # 73 / 0F83   JNC  CF=0
+                      	    82: 	hlt
+                      	    83: jnz\@:
+                      	    84: 	mov $PS_SF|PS_AF|PS_PF|PS_CF,%ah
+                      	    85: 	sahf
+                      	    86: 	jnz   jnzok\@ # 75 / 0F85   JNZ  ZF=0
+                      	    87: 	hlt
+                      	    88: jnp\@:
+                      	    89: 	mov $PS_SF|PS_ZF|PS_AF|PS_CF,%ah
+                      	    90: 	sahf
+                      	    91: 	jnp   jnpok\@ # 7B / 0F8B   JNP  PF=0
+                      	    92: 	hlt
+                      	    93: jns\@:
+                      	    94: 	mov $PS_ZF|PS_AF|PS_PF|PS_CF,%ah
+                      	    95: 	sahf
+                      	    96: 	jns jnsok\@ # 79 /  0F89  JNS  SF=0
+                      	    97: 	hlt
+                      	    98: ja\@:
+                      	    99: 	mov $PS_SF|PS_AF|PS_PF,%ah
+                      	   100: 	sahf
+                      	   101: 	ja    jaok\@  # 77 / 0F87   JA   CF=0 && ZF=0
+                      	   102: 	hlt
+                      	   103: next2\@:
+                      	   104: 	jmp   jo\@
+                      	   105: 
+                      	   106: .if \arg1==16
+                      	   107: 	.rept 128
+                      	   108: 		hlt
+                      	   109: 	.endr
+                      	   110: .endif
+                      	   111: 
+                      	   112: # test negative offsets
+                      	   113: jncok\@:  jnc  jnz\@
+                      	   114: jnzok\@:  jnz  jnp\@
+                      	   115: jnpok\@:  jnp  jns\@
+                      	   116: jnsok\@:  jns  ja\@
+                      	   117: jaok\@:   ja   next2\@
+                      	   118: 
+                      	   119: jo\@:
+                      	   120: 	mov $0,%ah
+                      	   121: 	sahf
+                      	   122: 	mov $0b1000000,%al
+                      	   123: 	shl $1,%al   	# OF = high-order bit of AL <> (CF), ZF=0,SF=1,OF=1
+                      	   124: 	jno err2\@
+                      	   125: 	jo jook\@
+                      	   126: 	hlt
+                      	   127: jnl\@:
+                      	   128: 	jl err2\@   	# 7C / 0F8C   JL   SF!=OF
+                      	   129: 	jnl jnlok\@  	# 7D / 0F8D   JNL  SF=OF
+                      	   130: 	hlt
+                      	   131: jnle\@:
+                      	   132: 	jle err2\@   	# 7E / 0F8E   JLE  ZF=1 || SF!=OF
+                      	   133: 	jnle jnleok\@ # 7F / 0F8F   JNLE ZF=0 && SF=OF
+                      	   134: 	hlt
+                      	   135: jl\@:
+                      	   136: 	mov $PS_ZF,%ah
+                      	   137: 	sahf          # ZF=1,SF=0,OF=1
+                      	   138: 	jl jlok\@   	# 7C / 0F8C   JL   SF!=OF
+                      	   139: 	hlt
+                      	   140: jle\@:
+                      	   141: 	jle jleok\@  	# 7E / 0F8E   JLE  ZF=1 || SF!=OF
+                      	   142: 	hlt
+                      	   143: jcxz\@:
+                      	   144: .if \arg1==8
+                      	   145: 	mov $1,%ecx
+                      	   146: 	jcxz err2\@      	# E3   JCXZ  CX=0
+                      	   147: 	mov $0x10000,%ecx
+                      	   148: 	jcxz jcxzok\@
+                      	   149: jecxz\@:
+                      	   150: 	jecxz err2\@
+                      	   151: 	mov $0,%ecx
+                      	   152: 	jecxz jecxzok\@ 	# E3   JECXZ   ECX=0
+                      	   153: jecxze\@:
+                      	   154: .endif
+                      	   155: 	jmp exit\@
+                      	   156: 
+                      	   157: .if \arg1==16
+                      	   158: 	.rept 128
+                      	   159: 		hlt
+                      	   160: 	.endr
+                      	   161: .endif
+                      	   162: 
+                      	   163: err2\@:
+                      	   164: 	hlt
+                      	   165: 
+                      	   166: # test negative offsets
+                      	   167: jook\@:   jo   jnl\@
+                      	   168: jnlok\@:  jnl  jnle\@
+                      	   169: jnleok\@: jnle jl\@
+                      	   170: jlok\@:   jl   jle\@
+                      	   171: jleok\@:  jle  jcxz\@
+                      	   172: .if \arg1==8
+                      	   173: jcxzok\@:  jcxz  jecxz\@
+                      	   174: jecxzok\@: jecxz jecxze\@
+                      	   175: .endif
+                      	   176: 
+                      	   177: exit\@:
+                      	   178: .endm
+                      	   179: 
+
+Source: "t386.asm"
+                      	   181: 	testJcc 8
+04:0000009C B401      	     1M 	mov $PS_CF,%ah
+04:0000009E 9E        	     2M 	sahf         # dont use the stack (pushf/popf)
+04:0000009F 7324      	     3M 	jnc err110 	# 73 / 0F83   JNC  CF=0
+04:000000A1 7223      	     4M 	jc jcok10 	# 72 / 0F82   JC   CF=1
+04:000000A3 F4        	     5M 	hlt
+                      	     6M jz10:
+04:000000A4 B440      	     7M 	mov $PS_ZF,%ah
+04:000000A6 9E        	     8M 	sahf
+04:000000A7 751C      	     9M 	jnz err110 	# 75 / 0F85   JNZ  ZF=0
+04:000000A9 741D      	    10M 	jz jzok10 	# 74 / 0F84   JZ   ZF=1
+04:000000AB F4        	    11M 	hlt
+                      	    12M jp10:
+04:000000AC B404      	    13M 	mov $PS_PF,%ah
+04:000000AE 9E        	    14M 	sahf
+04:000000AF 7B14      	    15M 	jnp err110 	# 7B / 0F8B   JNP  PF=0
+04:000000B1 7A17      	    16M 	jp jpok10 	# 7A / 0F8A   JP   PF=1
+04:000000B3 F4        	    17M 	hlt
+                      	    18M js10:
+04:000000B4 B480      	    19M 	mov $PS_SF,%ah
+04:000000B6 9E        	    20M 	sahf
+04:000000B7 790C      	    21M 	jns err110 	# 79 / 0F89   JNS  SF=0
+04:000000B9 7811      	    22M 	js jsok10 	# 78 / 0F88   JS   SF=1
+04:000000BB F4        	    23M 	hlt
+                      	    24M jna10:
+04:000000BC B441      	    25M 	mov $PS_ZF|PS_CF,%ah
+04:000000BE 9E        	    26M 	sahf
+04:000000BF 7704      	    27M 	ja err110  	# 77 / 0F87   JA   CF=0 && ZF=0
+04:000000C1 760B      	    28M 	jna jnaok10 # 76 / 0F86   JBE  CF=1 || ZF=1
+                      	    29M next110:
+04:000000C3 EB0B      	    30M 	jmp jnc10
+                      	    31M 
+                      	    32M .if 8==16
+                      	    33M 	.rept 128
+                      	    34M 		hlt
+                      	    35M 	.endr
+                      	    36M .endif
+                      	    37M 
+                      	    38M err110:
+04:000000C5 F4        	    39M 	hlt
+                      	    40M 
+                      	    41M # test negative offsets
+04:000000C6 72DC      	    42M jcok10:   jc   jz10
+04:000000C8 74E2      	    43M jzok10:   jz   jp10
+04:000000CA 7AE8      	    44M jpok10:   jp   js10
+04:000000CC 78EE      	    45M jsok10:   js   jna10
+04:000000CE 76F3      	    46M jnaok10:  jna  next110
+                      	    47M 
+                      	    48M 
+                      	    49M jnc10:
+04:000000D0 B4D4      	    50M 	mov $PS_SF|PS_ZF|PS_AF|PS_PF,%ah
+04:000000D2 9E        	    51M 	sahf
+04:000000D3 B80000    	    52M 	mov $0,%ax
+04:000000D6 9E        	    53M 	sahf
+04:000000D7 731B      	    54M 	jnc   jncok10 # 73 / 0F83   JNC  CF=0
+04:000000D9 F4        	    55M 	hlt
+                      	    56M jnz10:
+04:000000DA B495      	    57M 	mov $PS_SF|PS_AF|PS_PF|PS_CF,%ah
+04:000000DC 9E        	    58M 	sahf
+04:000000DD 7517      	    59M 	jnz   jnzok10 # 75 / 0F85   JNZ  ZF=0
+04:000000DF F4        	    60M 	hlt
+                      	    61M jnp10:
+04:000000E0 B4D1      	    62M 	mov $PS_SF|PS_ZF|PS_AF|PS_CF,%ah
+04:000000E2 9E        	    63M 	sahf
+04:000000E3 7B13      	    64M 	jnp   jnpok10 # 7B / 0F8B   JNP  PF=0
+04:000000E5 F4        	    65M 	hlt
+                      	    66M jns10:
+04:000000E6 B455      	    67M 	mov $PS_ZF|PS_AF|PS_PF|PS_CF,%ah
+04:000000E8 9E        	    68M 	sahf
+04:000000E9 790F      	    69M 	jns jnsok10 # 79 /  0F89  JNS  SF=0
+04:000000EB F4        	    70M 	hlt
+                      	    71M ja10:
+04:000000EC B494      	    72M 	mov $PS_SF|PS_AF|PS_PF,%ah
+04:000000EE 9E        	    73M 	sahf
+04:000000EF 770B      	    74M 	ja    jaok10  # 77 / 0F87   JA   CF=0 && ZF=0
+04:000000F1 F4        	    75M 	hlt
+                      	    76M next210:
+04:000000F2 EB0A      	    77M 	jmp   jo10
+                      	    78M 
+                      	    79M .if 8==16
+                      	    80M 	.rept 128
+                      	    81M 		hlt
+                      	    82M 	.endr
+                      	    83M .endif
+                      	    84M 
+                      	    85M # test negative offsets
+04:000000F4 73E4      	    86M jncok10:  jnc  jnz10
+04:000000F6 75E8      	    87M jnzok10:  jnz  jnp10
+04:000000F8 7BEC      	    88M jnpok10:  jnp  jns10
+04:000000FA 79F0      	    89M jnsok10:  jns  ja10
+04:000000FC 77F4      	    90M jaok10:   ja   next210
+                      	    91M 
+                      	    92M jo10:
+04:000000FE B400      	    93M 	mov $0,%ah
+04:00000100 9E        	    94M 	sahf
+04:00000101 B040      	    95M 	mov $0b1000000,%al
+04:00000103 C0E001    	    96M 	shl $1,%al   	# OF = high-order bit of AL <> (CF), ZF=0,SF=1,OF=1
+04:00000106 7132      	    97M 	jno err210
+04:00000108 7031      	    98M 	jo jook10
+04:0000010A F4        	    99M 	hlt
+                      	   100M jnl10:
+04:0000010B 7C2D      	   101M 	jl err210   	# 7C / 0F8C   JL   SF!=OF
+04:0000010D 7D2E      	   102M 	jnl jnlok10  	# 7D / 0F8D   JNL  SF=OF
+04:0000010F F4        	   103M 	hlt
+                      	   104M jnle10:
+04:00000110 7E28      	   105M 	jle err210   	# 7E / 0F8E   JLE  ZF=1 || SF!=OF
+04:00000112 7F2B      	   106M 	jnle jnleok10 # 7F / 0F8F   JNLE ZF=0 && SF=OF
+04:00000114 F4        	   107M 	hlt
+                      	   108M jl10:
+04:00000115 B440      	   109M 	mov $PS_ZF,%ah
+04:00000117 9E        	   110M 	sahf          # ZF=1,SF=0,OF=1
+04:00000118 7C27      	   111M 	jl jlok10   	# 7C / 0F8C   JL   SF!=OF
+04:0000011A F4        	   112M 	hlt
+                      	   113M jle10:
+04:0000011B 7E26      	   114M 	jle jleok10  	# 7E / 0F8E   JLE  ZF=1 || SF!=OF
+04:0000011D F4        	   115M 	hlt
+                      	   116M jcxz10:
+                      	   117M .if 8==8
+04:0000011E 66B9010000	   118M 	mov $1,%ecx
+04:00000123 00
+04:00000124 E314      	   119M 	jcxz err210      	# E3   JCXZ  CX=0
+04:00000126 66B9000001	   120M 	mov $0x10000,%ecx
+04:0000012B 00
+04:0000012C E317      	   121M 	jcxz jcxzok10
+                      	   122M jecxz10:
+04:0000012E E30A      	   123M 	jecxz err210
+04:00000130 66B9000000	   124M 	mov $0,%ecx
+04:00000135 00
+04:00000136 E30F      	   125M 	jecxz jecxzok10 	# E3   JECXZ   ECX=0
+                      	   126M jecxze10:
+                      	   127M .endif
+04:00000138 EB0F      	   128M 	jmp exit10
+                      	   129M 
+                      	   130M .if 8==16
+                      	   131M 	.rept 128
+                      	   132M 		hlt
+                      	   133M 	.endr
+                      	   134M .endif
+                      	   135M 
+                      	   136M err210:
+04:0000013A F4        	   137M 	hlt
+                      	   138M 
+                      	   139M # test negative offsets
+04:0000013B 70CE      	   140M jook10:   jo   jnl10
+04:0000013D 7DD1      	   141M jnlok10:  jnl  jnle10
+04:0000013F 7FD4      	   142M jnleok10: jnle jl10
+04:00000141 7CD8      	   143M jlok10:   jl   jle10
+04:00000143 7ED9      	   144M jleok10:  jle  jcxz10
+                      	   145M .if 8==8
+04:00000145 E3E7      	   146M jcxzok10:  jcxz  jecxz10
+04:00000147 E3EF      	   147M jecxzok10: jecxz jecxze10
+                      	   148M .endif
+                      	   149M 
+                      	   150M exit10:
+                      	   182: 	testJcc 16
+04:00000149 B401      	     1M 	mov $PS_CF,%ah
+04:0000014B 9E        	     2M 	sahf         # dont use the stack (pushf/popf)
+04:0000014C 0F83B700  	     3M 	jnc err111 	# 73 / 0F83   JNC  CF=0
+04:00000150 0F82B400  	     4M 	jc jcok11 	# 72 / 0F82   JC   CF=1
+04:00000154 F4        	     5M 	hlt
+                      	     6M jz11:
+04:00000155 B440      	     7M 	mov $PS_ZF,%ah
+04:00000157 9E        	     8M 	sahf
+04:00000158 0F85AB00  	     9M 	jnz err111 	# 75 / 0F85   JNZ  ZF=0
+04:0000015C 0F84AC00  	    10M 	jz jzok11 	# 74 / 0F84   JZ   ZF=1
+04:00000160 F4        	    11M 	hlt
+                      	    12M jp11:
+04:00000161 B404      	    13M 	mov $PS_PF,%ah
+04:00000163 9E        	    14M 	sahf
+04:00000164 0F8B9F00  	    15M 	jnp err111 	# 7B / 0F8B   JNP  PF=0
+04:00000168 0F8AA400  	    16M 	jp jpok11 	# 7A / 0F8A   JP   PF=1
+04:0000016C F4        	    17M 	hlt
+                      	    18M js11:
+04:0000016D B480      	    19M 	mov $PS_SF,%ah
+04:0000016F 9E        	    20M 	sahf
+04:00000170 0F899300  	    21M 	jns err111 	# 79 / 0F89   JNS  SF=0
+04:00000174 0F889C00  	    22M 	js jsok11 	# 78 / 0F88   JS   SF=1
+04:00000178 F4        	    23M 	hlt
+                      	    24M jna11:
+04:00000179 B441      	    25M 	mov $PS_ZF|PS_CF,%ah
+04:0000017B 9E        	    26M 	sahf
+04:0000017C 0F878700  	    27M 	ja err111  	# 77 / 0F87   JA   CF=0 && ZF=0
+04:00000180 0F869400  	    28M 	jna jnaok11 # 76 / 0F86   JBE  CF=1 || ZF=1
+                      	    29M next111:
+04:00000184 E99500    	    30M 	jmp jnc11
+                      	    31M 
+                      	    32M .if 16==16
+                      	    33M 	.rept 128
+                      	    34M 		hlt
+                      	    35M 	.endr
+04:00000187 F4        	     1M 		hlt
+                      	     2M 	
+04:00000188 F4        	     1M 		hlt
+                      	     2M 	
+04:00000189 F4        	     1M 		hlt
+                      	     2M 	
+04:0000018A F4        	     1M 		hlt
+                      	     2M 	
+04:0000018B F4        	     1M 		hlt
+                      	     2M 	
+04:0000018C F4        	     1M 		hlt
+                      	     2M 	
+04:0000018D F4        	     1M 		hlt
+                      	     2M 	
+04:0000018E F4        	     1M 		hlt
+                      	     2M 	
+04:0000018F F4        	     1M 		hlt
+                      	     2M 	
+04:00000190 F4        	     1M 		hlt
+                      	     2M 	
+04:00000191 F4        	     1M 		hlt
+                      	     2M 	
+04:00000192 F4        	     1M 		hlt
+                      	     2M 	
+04:00000193 F4        	     1M 		hlt
+                      	     2M 	
+04:00000194 F4        	     1M 		hlt
+                      	     2M 	
+04:00000195 F4        	     1M 		hlt
+                      	     2M 	
+04:00000196 F4        	     1M 		hlt
+                      	     2M 	
+04:00000197 F4        	     1M 		hlt
+                      	     2M 	
+04:00000198 F4        	     1M 		hlt
+                      	     2M 	
+04:00000199 F4        	     1M 		hlt
+                      	     2M 	
+04:0000019A F4        	     1M 		hlt
+                      	     2M 	
+04:0000019B F4        	     1M 		hlt
+                      	     2M 	
+04:0000019C F4        	     1M 		hlt
+                      	     2M 	
+04:0000019D F4        	     1M 		hlt
+                      	     2M 	
+04:0000019E F4        	     1M 		hlt
+                      	     2M 	
+04:0000019F F4        	     1M 		hlt
+                      	     2M 	
+04:000001A0 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A1 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A2 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A3 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A4 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A5 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A6 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A7 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A8 F4        	     1M 		hlt
+                      	     2M 	
+04:000001A9 F4        	     1M 		hlt
+                      	     2M 	
+04:000001AA F4        	     1M 		hlt
+                      	     2M 	
+04:000001AB F4        	     1M 		hlt
+                      	     2M 	
+04:000001AC F4        	     1M 		hlt
+                      	     2M 	
+04:000001AD F4        	     1M 		hlt
+                      	     2M 	
+04:000001AE F4        	     1M 		hlt
+                      	     2M 	
+04:000001AF F4        	     1M 		hlt
+                      	     2M 	
+04:000001B0 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B1 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B2 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B3 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B4 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B5 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B6 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B7 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B8 F4        	     1M 		hlt
+                      	     2M 	
+04:000001B9 F4        	     1M 		hlt
+                      	     2M 	
+04:000001BA F4        	     1M 		hlt
+                      	     2M 	
+04:000001BB F4        	     1M 		hlt
+                      	     2M 	
+04:000001BC F4        	     1M 		hlt
+                      	     2M 	
+04:000001BD F4        	     1M 		hlt
+                      	     2M 	
+04:000001BE F4        	     1M 		hlt
+                      	     2M 	
+04:000001BF F4        	     1M 		hlt
+                      	     2M 	
+04:000001C0 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C1 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C2 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C3 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C4 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C5 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C6 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C7 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C8 F4        	     1M 		hlt
+                      	     2M 	
+04:000001C9 F4        	     1M 		hlt
+                      	     2M 	
+04:000001CA F4        	     1M 		hlt
+                      	     2M 	
+04:000001CB F4        	     1M 		hlt
+                      	     2M 	
+04:000001CC F4        	     1M 		hlt
+                      	     2M 	
+04:000001CD F4        	     1M 		hlt
+                      	     2M 	
+04:000001CE F4        	     1M 		hlt
+                      	     2M 	
+04:000001CF F4        	     1M 		hlt
+                      	     2M 	
+04:000001D0 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D1 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D2 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D3 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D4 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D5 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D6 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D7 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D8 F4        	     1M 		hlt
+                      	     2M 	
+04:000001D9 F4        	     1M 		hlt
+                      	     2M 	
+04:000001DA F4        	     1M 		hlt
+                      	     2M 	
+04:000001DB F4        	     1M 		hlt
+                      	     2M 	
+04:000001DC F4        	     1M 		hlt
+                      	     2M 	
+04:000001DD F4        	     1M 		hlt
+                      	     2M 	
+04:000001DE F4        	     1M 		hlt
+                      	     2M 	
+04:000001DF F4        	     1M 		hlt
+                      	     2M 	
+04:000001E0 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E1 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E2 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E3 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E4 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E5 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E6 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E7 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E8 F4        	     1M 		hlt
+                      	     2M 	
+04:000001E9 F4        	     1M 		hlt
+                      	     2M 	
+04:000001EA F4        	     1M 		hlt
+                      	     2M 	
+04:000001EB F4        	     1M 		hlt
+                      	     2M 	
+04:000001EC F4        	     1M 		hlt
+                      	     2M 	
+04:000001ED F4        	     1M 		hlt
+                      	     2M 	
+04:000001EE F4        	     1M 		hlt
+                      	     2M 	
+04:000001EF F4        	     1M 		hlt
+                      	     2M 	
+04:000001F0 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F1 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F2 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F3 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F4 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F5 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F6 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F7 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F8 F4        	     1M 		hlt
+                      	     2M 	
+04:000001F9 F4        	     1M 		hlt
+                      	     2M 	
+04:000001FA F4        	     1M 		hlt
+                      	     2M 	
+04:000001FB F4        	     1M 		hlt
+                      	     2M 	
+04:000001FC F4        	     1M 		hlt
+                      	     2M 	
+04:000001FD F4        	     1M 		hlt
+                      	     2M 	
+04:000001FE F4        	     1M 		hlt
+                      	     2M 	
+04:000001FF F4        	     1M 		hlt
+                      	     2M 	
+04:00000200 F4        	     1M 		hlt
+                      	     2M 	
+04:00000201 F4        	     1M 		hlt
+                      	     2M 	
+04:00000202 F4        	     1M 		hlt
+                      	     2M 	
+04:00000203 F4        	     1M 		hlt
+                      	     2M 	
+04:00000204 F4        	     1M 		hlt
+                      	     2M 	
+04:00000205 F4        	     1M 		hlt
+                      	     2M 	
+04:00000206 F4        	     1M 		hlt
+                      	     2M 	
+                      	    36M .endif
+                      	    37M 
+                      	    38M err111:
+04:00000207 F4        	    39M 	hlt
+                      	    40M 
+                      	    41M # test negative offsets
+04:00000208 0F8249FF  	    42M jcok11:   jc   jz11
+04:0000020C 0F8451FF  	    43M jzok11:   jz   jp11
+04:00000210 0F8A59FF  	    44M jpok11:   jp   js11
+04:00000214 0F8861FF  	    45M jsok11:   js   jna11
+04:00000218 0F8668FF  	    46M jnaok11:  jna  next111
+                      	    47M 
+                      	    48M 
+                      	    49M jnc11:
+04:0000021C B4D4      	    50M 	mov $PS_SF|PS_ZF|PS_AF|PS_PF,%ah
+04:0000021E 9E        	    51M 	sahf
+04:0000021F B80000    	    52M 	mov $0,%ax
+04:00000222 9E        	    53M 	sahf
+04:00000223 0F83A400  	    54M 	jnc   jncok11 # 73 / 0F83   JNC  CF=0
+04:00000227 F4        	    55M 	hlt
+                      	    56M jnz11:
+04:00000228 B495      	    57M 	mov $PS_SF|PS_AF|PS_PF|PS_CF,%ah
+04:0000022A 9E        	    58M 	sahf
+04:0000022B 0F85A000  	    59M 	jnz   jnzok11 # 75 / 0F85   JNZ  ZF=0
+04:0000022F F4        	    60M 	hlt
+                      	    61M jnp11:
+04:00000230 B4D1      	    62M 	mov $PS_SF|PS_ZF|PS_AF|PS_CF,%ah
+04:00000232 9E        	    63M 	sahf
+04:00000233 0F8B9C00  	    64M 	jnp   jnpok11 # 7B / 0F8B   JNP  PF=0
+04:00000237 F4        	    65M 	hlt
+                      	    66M jns11:
+04:00000238 B455      	    67M 	mov $PS_ZF|PS_AF|PS_PF|PS_CF,%ah
+04:0000023A 9E        	    68M 	sahf
+04:0000023B 0F899800  	    69M 	jns jnsok11 # 79 /  0F89  JNS  SF=0
+04:0000023F F4        	    70M 	hlt
+                      	    71M ja11:
+04:00000240 B494      	    72M 	mov $PS_SF|PS_AF|PS_PF,%ah
+04:00000242 9E        	    73M 	sahf
+04:00000243 0F879400  	    74M 	ja    jaok11  # 77 / 0F87   JA   CF=0 && ZF=0
+04:00000247 F4        	    75M 	hlt
+                      	    76M next211:
+04:00000248 E99400    	    77M 	jmp   jo11
+                      	    78M 
+                      	    79M .if 16==16
+                      	    80M 	.rept 128
+                      	    81M 		hlt
+                      	    82M 	.endr
+04:0000024B F4        	     1M 		hlt
+                      	     2M 	
+04:0000024C F4        	     1M 		hlt
+                      	     2M 	
+04:0000024D F4        	     1M 		hlt
+                      	     2M 	
+04:0000024E F4        	     1M 		hlt
+                      	     2M 	
+04:0000024F F4        	     1M 		hlt
+                      	     2M 	
+04:00000250 F4        	     1M 		hlt
+                      	     2M 	
+04:00000251 F4        	     1M 		hlt
+                      	     2M 	
+04:00000252 F4        	     1M 		hlt
+                      	     2M 	
+04:00000253 F4        	     1M 		hlt
+                      	     2M 	
+04:00000254 F4        	     1M 		hlt
+                      	     2M 	
+04:00000255 F4        	     1M 		hlt
+                      	     2M 	
+04:00000256 F4        	     1M 		hlt
+                      	     2M 	
+04:00000257 F4        	     1M 		hlt
+                      	     2M 	
+04:00000258 F4        	     1M 		hlt
+                      	     2M 	
+04:00000259 F4        	     1M 		hlt
+                      	     2M 	
+04:0000025A F4        	     1M 		hlt
+                      	     2M 	
+04:0000025B F4        	     1M 		hlt
+                      	     2M 	
+04:0000025C F4        	     1M 		hlt
+                      	     2M 	
+04:0000025D F4        	     1M 		hlt
+                      	     2M 	
+04:0000025E F4        	     1M 		hlt
+                      	     2M 	
+04:0000025F F4        	     1M 		hlt
+                      	     2M 	
+04:00000260 F4        	     1M 		hlt
+                      	     2M 	
+04:00000261 F4        	     1M 		hlt
+                      	     2M 	
+04:00000262 F4        	     1M 		hlt
+                      	     2M 	
+04:00000263 F4        	     1M 		hlt
+                      	     2M 	
+04:00000264 F4        	     1M 		hlt
+                      	     2M 	
+04:00000265 F4        	     1M 		hlt
+                      	     2M 	
+04:00000266 F4        	     1M 		hlt
+                      	     2M 	
+04:00000267 F4        	     1M 		hlt
+                      	     2M 	
+04:00000268 F4        	     1M 		hlt
+                      	     2M 	
+04:00000269 F4        	     1M 		hlt
+                      	     2M 	
+04:0000026A F4        	     1M 		hlt
+                      	     2M 	
+04:0000026B F4        	     1M 		hlt
+                      	     2M 	
+04:0000026C F4        	     1M 		hlt
+                      	     2M 	
+04:0000026D F4        	     1M 		hlt
+                      	     2M 	
+04:0000026E F4        	     1M 		hlt
+                      	     2M 	
+04:0000026F F4        	     1M 		hlt
+                      	     2M 	
+04:00000270 F4        	     1M 		hlt
+                      	     2M 	
+04:00000271 F4        	     1M 		hlt
+                      	     2M 	
+04:00000272 F4        	     1M 		hlt
+                      	     2M 	
+04:00000273 F4        	     1M 		hlt
+                      	     2M 	
+04:00000274 F4        	     1M 		hlt
+                      	     2M 	
+04:00000275 F4        	     1M 		hlt
+                      	     2M 	
+04:00000276 F4        	     1M 		hlt
+                      	     2M 	
+04:00000277 F4        	     1M 		hlt
+                      	     2M 	
+04:00000278 F4        	     1M 		hlt
+                      	     2M 	
+04:00000279 F4        	     1M 		hlt
+                      	     2M 	
+04:0000027A F4        	     1M 		hlt
+                      	     2M 	
+04:0000027B F4        	     1M 		hlt
+                      	     2M 	
+04:0000027C F4        	     1M 		hlt
+                      	     2M 	
+04:0000027D F4        	     1M 		hlt
+                      	     2M 	
+04:0000027E F4        	     1M 		hlt
+                      	     2M 	
+04:0000027F F4        	     1M 		hlt
+                      	     2M 	
+04:00000280 F4        	     1M 		hlt
+                      	     2M 	
+04:00000281 F4        	     1M 		hlt
+                      	     2M 	
+04:00000282 F4        	     1M 		hlt
+                      	     2M 	
+04:00000283 F4        	     1M 		hlt
+                      	     2M 	
+04:00000284 F4        	     1M 		hlt
+                      	     2M 	
+04:00000285 F4        	     1M 		hlt
+                      	     2M 	
+04:00000286 F4        	     1M 		hlt
+                      	     2M 	
+04:00000287 F4        	     1M 		hlt
+                      	     2M 	
+04:00000288 F4        	     1M 		hlt
+                      	     2M 	
+04:00000289 F4        	     1M 		hlt
+                      	     2M 	
+04:0000028A F4        	     1M 		hlt
+                      	     2M 	
+04:0000028B F4        	     1M 		hlt
+                      	     2M 	
+04:0000028C F4        	     1M 		hlt
+                      	     2M 	
+04:0000028D F4        	     1M 		hlt
+                      	     2M 	
+04:0000028E F4        	     1M 		hlt
+                      	     2M 	
+04:0000028F F4        	     1M 		hlt
+                      	     2M 	
+04:00000290 F4        	     1M 		hlt
+                      	     2M 	
+04:00000291 F4        	     1M 		hlt
+                      	     2M 	
+04:00000292 F4        	     1M 		hlt
+                      	     2M 	
+04:00000293 F4        	     1M 		hlt
+                      	     2M 	
+04:00000294 F4        	     1M 		hlt
+                      	     2M 	
+04:00000295 F4        	     1M 		hlt
+                      	     2M 	
+04:00000296 F4        	     1M 		hlt
+                      	     2M 	
+04:00000297 F4        	     1M 		hlt
+                      	     2M 	
+04:00000298 F4        	     1M 		hlt
+                      	     2M 	
+04:00000299 F4        	     1M 		hlt
+                      	     2M 	
+04:0000029A F4        	     1M 		hlt
+                      	     2M 	
+04:0000029B F4        	     1M 		hlt
+                      	     2M 	
+04:0000029C F4        	     1M 		hlt
+                      	     2M 	
+04:0000029D F4        	     1M 		hlt
+                      	     2M 	
+04:0000029E F4        	     1M 		hlt
+                      	     2M 	
+04:0000029F F4        	     1M 		hlt
+                      	     2M 	
+04:000002A0 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A1 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A2 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A3 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A4 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A5 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A6 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A7 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A8 F4        	     1M 		hlt
+                      	     2M 	
+04:000002A9 F4        	     1M 		hlt
+                      	     2M 	
+04:000002AA F4        	     1M 		hlt
+                      	     2M 	
+04:000002AB F4        	     1M 		hlt
+                      	     2M 	
+04:000002AC F4        	     1M 		hlt
+                      	     2M 	
+04:000002AD F4        	     1M 		hlt
+                      	     2M 	
+04:000002AE F4        	     1M 		hlt
+                      	     2M 	
+04:000002AF F4        	     1M 		hlt
+                      	     2M 	
+04:000002B0 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B1 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B2 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B3 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B4 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B5 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B6 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B7 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B8 F4        	     1M 		hlt
+                      	     2M 	
+04:000002B9 F4        	     1M 		hlt
+                      	     2M 	
+04:000002BA F4        	     1M 		hlt
+                      	     2M 	
+04:000002BB F4        	     1M 		hlt
+                      	     2M 	
+04:000002BC F4        	     1M 		hlt
+                      	     2M 	
+04:000002BD F4        	     1M 		hlt
+                      	     2M 	
+04:000002BE F4        	     1M 		hlt
+                      	     2M 	
+04:000002BF F4        	     1M 		hlt
+                      	     2M 	
+04:000002C0 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C1 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C2 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C3 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C4 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C5 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C6 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C7 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C8 F4        	     1M 		hlt
+                      	     2M 	
+04:000002C9 F4        	     1M 		hlt
+                      	     2M 	
+04:000002CA F4        	     1M 		hlt
+                      	     2M 	
+                      	    83M .endif
+                      	    84M 
+                      	    85M # test negative offsets
+04:000002CB 0F8359FF  	    86M jncok11:  jnc  jnz11
+04:000002CF 0F855DFF  	    87M jnzok11:  jnz  jnp11
+04:000002D3 0F8B61FF  	    88M jnpok11:  jnp  jns11
+04:000002D7 0F8965FF  	    89M jnsok11:  jns  ja11
+04:000002DB 0F8769FF  	    90M jaok11:   ja   next211
+                      	    91M 
+                      	    92M jo11:
+04:000002DF B400      	    93M 	mov $0,%ah
+04:000002E1 9E        	    94M 	sahf
+04:000002E2 B040      	    95M 	mov $0b1000000,%al
+04:000002E4 C0E001    	    96M 	shl $1,%al   	# OF = high-order bit of AL <> (CF), ZF=0,SF=1,OF=1
+04:000002E7 0F81A700  	    97M 	jno err211
+04:000002EB 0F80A400  	    98M 	jo jook11
+04:000002EF F4        	    99M 	hlt
+                      	   100M jnl11:
+04:000002F0 0F8C9E00  	   101M 	jl err211   	# 7C / 0F8C   JL   SF!=OF
+04:000002F4 0F8D9F00  	   102M 	jnl jnlok11  	# 7D / 0F8D   JNL  SF=OF
+04:000002F8 F4        	   103M 	hlt
+                      	   104M jnle11:
+04:000002F9 0F8E9500  	   105M 	jle err211   	# 7E / 0F8E   JLE  ZF=1 || SF!=OF
+04:000002FD 0F8F9A00  	   106M 	jnle jnleok11 # 7F / 0F8F   JNLE ZF=0 && SF=OF
+04:00000301 F4        	   107M 	hlt
+                      	   108M jl11:
+04:00000302 B440      	   109M 	mov $PS_ZF,%ah
+04:00000304 9E        	   110M 	sahf          # ZF=1,SF=0,OF=1
+04:00000305 0F8C9600  	   111M 	jl jlok11   	# 7C / 0F8C   JL   SF!=OF
+04:00000309 F4        	   112M 	hlt
+                      	   113M jle11:
+04:0000030A 0F8E9500  	   114M 	jle jleok11  	# 7E / 0F8E   JLE  ZF=1 || SF!=OF
+04:0000030E F4        	   115M 	hlt
+                      	   116M jcxz11:
+                      	   117M .if 16==8
+                      	   118M 	mov $1,%ecx
+                      	   119M 	jcxz err211      	# E3   JCXZ  CX=0
+                      	   120M 	mov $0x10000,%ecx
+                      	   121M 	jcxz jcxzok11
+                      	   122M jecxz11:
+                      	   123M 	jecxz err211
+                      	   124M 	mov $0,%ecx
+                      	   125M 	jecxz jecxzok11 	# E3   JECXZ   ECX=0
+                      	   126M jecxze11:
+                      	   127M .endif
+04:0000030F E99500    	   128M 	jmp exit11
+                      	   129M 
+                      	   130M .if 16==16
+                      	   131M 	.rept 128
+                      	   132M 		hlt
+                      	   133M 	.endr
+04:00000312 F4        	     1M 		hlt
+                      	     2M 	
+04:00000313 F4        	     1M 		hlt
+                      	     2M 	
+04:00000314 F4        	     1M 		hlt
+                      	     2M 	
+04:00000315 F4        	     1M 		hlt
+                      	     2M 	
+04:00000316 F4        	     1M 		hlt
+                      	     2M 	
+04:00000317 F4        	     1M 		hlt
+                      	     2M 	
+04:00000318 F4        	     1M 		hlt
+                      	     2M 	
+04:00000319 F4        	     1M 		hlt
+                      	     2M 	
+04:0000031A F4        	     1M 		hlt
+                      	     2M 	
+04:0000031B F4        	     1M 		hlt
+                      	     2M 	
+04:0000031C F4        	     1M 		hlt
+                      	     2M 	
+04:0000031D F4        	     1M 		hlt
+                      	     2M 	
+04:0000031E F4        	     1M 		hlt
+                      	     2M 	
+04:0000031F F4        	     1M 		hlt
+                      	     2M 	
+04:00000320 F4        	     1M 		hlt
+                      	     2M 	
+04:00000321 F4        	     1M 		hlt
+                      	     2M 	
+04:00000322 F4        	     1M 		hlt
+                      	     2M 	
+04:00000323 F4        	     1M 		hlt
+                      	     2M 	
+04:00000324 F4        	     1M 		hlt
+                      	     2M 	
+04:00000325 F4        	     1M 		hlt
+                      	     2M 	
+04:00000326 F4        	     1M 		hlt
+                      	     2M 	
+04:00000327 F4        	     1M 		hlt
+                      	     2M 	
+04:00000328 F4        	     1M 		hlt
+                      	     2M 	
+04:00000329 F4        	     1M 		hlt
+                      	     2M 	
+04:0000032A F4        	     1M 		hlt
+                      	     2M 	
+04:0000032B F4        	     1M 		hlt
+                      	     2M 	
+04:0000032C F4        	     1M 		hlt
+                      	     2M 	
+04:0000032D F4        	     1M 		hlt
+                      	     2M 	
+04:0000032E F4        	     1M 		hlt
+                      	     2M 	
+04:0000032F F4        	     1M 		hlt
+                      	     2M 	
+04:00000330 F4        	     1M 		hlt
+                      	     2M 	
+04:00000331 F4        	     1M 		hlt
+                      	     2M 	
+04:00000332 F4        	     1M 		hlt
+                      	     2M 	
+04:00000333 F4        	     1M 		hlt
+                      	     2M 	
+04:00000334 F4        	     1M 		hlt
+                      	     2M 	
+04:00000335 F4        	     1M 		hlt
+                      	     2M 	
+04:00000336 F4        	     1M 		hlt
+                      	     2M 	
+04:00000337 F4        	     1M 		hlt
+                      	     2M 	
+04:00000338 F4        	     1M 		hlt
+                      	     2M 	
+04:00000339 F4        	     1M 		hlt
+                      	     2M 	
+04:0000033A F4        	     1M 		hlt
+                      	     2M 	
+04:0000033B F4        	     1M 		hlt
+                      	     2M 	
+04:0000033C F4        	     1M 		hlt
+                      	     2M 	
+04:0000033D F4        	     1M 		hlt
+                      	     2M 	
+04:0000033E F4        	     1M 		hlt
+                      	     2M 	
+04:0000033F F4        	     1M 		hlt
+                      	     2M 	
+04:00000340 F4        	     1M 		hlt
+                      	     2M 	
+04:00000341 F4        	     1M 		hlt
+                      	     2M 	
+04:00000342 F4        	     1M 		hlt
+                      	     2M 	
+04:00000343 F4        	     1M 		hlt
+                      	     2M 	
+04:00000344 F4        	     1M 		hlt
+                      	     2M 	
+04:00000345 F4        	     1M 		hlt
+                      	     2M 	
+04:00000346 F4        	     1M 		hlt
+                      	     2M 	
+04:00000347 F4        	     1M 		hlt
+                      	     2M 	
+04:00000348 F4        	     1M 		hlt
+                      	     2M 	
+04:00000349 F4        	     1M 		hlt
+                      	     2M 	
+04:0000034A F4        	     1M 		hlt
+                      	     2M 	
+04:0000034B F4        	     1M 		hlt
+                      	     2M 	
+04:0000034C F4        	     1M 		hlt
+                      	     2M 	
+04:0000034D F4        	     1M 		hlt
+                      	     2M 	
+04:0000034E F4        	     1M 		hlt
+                      	     2M 	
+04:0000034F F4        	     1M 		hlt
+                      	     2M 	
+04:00000350 F4        	     1M 		hlt
+                      	     2M 	
+04:00000351 F4        	     1M 		hlt
+                      	     2M 	
+04:00000352 F4        	     1M 		hlt
+                      	     2M 	
+04:00000353 F4        	     1M 		hlt
+                      	     2M 	
+04:00000354 F4        	     1M 		hlt
+                      	     2M 	
+04:00000355 F4        	     1M 		hlt
+                      	     2M 	
+04:00000356 F4        	     1M 		hlt
+                      	     2M 	
+04:00000357 F4        	     1M 		hlt
+                      	     2M 	
+04:00000358 F4        	     1M 		hlt
+                      	     2M 	
+04:00000359 F4        	     1M 		hlt
+                      	     2M 	
+04:0000035A F4        	     1M 		hlt
+                      	     2M 	
+04:0000035B F4        	     1M 		hlt
+                      	     2M 	
+04:0000035C F4        	     1M 		hlt
+                      	     2M 	
+04:0000035D F4        	     1M 		hlt
+                      	     2M 	
+04:0000035E F4        	     1M 		hlt
+                      	     2M 	
+04:0000035F F4        	     1M 		hlt
+                      	     2M 	
+04:00000360 F4        	     1M 		hlt
+                      	     2M 	
+04:00000361 F4        	     1M 		hlt
+                      	     2M 	
+04:00000362 F4        	     1M 		hlt
+                      	     2M 	
+04:00000363 F4        	     1M 		hlt
+                      	     2M 	
+04:00000364 F4        	     1M 		hlt
+                      	     2M 	
+04:00000365 F4        	     1M 		hlt
+                      	     2M 	
+04:00000366 F4        	     1M 		hlt
+                      	     2M 	
+04:00000367 F4        	     1M 		hlt
+                      	     2M 	
+04:00000368 F4        	     1M 		hlt
+                      	     2M 	
+04:00000369 F4        	     1M 		hlt
+                      	     2M 	
+04:0000036A F4        	     1M 		hlt
+                      	     2M 	
+04:0000036B F4        	     1M 		hlt
+                      	     2M 	
+04:0000036C F4        	     1M 		hlt
+                      	     2M 	
+04:0000036D F4        	     1M 		hlt
+                      	     2M 	
+04:0000036E F4        	     1M 		hlt
+                      	     2M 	
+04:0000036F F4        	     1M 		hlt
+                      	     2M 	
+04:00000370 F4        	     1M 		hlt
+                      	     2M 	
+04:00000371 F4        	     1M 		hlt
+                      	     2M 	
+04:00000372 F4        	     1M 		hlt
+                      	     2M 	
+04:00000373 F4        	     1M 		hlt
+                      	     2M 	
+04:00000374 F4        	     1M 		hlt
+                      	     2M 	
+04:00000375 F4        	     1M 		hlt
+                      	     2M 	
+04:00000376 F4        	     1M 		hlt
+                      	     2M 	
+04:00000377 F4        	     1M 		hlt
+                      	     2M 	
+04:00000378 F4        	     1M 		hlt
+                      	     2M 	
+04:00000379 F4        	     1M 		hlt
+                      	     2M 	
+04:0000037A F4        	     1M 		hlt
+                      	     2M 	
+04:0000037B F4        	     1M 		hlt
+                      	     2M 	
+04:0000037C F4        	     1M 		hlt
+                      	     2M 	
+04:0000037D F4        	     1M 		hlt
+                      	     2M 	
+04:0000037E F4        	     1M 		hlt
+                      	     2M 	
+04:0000037F F4        	     1M 		hlt
+                      	     2M 	
+04:00000380 F4        	     1M 		hlt
+                      	     2M 	
+04:00000381 F4        	     1M 		hlt
+                      	     2M 	
+04:00000382 F4        	     1M 		hlt
+                      	     2M 	
+04:00000383 F4        	     1M 		hlt
+                      	     2M 	
+04:00000384 F4        	     1M 		hlt
+                      	     2M 	
+04:00000385 F4        	     1M 		hlt
+                      	     2M 	
+04:00000386 F4        	     1M 		hlt
+                      	     2M 	
+04:00000387 F4        	     1M 		hlt
+                      	     2M 	
+04:00000388 F4        	     1M 		hlt
+                      	     2M 	
+04:00000389 F4        	     1M 		hlt
+                      	     2M 	
+04:0000038A F4        	     1M 		hlt
+                      	     2M 	
+04:0000038B F4        	     1M 		hlt
+                      	     2M 	
+04:0000038C F4        	     1M 		hlt
+                      	     2M 	
+04:0000038D F4        	     1M 		hlt
+                      	     2M 	
+04:0000038E F4        	     1M 		hlt
+                      	     2M 	
+04:0000038F F4        	     1M 		hlt
+                      	     2M 	
+04:00000390 F4        	     1M 		hlt
+                      	     2M 	
+04:00000391 F4        	     1M 		hlt
+                      	     2M 	
+                      	   134M .endif
+                      	   135M 
+                      	   136M err211:
+04:00000392 F4        	   137M 	hlt
+                      	   138M 
+                      	   139M # test negative offsets
+04:00000393 0F8059FF  	   140M jook11:   jo   jnl11
+04:00000397 0F8D5EFF  	   141M jnlok11:  jnl  jnle11
+04:0000039B 0F8F63FF  	   142M jnleok11: jnle jl11
+04:0000039F 0F8C67FF  	   143M jlok11:   jl   jle11
+04:000003A3 0F8E68FF  	   144M jleok11:  jle  jcxz11
+                      	   145M .if 16==8
+                      	   146M jcxzok11:  jcxz  jecxz11
+                      	   147M jecxzok11: jecxz jecxze11
+                      	   148M .endif
+                      	   149M 
+                      	   150M exit11:
+                      	   183: 
+                      	   184: #
+                      	   185: #   Loops
+                      	   186: #
+                      	   187: .include "loop_m.asm"
+
+Source: "loop_m.asm"
+                      	     1: #
+                      	     2: #   Test of loop, loopz, loopnz
+                      	     3: #   Use: EAX, ECX, Flags
+                      	     4: #
+                      	     5: 
+                      	     6: .macro testLoop
+                      	     7: 
+                      	     8: 	mov $0x20000,%ecx
+                      	     9: 	mov $0,%eax
+                      	    10: loop16\@:
+                      	    11: 	inc %eax
+                      	    12: 	loopw loop16\@
+                      	    13: 	cmp $0x10000,%eax
+                      	    14: 	jne error
+                      	    15: 	cmp $0x20000,%ecx
+                      	    16: 	jne error
+                      	    17: 
+                      	    18: 	mov $0x20000,%ecx
+                      	    19: 	mov $0,%eax
+                      	    20: loop32\@:
+                      	    21: 	inc %eax
+                      	    22: 	loopl loop32\@
+                      	    23: 	cmp $0x20000,%eax
+                      	    24: 	jne error
+                      	    25: 	cmp $0,%ecx
+                      	    26: 	jne error
+                      	    27: 
+                      	    28: .endm
+                      	    29: 
+                      	    30: .macro testLoopZ
+                      	    31: 
+                      	    32: 	mov $0xFFFF,%cx
+                      	    33: 	mov $0,%ax
+                      	    34: loop16a\@:
+                      	    35: 	inc %ax
+                      	    36: 	cmp $0,%ah
+                      	    37: 	loopzw loop16a\@
+                      	    38: 	cmp $0x0100,%ax
+                      	    39: 	jne error
+                      	    40: 	cmp $0xFEFF,%cx
+                      	    41: 	jne error
+                      	    42: 
+                      	    43: 	mov $0x00FF,%cx
+                      	    44: 	mov $0,%ax
+                      	    45: loop16b\@:
+                      	    46: 	inc %ax
+                      	    47: 	cmp $0,%ah
+                      	    48: 	loopzw loop16b\@
+                      	    49: 	cmp $0x00FF,%ax
+                      	    50: 	jne error
+                      	    51: 	cmp $0,%cx
+                      	    52: 	jne error
+                      	    53: 
+                      	    54: 	mov $0x20000,%ecx
+                      	    55: 	mov $0,%eax
+                      	    56: loop32\@:
+                      	    57: 	inc %eax
+                      	    58: 	test $0x10000,%eax
+                      	    59: 	loopzl loop32\@
+                      	    60: 	cmp $0x10000,%eax
+                      	    61: 	jne error
+                      	    62: 	cmp $0x10000,%ecx
+                      	    63: 	jne error
+                      	    64: 
+                      	    65: .endm
+                      	    66: 
+                      	    67: .macro testLoopNZ
+                      	    68: 
+                      	    69: 	mov $0xFFFF,%cx
+                      	    70: 	mov $0,%ax
+                      	    71: loop16a\@:
+                      	    72: 	inc %ax
+                      	    73: 	test $0xFF,%al
+                      	    74: 	loopnzw loop16a\@
+                      	    75: 	cmp $0x0100,%ax
+                      	    76: 	jne error
+                      	    77: 	cmp $0xFEFF,%cx
+                      	    78: 	jne error
+                      	    79: 
+                      	    80: 	mov $0x00FF,%cx
+                      	    81: 	mov $0,%ax
+                      	    82: loop16b\@:
+                      	    83: 	inc %ax
+                      	    84: 	test $0xFF,%al
+                      	    85: 	loopnzw loop16b\@
+                      	    86: 	cmp $0x00FF,%ax
+                      	    87: 	jne error
+                      	    88: 	cmp $0,%cx
+                      	    89: 	jne error
+                      	    90: 
+                      	    91: 	mov $0x10000,%ecx
+                      	    92: 	mov $0,%eax
+                      	    93: loop32\@:
+                      	    94: 	inc %eax
+                      	    95: 	test $0x0FFFF,%eax
+                      	    96: 	loopnzl loop32\@
+                      	    97: 	cmp $0x10000,%eax
+                      	    98: 	jne error
+                      	    99: 	cmp $0,%ecx
+                      	   100: 	jne error
+                      	   101: 
+                      	   102: .endm
+
+Source: "t386.asm"
+                      	   188: 	testLoop
+                      	     1M 
+04:000003A7 66B9000002	     2M 	mov $0x20000,%ecx
+04:000003AC 00
+04:000003AD 66B8000000	     3M 	mov $0,%eax
+04:000003B2 00
+                      	     4M loop1616:
+04:000003B3 6640      	     5M 	inc %eax
+04:000003B5 E2FC      	     6M 	loopw loop1616
+04:000003B7 663D000001	     7M 	cmp $0x10000,%eax
+04:000003BC 00
+04:000003BD 0F851101  	     8M 	jne error
+04:000003C1 6681F90000	     9M 	cmp $0x20000,%ecx
+04:000003C6 0200
+04:000003C8 0F850601  	    10M 	jne error
+                      	    11M 
+04:000003CC 66B9000002	    12M 	mov $0x20000,%ecx
+04:000003D1 00
+04:000003D2 66B8000000	    13M 	mov $0,%eax
+04:000003D7 00
+                      	    14M loop3216:
+04:000003D8 6640      	    15M 	inc %eax
+04:000003DA 67E2FB    	    16M 	loopl loop3216
+04:000003DD 663D000002	    17M 	cmp $0x20000,%eax
+04:000003E2 00
+04:000003E3 0F85EB00  	    18M 	jne error
+04:000003E7 6683F900  	    19M 	cmp $0,%ecx
+04:000003EB 0F85E300  	    20M 	jne error
+                      	    21M 
+                      	   189: 	testLoopZ
+                      	     1M 
+04:000003EF B9FFFF    	     2M 	mov $0xFFFF,%cx
+04:000003F2 B80000    	     3M 	mov $0,%ax
+                      	     4M loop16a17:
+04:000003F5 40        	     5M 	inc %ax
+04:000003F6 80FC00    	     6M 	cmp $0,%ah
+04:000003F9 E1FA      	     7M 	loopzw loop16a17
+04:000003FB 3D0001    	     8M 	cmp $0x0100,%ax
+04:000003FE 0F85D000  	     9M 	jne error
+04:00000402 81F9FFFE  	    10M 	cmp $0xFEFF,%cx
+04:00000406 0F85C800  	    11M 	jne error
+                      	    12M 
+04:0000040A B9FF00    	    13M 	mov $0x00FF,%cx
+04:0000040D B80000    	    14M 	mov $0,%ax
+                      	    15M loop16b17:
+04:00000410 40        	    16M 	inc %ax
+04:00000411 80FC00    	    17M 	cmp $0,%ah
+04:00000414 E1FA      	    18M 	loopzw loop16b17
+04:00000416 3DFF00    	    19M 	cmp $0x00FF,%ax
+04:00000419 0F85B500  	    20M 	jne error
+04:0000041D 83F900    	    21M 	cmp $0,%cx
+04:00000420 0F85AE00  	    22M 	jne error
+                      	    23M 
+04:00000424 66B9000002	    24M 	mov $0x20000,%ecx
+04:00000429 00
+04:0000042A 66B8000000	    25M 	mov $0,%eax
+04:0000042F 00
+                      	    26M loop3217:
+04:00000430 6640      	    27M 	inc %eax
+04:00000432 66A9000001	    28M 	test $0x10000,%eax
+04:00000437 00
+04:00000438 67E1F5    	    29M 	loopzl loop3217
+04:0000043B 663D000001	    30M 	cmp $0x10000,%eax
+04:00000440 00
+04:00000441 0F858D00  	    31M 	jne error
+04:00000445 6681F90000	    32M 	cmp $0x10000,%ecx
+04:0000044A 0100
+04:0000044C 0F858200  	    33M 	jne error
+                      	    34M 
+                      	   190: 	testLoopNZ
+                      	     1M 
+04:00000450 B9FFFF    	     2M 	mov $0xFFFF,%cx
+04:00000453 B80000    	     3M 	mov $0,%ax
+                      	     4M loop16a18:
+04:00000456 40        	     5M 	inc %ax
+04:00000457 A8FF      	     6M 	test $0xFF,%al
+04:00000459 E0FB      	     7M 	loopnzw loop16a18
+04:0000045B 3D0001    	     8M 	cmp $0x0100,%ax
+04:0000045E 7572      	     9M 	jne error
+04:00000460 81F9FFFE  	    10M 	cmp $0xFEFF,%cx
+04:00000464 756C      	    11M 	jne error
+                      	    12M 
+04:00000466 B9FF00    	    13M 	mov $0x00FF,%cx
+04:00000469 B80000    	    14M 	mov $0,%ax
+                      	    15M loop16b18:
+04:0000046C 40        	    16M 	inc %ax
+04:0000046D A8FF      	    17M 	test $0xFF,%al
+04:0000046F E0FB      	    18M 	loopnzw loop16b18
+04:00000471 3DFF00    	    19M 	cmp $0x00FF,%ax
+04:00000474 755C      	    20M 	jne error
+04:00000476 83F900    	    21M 	cmp $0,%cx
+04:00000479 7557      	    22M 	jne error
+                      	    23M 
+04:0000047B 66B9000001	    24M 	mov $0x10000,%ecx
+04:00000480 00
+04:00000481 66B8000000	    25M 	mov $0,%eax
+04:00000486 00
+                      	    26M loop3218:
+04:00000487 6640      	    27M 	inc %eax
+04:00000489 66A9FFFF00	    28M 	test $0x0FFFF,%eax
+04:0000048E 00
+04:0000048F 67E0F5    	    29M 	loopnzl loop3218
+04:00000492 663D000001	    30M 	cmp $0x10000,%eax
+04:00000497 00
+04:00000498 7538      	    31M 	jne error
+04:0000049A 6683F900  	    32M 	cmp $0,%ecx
+04:0000049E 7532      	    33M 	jne error
+                      	    34M 
+                      	   191: 
+                      	   192: #-------------------------------------------------------------------------------
+                      	   193: 	POST $2
+04:000004A0 B002      	     1M 	movb $2,%al
+04:000004A2 BA9001    	     2M 	movw $POST_PORT,%dx
+04:000004A5 EE        	     3M 	out %al,%dx
+                      	   194: #-------------------------------------------------------------------------------
+                      	   195: #
+                      	   196: #   Quick tests of unsigned 32-bit multiplication and division
+                      	   197: #   Thorough arithmetical and logical tests are done later
+                      	   198: #
+04:000004A6 66B8010000	   199: 	mov $0x80000001,%eax
+04:000004AB 80
+04:000004AC 66F7E8    	   200: 	imul %eax
+04:000004AF 66B8112233	   201: 	mov $0x44332211,%eax
+04:000004B4 44
+04:000004B5 6689C3    	   202: 	mov %eax,%ebx
+04:000004B8 66B9556677	   203: 	mov $0x88776655,%ecx
+04:000004BD 88
+04:000004BE 66F7E1    	   204: 	mul %ecx
+04:000004C1 66F7F1    	   205: 	div %ecx
+04:000004C4 6639D8    	   206: 	cmp %ebx,%eax
+04:000004C7 7509      	   207: 	jne error
+                      	   208: 
+                      	   209: #-------------------------------------------------------------------------------
+                      	   210: 	POST $0xE0
+04:000004C9 B0E0      	     1M 	movb $0xE0,%al
+04:000004CB BA9001    	     2M 	movw $POST_PORT,%dx
+04:000004CE EE        	     3M 	out %al,%dx
+                      	   211: #-------------------------------------------------------------------------------
+                      	   212: 
+                      	   213: .shifts386FlagsTest:
+                      	   214: 
+                      	   215: 	# SHR al,cl - SHR ax,cl
+                      	   216: 	# undefined flags:
+                      	   217: 	#  CF when cl>7 (byte) or cl>15 (word):
+                      	   218: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=MSB(operand)
+                      	   219: 	#    if word operand and cl=16 then CF=MSB(operand)
+                      	   220: 	#  OF when cl>1: set according to result
+                      	   221: 	#  AF when cl>0: always 1
+                      	   222: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
+                      	   223: 
+                      	   224: 	#testShiftBFlags sarb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
+                      	   225: 	#testShiftBFlags sarb, $0x82, $2, $0, $(PS_CF|PS_AF)
+                      	   226: 	#testShiftBFlags sarb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF)
+                      	   227: 	#testShiftBFlags sarb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   228: 	#testShiftBFlags sarb, $0x80,   $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
+                      	   229: 	#testShiftBFlags sarb, $0x00,   $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   230: 	#testShiftBFlags sarb, $0x80,   $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
+                      	   231: 	#testShiftBFlags sarb, $0x00,   $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   232: 	#testShiftBFlags sarb, $0x80,   $32, $0,     $0
+                      	   233: 	#testShiftWFlags sarw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
+                      	   234: 	#testShiftWFlags sarw, $0x0000, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   235: 	#testShiftWFlags sarw, $0x8000, $32, $0,     $0
+                      	   236: 
+                      	   237: 	# SHL al,cl - SHL ax,cl
+                      	   238: 	# undefined flags:
+                      	   239: 	#  CF when cl>7 (byte) or cl>15 (word):
+                      	   240: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=LSB(operand)
+                      	   241: 	#    if word operand and cl=16 then CF=LSB(operand)
+                      	   242: 	#  OF when cl>1: set according to result
+                      	   243: 	#  AF when cl>0: always 1
+                      	   244: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
+                      	   245: 	#testShiftBFlags   salb, $0x81, $1,  $0,     $(PS_CF|PS_AF|PS_OF)
+                      	   246: 	#testShiftBFlags   salb, $0x41, $2,  $0,     $(PS_CF|PS_AF|PS_OF)
+                      	   247: 	#testShiftBFlags   salb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+                      	   248: 	#testShiftBFlags   salb, $0x00, $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   249: 	#testShiftBFlags   salb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+                      	   250: 	#testShiftBFlags   salb, $0x00, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   251: 	#testShiftBFlags   salb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+                      	   252: 	#testShiftBFlags   salb, $0x00, $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   253: 	#testShiftBFlags   salb, $0x01, $32, $0,     $0
+                      	   254: 	#testShiftWFlags   salw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+                      	   255: 	#testShiftWFlags   salw, $0x00, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
+                      	   256: 	#testShiftWFlags   salw, $0x01, $32, $0,     $0
+                      	   257: 
+04:000004CF E9FEFF    	   258: 	jmp _bootrom
+                      	   259: 
+                      	   260: #	pushl $10
+                      	   261: #	call _Fibonacci
+                      	   262: 
+                      	   263: #
+                      	   264: # Default exception handler and error routine
+                      	   265: #
+                      	   266: DefaultExcHandler:
+                      	   267: error:
+                      	   268: # CLI and HLT are privileged instructions, don't use them in ring3
+04:000004D2 8CC8      	   269: 	mov %cs,%ax
+                      	   270: 
+                      	   271: # when in real mode, the jnz will be decoded together with test as
+                      	   272: # "test eax,0xfe750007" (66A9070075FE)
+04:000004D4 A90700    	   273: 	test $7,%ax     # 66 A9 07 00
+04:000004D7 75FE      	   274: .ring3: jnz .ring3 # 75 FE
+04:000004D9 FA        	   275: 	cli
+04:000004DA F4        	   276: 	hlt
+04:000004DB EBF5      	   277: 	jmp error
+                      	   278: 
+                      	   279: 
+                      	   280: .rept 16
+                      	   281: 	nop
+                      	   282: .endr
+04:000004DD 90        	     1R 	nop
+04:000004DE 90        	     1R 	nop
+04:000004DF 90        	     1R 	nop
+04:000004E0 90        	     1R 	nop
+04:000004E1 90        	     1R 	nop
+04:000004E2 90        	     1R 	nop
+04:000004E3 90        	     1R 	nop
+04:000004E4 90        	     1R 	nop
+04:000004E5 90        	     1R 	nop
+04:000004E6 90        	     1R 	nop
+04:000004E7 90        	     1R 	nop
+04:000004E8 90        	     1R 	nop
+04:000004E9 90        	     1R 	nop
+04:000004EA 90        	     1R 	nop
+04:000004EB 90        	     1R 	nop
+04:000004EC 90        	     1R 	nop
+                      	   283: 	
+                      	   284: #	.type	_start,@function
+                      	   285: #	.size	_start,$-_start
+                      	   286: 
+                      	   287: #.include "Fibonacci.asm"
+                      	   288: #.include "serial.asm"
+                      	   289: #.include "xmodem.asm"
+                      	   290: #.include "bootrom.asm"
+                      	   291: 
+                      	   292: .global _disable_int
+                      	   293: .global _restore_int
+                      	   294: .extern _start_data
+                      	   295: .extern _start_rodata
+                      	   296: .extern _start_bss
+                      	   297: 
 
 
 Symbols by name:
-.ring3                          02:0000001D
-DefaultExcHandler               02:00000016
+.ring3                          04:000004D7
+.shifts386FlagsTest             04:000004CF
+C_SEG_REAL                       S:00000000
+D1_SEG_REAL                      S:00002000
+D2_SEG_REAL                      S:00006000
+DefaultExcHandler               04:000004D2
+ESP_REAL                         S:0000FFFC
+EXT_NONE                         S:00000000
+IDT_SEG_REAL                     S:00009000
+POST_PORT                        S:00000190
+PS_AF                            S:00000010
+PS_CF                            S:00000001
+PS_OF                            S:00000800
+PS_PF                            S:00000004
+PS_SF                            S:00000080
+PS_ZF                            S:00000040
+S_SEG_REAL                       S:0000C000
+TEST_BASE                        S:00020000
+TEST_BASE1                       S:00020000
+TEST_BASE2                       S:00060000
+_Fibonacci                      external EXP
 _bootrom                        external EXP
 _disable_int                    external EXP
 _restore_int                    external EXP
-_start                          02:00000000
+_start                          04:00000000
+_start1                         04:0000005B
 _start_bss                      external EXP
 _start_data                     external EXP
 _start_rodata                   external EXP
-aloop                           02:00000009
-error                           02:00000016
+aloop7                          04:00000076
+err110                          04:000000C5
+err111                          04:00000207
+err210                          04:0000013A
+err211                          04:00000392
+error                           04:000004D2
+exit10                          04:00000149
+exit11                          04:000003A7
+header                          04:00000002
+idt_addr                        03:00000000
+ja10                            04:000000EC
+ja11                            04:00000240
+jaok10                          04:000000FC
+jaok11                          04:000002DB
+jcok10                          04:000000C6
+jcok11                          04:00000208
+jcxz10                          04:0000011E
+jcxz11                          04:0000030F
+jcxzok10                        04:00000145
+jecxz10                         04:0000012E
+jecxze10                        04:00000138
+jecxzok10                       04:00000147
+jl10                            04:00000115
+jl11                            04:00000302
+jle10                           04:0000011B
+jle11                           04:0000030A
+jleok10                         04:00000143
+jleok11                         04:000003A3
+jlok10                          04:00000141
+jlok11                          04:0000039F
+jna10                           04:000000BC
+jna11                           04:00000179
+jnaok10                         04:000000CE
+jnaok11                         04:00000218
+jnc10                           04:000000D0
+jnc11                           04:0000021C
+jncok10                         04:000000F4
+jncok11                         04:000002CB
+jnl10                           04:0000010B
+jnl11                           04:000002F0
+jnle10                          04:00000110
+jnle11                          04:000002F9
+jnleok10                        04:0000013F
+jnleok11                        04:0000039B
+jnlok10                         04:0000013D
+jnlok11                         04:00000397
+jnp10                           04:000000E0
+jnp11                           04:00000230
+jnpok10                         04:000000F8
+jnpok11                         04:000002D3
+jns10                           04:000000E6
+jns11                           04:00000238
+jnsok10                         04:000000FA
+jnsok11                         04:000002D7
+jnz10                           04:000000DA
+jnz11                           04:00000228
+jnzok10                         04:000000F6
+jnzok11                         04:000002CF
+jo10                            04:000000FE
+jo11                            04:000002DF
+jook10                          04:0000013B
+jook11                          04:00000393
+jp10                            04:000000AC
+jp11                            04:00000161
+jpok10                          04:000000CA
+jpok11                          04:00000210
+js10                            04:000000B4
+js11                            04:0000016D
+jsok10                          04:000000CC
+jsok11                          04:00000214
+jz10                            04:000000A4
+jz11                            04:00000155
+jzok10                          04:000000C8
+jzok11                          04:0000020C
+loop1616                        04:000003B3
+loop16a17                       04:000003F5
+loop16a18                       04:00000456
+loop16b17                       04:00000410
+loop16b18                       04:0000046C
+loop3216                        04:000003D8
+loop3217                        04:00000430
+loop3218                        04:00000487
+next110                         04:000000C3
+next111                         04:00000184
+next210                         04:000000F2
+next211                         04:00000248
+realmd_mask                      S:0000FFFF
+rodata_seg                       S:0FFFA000
+start_rodata                     S:FFFA0000
 
 Symbols by value:
+FFFA0000 start_rodata
+00000000 C_SEG_REAL
 00000000 _start
-00000009 aloop
-00000016 error
-00000016 DefaultExcHandler
-0000001D .ring3
+00000000 idt_addr
+00000000 EXT_NONE
+00000001 PS_CF
+00000002 header
+00000004 PS_PF
+00000010 PS_AF
+00000040 PS_ZF
+0000005B _start1
+00000076 aloop7
+00000080 PS_SF
+000000A4 jz10
+000000AC jp10
+000000B4 js10
+000000BC jna10
+000000C3 next110
+000000C5 err110
+000000C6 jcok10
+000000C8 jzok10
+000000CA jpok10
+000000CC jsok10
+000000CE jnaok10
+000000D0 jnc10
+000000DA jnz10
+000000E0 jnp10
+000000E6 jns10
+000000EC ja10
+000000F2 next210
+000000F4 jncok10
+000000F6 jnzok10
+000000F8 jnpok10
+000000FA jnsok10
+000000FC jaok10
+000000FE jo10
+0000010B jnl10
+00000110 jnle10
+00000115 jl10
+0000011B jle10
+0000011E jcxz10
+0000012E jecxz10
+00000138 jecxze10
+0000013A err210
+0000013B jook10
+0000013D jnlok10
+0000013F jnleok10
+00000141 jlok10
+00000143 jleok10
+00000145 jcxzok10
+00000147 jecxzok10
+00000149 exit10
+00000155 jz11
+00000161 jp11
+0000016D js11
+00000179 jna11
+00000184 next111
+00000190 POST_PORT
+00000207 err111
+00000208 jcok11
+0000020C jzok11
+00000210 jpok11
+00000214 jsok11
+00000218 jnaok11
+0000021C jnc11
+00000228 jnz11
+00000230 jnp11
+00000238 jns11
+00000240 ja11
+00000248 next211
+000002CB jncok11
+000002CF jnzok11
+000002D3 jnpok11
+000002D7 jnsok11
+000002DB jaok11
+000002DF jo11
+000002F0 jnl11
+000002F9 jnle11
+00000302 jl11
+0000030A jle11
+0000030F jcxz11
+00000392 err211
+00000393 jook11
+00000397 jnlok11
+0000039B jnleok11
+0000039F jlok11
+000003A3 jleok11
+000003A7 exit11
+000003B3 loop1616
+000003D8 loop3216
+000003F5 loop16a17
+00000410 loop16b17
+00000430 loop3217
+00000456 loop16a18
+0000046C loop16b18
+00000487 loop3218
+000004CF .shifts386FlagsTest
+000004D2 error
+000004D2 DefaultExcHandler
+000004D7 .ring3
+00000800 PS_OF
+00002000 D1_SEG_REAL
+00006000 D2_SEG_REAL
+00009000 IDT_SEG_REAL
+0000C000 S_SEG_REAL
+0000FFFC ESP_REAL
+0000FFFF realmd_mask
+00020000 TEST_BASE1
+00020000 TEST_BASE
+00060000 TEST_BASE2
+0FFFA000 rodata_seg

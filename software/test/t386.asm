@@ -67,25 +67,32 @@
 
 #
 # memory map:
-#  FFF80000-FFF8FFFF page table
-#  FFF90000-FFF903FF real mode IDT
-#  FFF90400-FFF904FF protected mode IDT
-#  FFF90500-FFF9077F protected mode GDT
-#  FFF90800-FFF90FFF protected mode LDT
-#  FFFA0000-FFFAFFFF read only data
-#  FFFC0000-FFFCFFFF stack
+#  80000-8FFFF page table
+#  90000-903FF real mode IDT
+#  90400-904FF protected mode IDT
+#  90500-9077F protected mode GDT
+#  90800-90FFF protected mode LDT
+#  A0000-AFFFF read only data
+#  C0000-CFFFF stack
 #  01000-01FFF page directory
-#  FFF94000-FFF94FFF TSS
+#  94000-94FFF TSS
 #  20000-9FFFF tests
 #
 
-.set rodata_seg,0xa000
+.set realmd_mask,0x0000ffff
+.set rodata_seg,0x0fffa000
+.set start_rodata,0xfffa0000
 .set TEST_BASE,0x20000
 .set TEST_BASE1,TEST_BASE+0x00000
 .set TEST_BASE2,TEST_BASE+0x40000
 
+	.section .pgtbl
+	.space 10
 
 	.bss
+	.space	10
+
+	.data
 	.space	10
 
 	.rodata
@@ -93,9 +100,9 @@ idt_addr:
 	.2byte 0x400
 	.4byte 0xFFF90000		# Linear address of table
 
-#	.org	0xFFFF0000
+#	.org	0xF0000
 	.text
-	.code32
+	.code16
 #	.align	0
 .extern	_bootrom
 .extern _Fibonacci
@@ -119,10 +126,12 @@ idt_addr:
 .include "macros_m.asm"
 .include "shift_m.asm"
 
+_start:
+	jmp _start1
 header:
 	cpyright
 
-_start:
+_start1:
 	cli	
 # init IDT
 #	mov $17,%cx
@@ -137,7 +146,7 @@ _start:
 #	addl $4,%eax
 #	loop .aloop
 
-	mov $ESP_REAL,%esp
+#	mov $ESP_REAL,%esp
 
 # ==============================================================================
 #	Real mode tests
@@ -150,9 +159,9 @@ _start:
 #
 #   Real mode initialisation
 #
-	mov $rodata_seg,%ax
+	mov $rodata_seg & realmd_mask,%ax
 	mov %ax,%ds
-	lidt idt_addr
+	lidt idt_addr-start_rodata
 	initRealModeIDT
 	mov $S_SEG_REAL,%ax
 	mov %ax,%ss

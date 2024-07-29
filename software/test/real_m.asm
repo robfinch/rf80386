@@ -15,17 +15,18 @@
 .endm
 
 #
-# Initialises the real mode IDT with C_SEG_REAL:error
+# Initializes the real mode IDT with C_SEG_REAL:error
+# This code is called in real mode.
 #
 .macro initRealModeIDT
 	mov $IDT_SEG_REAL,%ax
 	mov %ax,%ds
-	xor %eax,%eax
+	xor %di,%di
 	mov $17,%cx
 aloop\@:
-	movw $error,(,%eax,4)
-	movw $C_SEG_REAL,2(,%eax,4)
-	inc %ax
+	movw $error,(%di)
+	movw $C_SEG_REAL,2(%di)
+	add $4,%di
 	loop aloop\@
 .endm
 
