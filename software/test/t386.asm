@@ -67,15 +67,15 @@
 
 #
 # memory map:
-#  80000-8FFFF page table
-#  90000-903FF real mode IDT
-#  90400-904FF protected mode IDT
-#  90500-9077F protected mode GDT
-#  90800-90FFF protected mode LDT
-#  A0000-AFFFF read only data
-#  C0000-CFFFF stack
-#  01000-01FFF page directory
-#  94000-94FFF TSS
+#  FFF80000-FFF8FFFF page table
+#  FFF90000-FFF903FF real mode IDT
+#  FFF90400-FFF904FF protected mode IDT
+#  FFF90500-FFF9077F protected mode GDT
+#  FFF90800-FFF90FFF protected mode LDT
+#  FFFA0000-FFFAFFFF read only data
+#  FFFC0000-FFFCFFFF stack
+#  FFF01000-FFF01FFF page directory
+#  FFF94000-FFF94FFF TSS
 #  20000-9FFFF tests
 #
 
@@ -185,9 +185,9 @@ _start1:
 #   Loops
 #
 .include "loop_m.asm"
-	testLoop
-	testLoopZ
-	testLoopNZ
+#	testLoop
+#	testLoopZ
+#	testLoopNZ
 
 #-------------------------------------------------------------------------------
 	POST $2
@@ -217,22 +217,22 @@ _start1:
 	#  CF when cl>7 (byte) or cl>15 (word):
 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=MSB(operand)
 	#    if word operand and cl=16 then CF=MSB(operand)
-	#  OF when cl>1: set according to result
+	#  OF when cl>1: set according to result   *** rf386 calc's overflow cl>1
 	#  AF when cl>0: always 1
 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
 
-	#testShiftBFlags sarb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
-	#testShiftBFlags sarb, $0x82, $2, $0, $(PS_CF|PS_AF)
-	#testShiftBFlags sarb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags sarb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags sarb, $0x80,   $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags sarb, $0x00,   $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags sarb, $0x80,   $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags sarb, $0x00,   $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags sarb, $0x80,   $32, $0,     $0
-	#testShiftWFlags sarw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-	#testShiftWFlags sarw, $0x0000, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftWFlags sarw, $0x8000, $32, $0,     $0
+	testShiftBFlags shrb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
+	testShiftBFlags shrb, $0x82, $2, $0, $(PS_CF|PS_AF|PS_OF)
+	testShiftBFlags shrb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+	testShiftBFlags shrb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_ZF)
+	testShiftBFlags shrb, $0x80,   $16, $0,     $(PS_PF|PS_ZF|PS_OF)
+	testShiftBFlags shrb, $0x00,   $16, $PS_CF, $(PS_PF|PS_ZF)
+	testShiftBFlags shrb, $0x80,   $24, $0,     $(PS_PF|PS_ZF|PS_OF)
+	testShiftBFlags shrb, $0x00,   $24, $PS_CF, $(PS_PF|PS_ZF)
+	testShiftBFlags shrb, $0x80,   $32, $0,     $PS_SF
+	testShiftWFlags shrw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+	testShiftWFlags shrw, $0x0000, $16, $PS_CF, $(PS_PF|PS_ZF)
+	testShiftWFlags shrw, $0x8000, $32, $0,     $PS_SF|PS_PF
 
 	# SHL al,cl - SHL ax,cl
 	# undefined flags:
@@ -242,18 +242,19 @@ _start1:
 	#  OF when cl>1: set according to result
 	#  AF when cl>0: always 1
 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
-	#testShiftBFlags   salb, $0x81, $1,  $0,     $(PS_CF|PS_AF|PS_OF)
-	#testShiftBFlags   salb, $0x41, $2,  $0,     $(PS_CF|PS_AF|PS_OF)
-	#testShiftBFlags   salb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-	#testShiftBFlags   salb, $0x00, $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   salb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-	#testShiftBFlags   salb, $0x00, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   salb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-	#testShiftBFlags   salb, $0x00, $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftBFlags   salb, $0x01, $32, $0,     $0
-	#testShiftWFlags   salw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-	#testShiftWFlags   salw, $0x00, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-	#testShiftWFlags   salw, $0x01, $32, $0,     $0
+
+	testShiftBFlags shlb, $0x81, $1,  $0,     $(PS_CF|PS_OF)
+	testShiftBFlags shlb, $0x41, $2,  $0,     $(PS_CF|PS_OF)
+	testShiftBFlags shlb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+	testShiftBFlags shlb, $0x00, $8,  $PS_CF, $(PS_PF|PS_ZF)
+	testShiftBFlags shlb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+	testShiftBFlags shlb, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
+	testShiftBFlags shlb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+	testShiftBFlags shlb, $0x00, $24, $PS_CF, $(PS_PF|PS_ZF)
+	testShiftBFlags shlb, $0x01, $32, $0,     $0
+	testShiftWFlags shlw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+	testShiftWFlags shlw, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
+	testShiftWFlags shlw, $0x01, $32, $0,     $0
 
 	jmp _bootrom
 

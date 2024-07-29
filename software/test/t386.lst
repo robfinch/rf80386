@@ -3,7 +3,7 @@ Sections:
 01: ".bss" (0-A)
 02: ".data" (0-A)
 03: ".rodata" (0-6)
-04: ".text" (0-4ED)
+04: ".text" (0-63C)
 
 
 Source: "t386.asm"
@@ -76,15 +76,15 @@ Source: "t386.asm"
                       	    67: 
                       	    68: #
                       	    69: # memory map:
-                      	    70: #  80000-8FFFF page table
-                      	    71: #  90000-903FF real mode IDT
-                      	    72: #  90400-904FF protected mode IDT
-                      	    73: #  90500-9077F protected mode GDT
-                      	    74: #  90800-90FFF protected mode LDT
-                      	    75: #  A0000-AFFFF read only data
-                      	    76: #  C0000-CFFFF stack
-                      	    77: #  01000-01FFF page directory
-                      	    78: #  94000-94FFF TSS
+                      	    70: #  FFF80000-FFF8FFFF page table
+                      	    71: #  FFF90000-FFF903FF real mode IDT
+                      	    72: #  FFF90400-FFF904FF protected mode IDT
+                      	    73: #  FFF90500-FFF9077F protected mode GDT
+                      	    74: #  FFF90800-FFF90FFF protected mode LDT
+                      	    75: #  FFFA0000-FFFAFFFF read only data
+                      	    76: #  FFFC0000-FFFCFFFF stack
+                      	    77: #  FFF01000-FFF01FFF page directory
+                      	    78: #  FFF94000-FFF94FFF TSS
                       	    79: #  20000-9FFFF tests
                       	    80: #
                       	    81: 
@@ -511,7 +511,7 @@ Source: "t386.asm"
 04:00000071 31FF      	     3M 	xor %di,%di
 04:00000073 B91100    	     4M 	mov $17,%cx
                       	     5M aloop7:
-04:00000076 C705D204  	     6M 	movw $error,(%di)
+04:00000076 C7052106  	     6M 	movw $error,(%di)
 04:0000007A C745020000	     7M 	movw $C_SEG_REAL,2(%di)
 04:0000007F 83C704    	     8M 	add $4,%di
 04:00000082 E2F2      	     9M 	loop aloop7
@@ -1900,143 +1900,38 @@ Source: "loop_m.asm"
                       	   102: .endm
 
 Source: "t386.asm"
-                      	   188: 	testLoop
-                      	     1M 
-04:000003A7 66B9000002	     2M 	mov $0x20000,%ecx
-04:000003AC 00
-04:000003AD 66B8000000	     3M 	mov $0,%eax
-04:000003B2 00
-                      	     4M loop1616:
-04:000003B3 6640      	     5M 	inc %eax
-04:000003B5 E2FC      	     6M 	loopw loop1616
-04:000003B7 663D000001	     7M 	cmp $0x10000,%eax
-04:000003BC 00
-04:000003BD 0F851101  	     8M 	jne error
-04:000003C1 6681F90000	     9M 	cmp $0x20000,%ecx
-04:000003C6 0200
-04:000003C8 0F850601  	    10M 	jne error
-                      	    11M 
-04:000003CC 66B9000002	    12M 	mov $0x20000,%ecx
-04:000003D1 00
-04:000003D2 66B8000000	    13M 	mov $0,%eax
-04:000003D7 00
-                      	    14M loop3216:
-04:000003D8 6640      	    15M 	inc %eax
-04:000003DA 67E2FB    	    16M 	loopl loop3216
-04:000003DD 663D000002	    17M 	cmp $0x20000,%eax
-04:000003E2 00
-04:000003E3 0F85EB00  	    18M 	jne error
-04:000003E7 6683F900  	    19M 	cmp $0,%ecx
-04:000003EB 0F85E300  	    20M 	jne error
-                      	    21M 
-                      	   189: 	testLoopZ
-                      	     1M 
-04:000003EF B9FFFF    	     2M 	mov $0xFFFF,%cx
-04:000003F2 B80000    	     3M 	mov $0,%ax
-                      	     4M loop16a17:
-04:000003F5 40        	     5M 	inc %ax
-04:000003F6 80FC00    	     6M 	cmp $0,%ah
-04:000003F9 E1FA      	     7M 	loopzw loop16a17
-04:000003FB 3D0001    	     8M 	cmp $0x0100,%ax
-04:000003FE 0F85D000  	     9M 	jne error
-04:00000402 81F9FFFE  	    10M 	cmp $0xFEFF,%cx
-04:00000406 0F85C800  	    11M 	jne error
-                      	    12M 
-04:0000040A B9FF00    	    13M 	mov $0x00FF,%cx
-04:0000040D B80000    	    14M 	mov $0,%ax
-                      	    15M loop16b17:
-04:00000410 40        	    16M 	inc %ax
-04:00000411 80FC00    	    17M 	cmp $0,%ah
-04:00000414 E1FA      	    18M 	loopzw loop16b17
-04:00000416 3DFF00    	    19M 	cmp $0x00FF,%ax
-04:00000419 0F85B500  	    20M 	jne error
-04:0000041D 83F900    	    21M 	cmp $0,%cx
-04:00000420 0F85AE00  	    22M 	jne error
-                      	    23M 
-04:00000424 66B9000002	    24M 	mov $0x20000,%ecx
-04:00000429 00
-04:0000042A 66B8000000	    25M 	mov $0,%eax
-04:0000042F 00
-                      	    26M loop3217:
-04:00000430 6640      	    27M 	inc %eax
-04:00000432 66A9000001	    28M 	test $0x10000,%eax
-04:00000437 00
-04:00000438 67E1F5    	    29M 	loopzl loop3217
-04:0000043B 663D000001	    30M 	cmp $0x10000,%eax
-04:00000440 00
-04:00000441 0F858D00  	    31M 	jne error
-04:00000445 6681F90000	    32M 	cmp $0x10000,%ecx
-04:0000044A 0100
-04:0000044C 0F858200  	    33M 	jne error
-                      	    34M 
-                      	   190: 	testLoopNZ
-                      	     1M 
-04:00000450 B9FFFF    	     2M 	mov $0xFFFF,%cx
-04:00000453 B80000    	     3M 	mov $0,%ax
-                      	     4M loop16a18:
-04:00000456 40        	     5M 	inc %ax
-04:00000457 A8FF      	     6M 	test $0xFF,%al
-04:00000459 E0FB      	     7M 	loopnzw loop16a18
-04:0000045B 3D0001    	     8M 	cmp $0x0100,%ax
-04:0000045E 7572      	     9M 	jne error
-04:00000460 81F9FFFE  	    10M 	cmp $0xFEFF,%cx
-04:00000464 756C      	    11M 	jne error
-                      	    12M 
-04:00000466 B9FF00    	    13M 	mov $0x00FF,%cx
-04:00000469 B80000    	    14M 	mov $0,%ax
-                      	    15M loop16b18:
-04:0000046C 40        	    16M 	inc %ax
-04:0000046D A8FF      	    17M 	test $0xFF,%al
-04:0000046F E0FB      	    18M 	loopnzw loop16b18
-04:00000471 3DFF00    	    19M 	cmp $0x00FF,%ax
-04:00000474 755C      	    20M 	jne error
-04:00000476 83F900    	    21M 	cmp $0,%cx
-04:00000479 7557      	    22M 	jne error
-                      	    23M 
-04:0000047B 66B9000001	    24M 	mov $0x10000,%ecx
-04:00000480 00
-04:00000481 66B8000000	    25M 	mov $0,%eax
-04:00000486 00
-                      	    26M loop3218:
-04:00000487 6640      	    27M 	inc %eax
-04:00000489 66A9FFFF00	    28M 	test $0x0FFFF,%eax
-04:0000048E 00
-04:0000048F 67E0F5    	    29M 	loopnzl loop3218
-04:00000492 663D000001	    30M 	cmp $0x10000,%eax
-04:00000497 00
-04:00000498 7538      	    31M 	jne error
-04:0000049A 6683F900  	    32M 	cmp $0,%ecx
-04:0000049E 7532      	    33M 	jne error
-                      	    34M 
+                      	   188: #	testLoop
+                      	   189: #	testLoopZ
+                      	   190: #	testLoopNZ
                       	   191: 
                       	   192: #-------------------------------------------------------------------------------
                       	   193: 	POST $2
-04:000004A0 B002      	     1M 	movb $2,%al
-04:000004A2 BA9001    	     2M 	movw $POST_PORT,%dx
-04:000004A5 EE        	     3M 	out %al,%dx
+04:000003A7 B002      	     1M 	movb $2,%al
+04:000003A9 BA9001    	     2M 	movw $POST_PORT,%dx
+04:000003AC EE        	     3M 	out %al,%dx
                       	   194: #-------------------------------------------------------------------------------
                       	   195: #
                       	   196: #   Quick tests of unsigned 32-bit multiplication and division
                       	   197: #   Thorough arithmetical and logical tests are done later
                       	   198: #
-04:000004A6 66B8010000	   199: 	mov $0x80000001,%eax
-04:000004AB 80
-04:000004AC 66F7E8    	   200: 	imul %eax
-04:000004AF 66B8112233	   201: 	mov $0x44332211,%eax
-04:000004B4 44
-04:000004B5 6689C3    	   202: 	mov %eax,%ebx
-04:000004B8 66B9556677	   203: 	mov $0x88776655,%ecx
-04:000004BD 88
-04:000004BE 66F7E1    	   204: 	mul %ecx
-04:000004C1 66F7F1    	   205: 	div %ecx
-04:000004C4 6639D8    	   206: 	cmp %ebx,%eax
-04:000004C7 7509      	   207: 	jne error
+04:000003AD 66B8010000	   199: 	mov $0x80000001,%eax
+04:000003B2 80
+04:000003B3 66F7E8    	   200: 	imul %eax
+04:000003B6 66B8112233	   201: 	mov $0x44332211,%eax
+04:000003BB 44
+04:000003BC 6689C3    	   202: 	mov %eax,%ebx
+04:000003BF 66B9556677	   203: 	mov $0x88776655,%ecx
+04:000003C4 88
+04:000003C5 66F7E1    	   204: 	mul %ecx
+04:000003C8 66F7F1    	   205: 	div %ecx
+04:000003CB 6639D8    	   206: 	cmp %ebx,%eax
+04:000003CE 0F854F02  	   207: 	jne error
                       	   208: 
                       	   209: #-------------------------------------------------------------------------------
                       	   210: 	POST $0xE0
-04:000004C9 B0E0      	     1M 	movb $0xE0,%al
-04:000004CB BA9001    	     2M 	movw $POST_PORT,%dx
-04:000004CE EE        	     3M 	out %al,%dx
+04:000003D2 B0E0      	     1M 	movb $0xE0,%al
+04:000003D4 BA9001    	     2M 	movw $POST_PORT,%dx
+04:000003D7 EE        	     3M 	out %al,%dx
                       	   211: #-------------------------------------------------------------------------------
                       	   212: 
                       	   213: .shifts386FlagsTest:
@@ -2046,22 +1941,163 @@ Source: "t386.asm"
                       	   217: 	#  CF when cl>7 (byte) or cl>15 (word):
                       	   218: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=MSB(operand)
                       	   219: 	#    if word operand and cl=16 then CF=MSB(operand)
-                      	   220: 	#  OF when cl>1: set according to result
+                      	   220: 	#  OF when cl>1: set according to result   *** rf386 calc's overflow cl>1
                       	   221: 	#  AF when cl>0: always 1
                       	   222: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
                       	   223: 
-                      	   224: 	#testShiftBFlags sarb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
-                      	   225: 	#testShiftBFlags sarb, $0x82, $2, $0, $(PS_CF|PS_AF)
-                      	   226: 	#testShiftBFlags sarb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF)
-                      	   227: 	#testShiftBFlags sarb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   228: 	#testShiftBFlags sarb, $0x80,   $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-                      	   229: 	#testShiftBFlags sarb, $0x00,   $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   230: 	#testShiftBFlags sarb, $0x80,   $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-                      	   231: 	#testShiftBFlags sarb, $0x00,   $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   232: 	#testShiftBFlags sarb, $0x80,   $32, $0,     $0
-                      	   233: 	#testShiftWFlags sarw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF)
-                      	   234: 	#testShiftWFlags sarw, $0x0000, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   235: 	#testShiftWFlags sarw, $0x8000, $32, $0,     $0
+                      	   224: 	testShiftBFlags shrb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
+04:000003D8 B80000    	     1M 	mov $0,%ax
+04:000003DB 50        	     2M 	push %ax
+04:000003DC 9D        	     3M 	popf
+04:000003DD B4FF      	     4M 	mov $0xff,%ah
+04:000003DF B081      	     5M 	mov $0x81,%al
+04:000003E1 B101      	     6M 	mov $1,%cl
+04:000003E3 D2E8      	     7M 	shrb %cl,%al
+04:000003E5 9C        	     8M 	pushf
+04:000003E6 58        	     9M 	pop %ax
+04:000003E7 25D508    	    10M 	and $PS_ARITH,%ax
+04:000003EA 3D1108    	    11M 	cmp $(PS_CF|PS_AF|PS_OF),%ax
+04:000003ED 0F853002  	    12M 	jne error
+                      	   225: 	testShiftBFlags shrb, $0x82, $2, $0, $(PS_CF|PS_AF|PS_OF)
+04:000003F1 B80000    	     1M 	mov $0,%ax
+04:000003F4 50        	     2M 	push %ax
+04:000003F5 9D        	     3M 	popf
+04:000003F6 B4FF      	     4M 	mov $0xff,%ah
+04:000003F8 B082      	     5M 	mov $0x82,%al
+04:000003FA B102      	     6M 	mov $2,%cl
+04:000003FC D2E8      	     7M 	shrb %cl,%al
+04:000003FE 9C        	     8M 	pushf
+04:000003FF 58        	     9M 	pop %ax
+04:00000400 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000403 3D1108    	    11M 	cmp $(PS_CF|PS_AF|PS_OF),%ax
+04:00000406 0F851702  	    12M 	jne error
+                      	   226: 	testShiftBFlags shrb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+04:0000040A B80000    	     1M 	mov $0,%ax
+04:0000040D 50        	     2M 	push %ax
+04:0000040E 9D        	     3M 	popf
+04:0000040F B4FF      	     4M 	mov $0xff,%ah
+04:00000411 B080      	     5M 	mov $0x80,%al
+04:00000413 B108      	     6M 	mov $8,%cl
+04:00000415 D2E8      	     7M 	shrb %cl,%al
+04:00000417 9C        	     8M 	pushf
+04:00000418 58        	     9M 	pop %ax
+04:00000419 25D508    	    10M 	and $PS_ARITH,%ax
+04:0000041C 3D5508    	    11M 	cmp $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF),%ax
+04:0000041F 0F85FE01  	    12M 	jne error
+                      	   227: 	testShiftBFlags shrb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_ZF)
+04:00000423 B80100    	     1M 	mov $PS_CF,%ax
+04:00000426 50        	     2M 	push %ax
+04:00000427 9D        	     3M 	popf
+04:00000428 B4FF      	     4M 	mov $0xff,%ah
+04:0000042A B000      	     5M 	mov $0x00,%al
+04:0000042C B108      	     6M 	mov $8,%cl
+04:0000042E D2E8      	     7M 	shrb %cl,%al
+04:00000430 9C        	     8M 	pushf
+04:00000431 58        	     9M 	pop %ax
+04:00000432 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000435 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00000438 0F85E501  	    12M 	jne error
+                      	   228: 	testShiftBFlags shrb, $0x80,   $16, $0,     $(PS_PF|PS_ZF|PS_OF)
+04:0000043C B80000    	     1M 	mov $0,%ax
+04:0000043F 50        	     2M 	push %ax
+04:00000440 9D        	     3M 	popf
+04:00000441 B4FF      	     4M 	mov $0xff,%ah
+04:00000443 B080      	     5M 	mov $0x80,%al
+04:00000445 B110      	     6M 	mov $16,%cl
+04:00000447 D2E8      	     7M 	shrb %cl,%al
+04:00000449 9C        	     8M 	pushf
+04:0000044A 58        	     9M 	pop %ax
+04:0000044B 25D508    	    10M 	and $PS_ARITH,%ax
+04:0000044E 3D4408    	    11M 	cmp $(PS_PF|PS_ZF|PS_OF),%ax
+04:00000451 0F85CC01  	    12M 	jne error
+                      	   229: 	testShiftBFlags shrb, $0x00,   $16, $PS_CF, $(PS_PF|PS_ZF)
+04:00000455 B80100    	     1M 	mov $PS_CF,%ax
+04:00000458 50        	     2M 	push %ax
+04:00000459 9D        	     3M 	popf
+04:0000045A B4FF      	     4M 	mov $0xff,%ah
+04:0000045C B000      	     5M 	mov $0x00,%al
+04:0000045E B110      	     6M 	mov $16,%cl
+04:00000460 D2E8      	     7M 	shrb %cl,%al
+04:00000462 9C        	     8M 	pushf
+04:00000463 58        	     9M 	pop %ax
+04:00000464 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000467 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:0000046A 0F85B301  	    12M 	jne error
+                      	   230: 	testShiftBFlags shrb, $0x80,   $24, $0,     $(PS_PF|PS_ZF|PS_OF)
+04:0000046E B80000    	     1M 	mov $0,%ax
+04:00000471 50        	     2M 	push %ax
+04:00000472 9D        	     3M 	popf
+04:00000473 B4FF      	     4M 	mov $0xff,%ah
+04:00000475 B080      	     5M 	mov $0x80,%al
+04:00000477 B118      	     6M 	mov $24,%cl
+04:00000479 D2E8      	     7M 	shrb %cl,%al
+04:0000047B 9C        	     8M 	pushf
+04:0000047C 58        	     9M 	pop %ax
+04:0000047D 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000480 3D4408    	    11M 	cmp $(PS_PF|PS_ZF|PS_OF),%ax
+04:00000483 0F859A01  	    12M 	jne error
+                      	   231: 	testShiftBFlags shrb, $0x00,   $24, $PS_CF, $(PS_PF|PS_ZF)
+04:00000487 B80100    	     1M 	mov $PS_CF,%ax
+04:0000048A 50        	     2M 	push %ax
+04:0000048B 9D        	     3M 	popf
+04:0000048C B4FF      	     4M 	mov $0xff,%ah
+04:0000048E B000      	     5M 	mov $0x00,%al
+04:00000490 B118      	     6M 	mov $24,%cl
+04:00000492 D2E8      	     7M 	shrb %cl,%al
+04:00000494 9C        	     8M 	pushf
+04:00000495 58        	     9M 	pop %ax
+04:00000496 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000499 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:0000049C 0F858101  	    12M 	jne error
+                      	   232: 	testShiftBFlags shrb, $0x80,   $32, $0,     $PS_SF
+04:000004A0 B80000    	     1M 	mov $0,%ax
+04:000004A3 50        	     2M 	push %ax
+04:000004A4 9D        	     3M 	popf
+04:000004A5 B4FF      	     4M 	mov $0xff,%ah
+04:000004A7 B080      	     5M 	mov $0x80,%al
+04:000004A9 B120      	     6M 	mov $32,%cl
+04:000004AB D2E8      	     7M 	shrb %cl,%al
+04:000004AD 9C        	     8M 	pushf
+04:000004AE 58        	     9M 	pop %ax
+04:000004AF 25D508    	    10M 	and $PS_ARITH,%ax
+04:000004B2 3D8000    	    11M 	cmp $PS_SF,%ax
+04:000004B5 0F856801  	    12M 	jne error
+                      	   233: 	testShiftWFlags shrw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+04:000004B9 B80000    	     1M 	mov $0,%ax
+04:000004BC 50        	     2M 	push %ax
+04:000004BD 9D        	     3M 	popf
+04:000004BE B80080    	     4M 	mov $0x8000,%ax
+04:000004C1 B110      	     5M 	mov $16,%cl
+04:000004C3 D3E8      	     6M 	shrw %cl,%ax
+04:000004C5 9C        	     7M 	pushf
+04:000004C6 58        	     8M 	pop %ax
+04:000004C7 25D508    	     9M 	and $PS_ARITH,%ax
+04:000004CA 3D5508    	    10M 	cmp $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF),%ax
+04:000004CD 0F855001  	    11M 	jne error
+                      	   234: 	testShiftWFlags shrw, $0x0000, $16, $PS_CF, $(PS_PF|PS_ZF)
+04:000004D1 B80100    	     1M 	mov $PS_CF,%ax
+04:000004D4 50        	     2M 	push %ax
+04:000004D5 9D        	     3M 	popf
+04:000004D6 B80000    	     4M 	mov $0x0000,%ax
+04:000004D9 B110      	     5M 	mov $16,%cl
+04:000004DB D3E8      	     6M 	shrw %cl,%ax
+04:000004DD 9C        	     7M 	pushf
+04:000004DE 58        	     8M 	pop %ax
+04:000004DF 25D508    	     9M 	and $PS_ARITH,%ax
+04:000004E2 83F844    	    10M 	cmp $(PS_PF|PS_ZF),%ax
+04:000004E5 0F853801  	    11M 	jne error
+                      	   235: 	testShiftWFlags shrw, $0x8000, $32, $0,     $PS_SF|PS_PF
+04:000004E9 B80000    	     1M 	mov $0,%ax
+04:000004EC 50        	     2M 	push %ax
+04:000004ED 9D        	     3M 	popf
+04:000004EE B80080    	     4M 	mov $0x8000,%ax
+04:000004F1 B120      	     5M 	mov $32,%cl
+04:000004F3 D3E8      	     6M 	shrw %cl,%ax
+04:000004F5 9C        	     7M 	pushf
+04:000004F6 58        	     8M 	pop %ax
+04:000004F7 25D508    	     9M 	and $PS_ARITH,%ax
+04:000004FA 3D8400    	    10M 	cmp $PS_SF|PS_PF,%ax
+04:000004FD 0F852001  	    11M 	jne error
                       	   236: 
                       	   237: 	# SHL al,cl - SHL ax,cl
                       	   238: 	# undefined flags:
@@ -2071,89 +2107,232 @@ Source: "t386.asm"
                       	   242: 	#  OF when cl>1: set according to result
                       	   243: 	#  AF when cl>0: always 1
                       	   244: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
-                      	   245: 	#testShiftBFlags   salb, $0x81, $1,  $0,     $(PS_CF|PS_AF|PS_OF)
-                      	   246: 	#testShiftBFlags   salb, $0x41, $2,  $0,     $(PS_CF|PS_AF|PS_OF)
-                      	   247: 	#testShiftBFlags   salb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-                      	   248: 	#testShiftBFlags   salb, $0x00, $8,  $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   249: 	#testShiftBFlags   salb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-                      	   250: 	#testShiftBFlags   salb, $0x00, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   251: 	#testShiftBFlags   salb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-                      	   252: 	#testShiftBFlags   salb, $0x00, $24, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   253: 	#testShiftBFlags   salb, $0x01, $32, $0,     $0
-                      	   254: 	#testShiftWFlags   salw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-                      	   255: 	#testShiftWFlags   salw, $0x00, $16, $PS_CF, $(PS_PF|PS_AF|PS_ZF)
-                      	   256: 	#testShiftWFlags   salw, $0x01, $32, $0,     $0
-                      	   257: 
-04:000004CF E9FEFF    	   258: 	jmp _bootrom
-                      	   259: 
-                      	   260: #	pushl $10
-                      	   261: #	call _Fibonacci
-                      	   262: 
-                      	   263: #
-                      	   264: # Default exception handler and error routine
-                      	   265: #
-                      	   266: DefaultExcHandler:
-                      	   267: error:
-                      	   268: # CLI and HLT are privileged instructions, don't use them in ring3
-04:000004D2 8CC8      	   269: 	mov %cs,%ax
-                      	   270: 
-                      	   271: # when in real mode, the jnz will be decoded together with test as
-                      	   272: # "test eax,0xfe750007" (66A9070075FE)
-04:000004D4 A90700    	   273: 	test $7,%ax     # 66 A9 07 00
-04:000004D7 75FE      	   274: .ring3: jnz .ring3 # 75 FE
-04:000004D9 FA        	   275: 	cli
-04:000004DA F4        	   276: 	hlt
-04:000004DB EBF5      	   277: 	jmp error
-                      	   278: 
+                      	   245: 
+                      	   246: 	testShiftBFlags shlb, $0x81, $1,  $0,     $(PS_CF|PS_OF)
+04:00000501 B80000    	     1M 	mov $0,%ax
+04:00000504 50        	     2M 	push %ax
+04:00000505 9D        	     3M 	popf
+04:00000506 B4FF      	     4M 	mov $0xff,%ah
+04:00000508 B081      	     5M 	mov $0x81,%al
+04:0000050A B101      	     6M 	mov $1,%cl
+04:0000050C D2E0      	     7M 	shlb %cl,%al
+04:0000050E 9C        	     8M 	pushf
+04:0000050F 58        	     9M 	pop %ax
+04:00000510 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000513 3D0108    	    11M 	cmp $(PS_CF|PS_OF),%ax
+04:00000516 0F850701  	    12M 	jne error
+                      	   247: 	testShiftBFlags shlb, $0x41, $2,  $0,     $(PS_CF|PS_OF)
+04:0000051A B80000    	     1M 	mov $0,%ax
+04:0000051D 50        	     2M 	push %ax
+04:0000051E 9D        	     3M 	popf
+04:0000051F B4FF      	     4M 	mov $0xff,%ah
+04:00000521 B041      	     5M 	mov $0x41,%al
+04:00000523 B102      	     6M 	mov $2,%cl
+04:00000525 D2E0      	     7M 	shlb %cl,%al
+04:00000527 9C        	     8M 	pushf
+04:00000528 58        	     9M 	pop %ax
+04:00000529 25D508    	    10M 	and $PS_ARITH,%ax
+04:0000052C 3D0108    	    11M 	cmp $(PS_CF|PS_OF),%ax
+04:0000052F 0F85EE00  	    12M 	jne error
+                      	   248: 	testShiftBFlags shlb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00000533 B80000    	     1M 	mov $0,%ax
+04:00000536 50        	     2M 	push %ax
+04:00000537 9D        	     3M 	popf
+04:00000538 B4FF      	     4M 	mov $0xff,%ah
+04:0000053A B001      	     5M 	mov $0x01,%al
+04:0000053C B108      	     6M 	mov $8,%cl
+04:0000053E D2E0      	     7M 	shlb %cl,%al
+04:00000540 9C        	     8M 	pushf
+04:00000541 58        	     9M 	pop %ax
+04:00000542 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000545 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:00000548 0F85D500  	    12M 	jne error
+                      	   249: 	testShiftBFlags shlb, $0x00, $8,  $PS_CF, $(PS_PF|PS_ZF)
+04:0000054C B80100    	     1M 	mov $PS_CF,%ax
+04:0000054F 50        	     2M 	push %ax
+04:00000550 9D        	     3M 	popf
+04:00000551 B4FF      	     4M 	mov $0xff,%ah
+04:00000553 B000      	     5M 	mov $0x00,%al
+04:00000555 B108      	     6M 	mov $8,%cl
+04:00000557 D2E0      	     7M 	shlb %cl,%al
+04:00000559 9C        	     8M 	pushf
+04:0000055A 58        	     9M 	pop %ax
+04:0000055B 25D508    	    10M 	and $PS_ARITH,%ax
+04:0000055E 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00000561 0F85BC00  	    12M 	jne error
+                      	   250: 	testShiftBFlags shlb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00000565 B80000    	     1M 	mov $0,%ax
+04:00000568 50        	     2M 	push %ax
+04:00000569 9D        	     3M 	popf
+04:0000056A B4FF      	     4M 	mov $0xff,%ah
+04:0000056C B001      	     5M 	mov $0x01,%al
+04:0000056E B110      	     6M 	mov $16,%cl
+04:00000570 D2E0      	     7M 	shlb %cl,%al
+04:00000572 9C        	     8M 	pushf
+04:00000573 58        	     9M 	pop %ax
+04:00000574 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000577 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:0000057A 0F85A300  	    12M 	jne error
+                      	   251: 	testShiftBFlags shlb, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
+04:0000057E B80100    	     1M 	mov $PS_CF,%ax
+04:00000581 50        	     2M 	push %ax
+04:00000582 9D        	     3M 	popf
+04:00000583 B4FF      	     4M 	mov $0xff,%ah
+04:00000585 B000      	     5M 	mov $0x00,%al
+04:00000587 B110      	     6M 	mov $16,%cl
+04:00000589 D2E0      	     7M 	shlb %cl,%al
+04:0000058B 9C        	     8M 	pushf
+04:0000058C 58        	     9M 	pop %ax
+04:0000058D 25D508    	    10M 	and $PS_ARITH,%ax
+04:00000590 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00000593 0F858A00  	    12M 	jne error
+                      	   252: 	testShiftBFlags shlb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00000597 B80000    	     1M 	mov $0,%ax
+04:0000059A 50        	     2M 	push %ax
+04:0000059B 9D        	     3M 	popf
+04:0000059C B4FF      	     4M 	mov $0xff,%ah
+04:0000059E B001      	     5M 	mov $0x01,%al
+04:000005A0 B118      	     6M 	mov $24,%cl
+04:000005A2 D2E0      	     7M 	shlb %cl,%al
+04:000005A4 9C        	     8M 	pushf
+04:000005A5 58        	     9M 	pop %ax
+04:000005A6 25D508    	    10M 	and $PS_ARITH,%ax
+04:000005A9 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:000005AC 7573      	    12M 	jne error
+                      	   253: 	testShiftBFlags shlb, $0x00, $24, $PS_CF, $(PS_PF|PS_ZF)
+04:000005AE B80100    	     1M 	mov $PS_CF,%ax
+04:000005B1 50        	     2M 	push %ax
+04:000005B2 9D        	     3M 	popf
+04:000005B3 B4FF      	     4M 	mov $0xff,%ah
+04:000005B5 B000      	     5M 	mov $0x00,%al
+04:000005B7 B118      	     6M 	mov $24,%cl
+04:000005B9 D2E0      	     7M 	shlb %cl,%al
+04:000005BB 9C        	     8M 	pushf
+04:000005BC 58        	     9M 	pop %ax
+04:000005BD 25D508    	    10M 	and $PS_ARITH,%ax
+04:000005C0 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:000005C3 755C      	    12M 	jne error
+                      	   254: 	testShiftBFlags shlb, $0x01, $32, $0,     $0
+04:000005C5 B80000    	     1M 	mov $0,%ax
+04:000005C8 50        	     2M 	push %ax
+04:000005C9 9D        	     3M 	popf
+04:000005CA B4FF      	     4M 	mov $0xff,%ah
+04:000005CC B001      	     5M 	mov $0x01,%al
+04:000005CE B120      	     6M 	mov $32,%cl
+04:000005D0 D2E0      	     7M 	shlb %cl,%al
+04:000005D2 9C        	     8M 	pushf
+04:000005D3 58        	     9M 	pop %ax
+04:000005D4 25D508    	    10M 	and $PS_ARITH,%ax
+04:000005D7 83F800    	    11M 	cmp $0,%ax
+04:000005DA 7545      	    12M 	jne error
+                      	   255: 	testShiftWFlags shlw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:000005DC B80000    	     1M 	mov $0,%ax
+04:000005DF 50        	     2M 	push %ax
+04:000005E0 9D        	     3M 	popf
+04:000005E1 B80100    	     4M 	mov $0x01,%ax
+04:000005E4 B110      	     5M 	mov $16,%cl
+04:000005E6 D3E0      	     6M 	shlw %cl,%ax
+04:000005E8 9C        	     7M 	pushf
+04:000005E9 58        	     8M 	pop %ax
+04:000005EA 25D508    	     9M 	and $PS_ARITH,%ax
+04:000005ED 3D4508    	    10M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:000005F0 752F      	    11M 	jne error
+                      	   256: 	testShiftWFlags shlw, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
+04:000005F2 B80100    	     1M 	mov $PS_CF,%ax
+04:000005F5 50        	     2M 	push %ax
+04:000005F6 9D        	     3M 	popf
+04:000005F7 B80000    	     4M 	mov $0x00,%ax
+04:000005FA B110      	     5M 	mov $16,%cl
+04:000005FC D3E0      	     6M 	shlw %cl,%ax
+04:000005FE 9C        	     7M 	pushf
+04:000005FF 58        	     8M 	pop %ax
+04:00000600 25D508    	     9M 	and $PS_ARITH,%ax
+04:00000603 83F844    	    10M 	cmp $(PS_PF|PS_ZF),%ax
+04:00000606 7519      	    11M 	jne error
+                      	   257: 	testShiftWFlags shlw, $0x01, $32, $0,     $0
+04:00000608 B80000    	     1M 	mov $0,%ax
+04:0000060B 50        	     2M 	push %ax
+04:0000060C 9D        	     3M 	popf
+04:0000060D B80100    	     4M 	mov $0x01,%ax
+04:00000610 B120      	     5M 	mov $32,%cl
+04:00000612 D3E0      	     6M 	shlw %cl,%ax
+04:00000614 9C        	     7M 	pushf
+04:00000615 58        	     8M 	pop %ax
+04:00000616 25D508    	     9M 	and $PS_ARITH,%ax
+04:00000619 83F800    	    10M 	cmp $0,%ax
+04:0000061C 7503      	    11M 	jne error
+                      	   258: 
+04:0000061E E9FEFF    	   259: 	jmp _bootrom
+                      	   260: 
+                      	   261: #	pushl $10
+                      	   262: #	call _Fibonacci
+                      	   263: 
+                      	   264: #
+                      	   265: # Default exception handler and error routine
+                      	   266: #
+                      	   267: DefaultExcHandler:
+                      	   268: error:
+                      	   269: # CLI and HLT are privileged instructions, don't use them in ring3
+04:00000621 8CC8      	   270: 	mov %cs,%ax
+                      	   271: 
+                      	   272: # when in real mode, the jnz will be decoded together with test as
+                      	   273: # "test eax,0xfe750007" (66A9070075FE)
+04:00000623 A90700    	   274: 	test $7,%ax     # 66 A9 07 00
+04:00000626 75FE      	   275: .ring3: jnz .ring3 # 75 FE
+04:00000628 FA        	   276: 	cli
+04:00000629 F4        	   277: 	hlt
+04:0000062A EBF5      	   278: 	jmp error
                       	   279: 
-                      	   280: .rept 16
-                      	   281: 	nop
-                      	   282: .endr
-04:000004DD 90        	     1R 	nop
-04:000004DE 90        	     1R 	nop
-04:000004DF 90        	     1R 	nop
-04:000004E0 90        	     1R 	nop
-04:000004E1 90        	     1R 	nop
-04:000004E2 90        	     1R 	nop
-04:000004E3 90        	     1R 	nop
-04:000004E4 90        	     1R 	nop
-04:000004E5 90        	     1R 	nop
-04:000004E6 90        	     1R 	nop
-04:000004E7 90        	     1R 	nop
-04:000004E8 90        	     1R 	nop
-04:000004E9 90        	     1R 	nop
-04:000004EA 90        	     1R 	nop
-04:000004EB 90        	     1R 	nop
-04:000004EC 90        	     1R 	nop
-                      	   283: 	
-                      	   284: #	.type	_start,@function
-                      	   285: #	.size	_start,$-_start
-                      	   286: 
-                      	   287: #.include "Fibonacci.asm"
-                      	   288: #.include "serial.asm"
-                      	   289: #.include "xmodem.asm"
-                      	   290: #.include "bootrom.asm"
-                      	   291: 
-                      	   292: .global _disable_int
-                      	   293: .global _restore_int
-                      	   294: .extern _start_data
-                      	   295: .extern _start_rodata
-                      	   296: .extern _start_bss
-                      	   297: 
+                      	   280: 
+                      	   281: .rept 16
+                      	   282: 	nop
+                      	   283: .endr
+04:0000062C 90        	     1R 	nop
+04:0000062D 90        	     1R 	nop
+04:0000062E 90        	     1R 	nop
+04:0000062F 90        	     1R 	nop
+04:00000630 90        	     1R 	nop
+04:00000631 90        	     1R 	nop
+04:00000632 90        	     1R 	nop
+04:00000633 90        	     1R 	nop
+04:00000634 90        	     1R 	nop
+04:00000635 90        	     1R 	nop
+04:00000636 90        	     1R 	nop
+04:00000637 90        	     1R 	nop
+04:00000638 90        	     1R 	nop
+04:00000639 90        	     1R 	nop
+04:0000063A 90        	     1R 	nop
+04:0000063B 90        	     1R 	nop
+                      	   284: 	
+                      	   285: #	.type	_start,@function
+                      	   286: #	.size	_start,$-_start
+                      	   287: 
+                      	   288: #.include "Fibonacci.asm"
+                      	   289: #.include "serial.asm"
+                      	   290: #.include "xmodem.asm"
+                      	   291: #.include "bootrom.asm"
+                      	   292: 
+                      	   293: .global _disable_int
+                      	   294: .global _restore_int
+                      	   295: .extern _start_data
+                      	   296: .extern _start_rodata
+                      	   297: .extern _start_bss
+                      	   298: 
 
 
 Symbols by name:
-.ring3                          04:000004D7
-.shifts386FlagsTest             04:000004CF
+.ring3                          04:00000626
+.shifts386FlagsTest             04:000003D8
 C_SEG_REAL                       S:00000000
 D1_SEG_REAL                      S:00002000
 D2_SEG_REAL                      S:00006000
-DefaultExcHandler               04:000004D2
+DefaultExcHandler               04:00000621
 ESP_REAL                         S:0000FFFC
 EXT_NONE                         S:00000000
 IDT_SEG_REAL                     S:00009000
 POST_PORT                        S:00000190
 PS_AF                            S:00000010
+PS_ARITH                         S:000008D5
 PS_CF                            S:00000001
 PS_OF                            S:00000800
 PS_PF                            S:00000004
@@ -2177,7 +2356,7 @@ err110                          04:000000C5
 err111                          04:00000207
 err210                          04:0000013A
 err211                          04:00000392
-error                           04:000004D2
+error                           04:00000621
 exit10                          04:00000149
 exit11                          04:000003A7
 header                          04:00000002
@@ -2246,14 +2425,6 @@ jz10                            04:000000A4
 jz11                            04:00000155
 jzok10                          04:000000C8
 jzok11                          04:0000020C
-loop1616                        04:000003B3
-loop16a17                       04:000003F5
-loop16a18                       04:00000456
-loop16b17                       04:00000410
-loop16b18                       04:0000046C
-loop3216                        04:000003D8
-loop3217                        04:00000430
-loop3218                        04:00000487
 next110                         04:000000C3
 next111                         04:00000184
 next210                         04:000000F2
@@ -2264,9 +2435,9 @@ start_rodata                     S:FFFA0000
 
 Symbols by value:
 FFFA0000 start_rodata
+00000000 idt_addr
 00000000 C_SEG_REAL
 00000000 _start
-00000000 idt_addr
 00000000 EXT_NONE
 00000001 PS_CF
 00000002 header
@@ -2351,26 +2522,19 @@ FFFA0000 start_rodata
 0000039F jlok11
 000003A3 jleok11
 000003A7 exit11
-000003B3 loop1616
-000003D8 loop3216
-000003F5 loop16a17
-00000410 loop16b17
-00000430 loop3217
-00000456 loop16a18
-0000046C loop16b18
-00000487 loop3218
-000004CF .shifts386FlagsTest
-000004D2 error
-000004D2 DefaultExcHandler
-000004D7 .ring3
+000003D8 .shifts386FlagsTest
+00000621 DefaultExcHandler
+00000621 error
+00000626 .ring3
 00000800 PS_OF
+000008D5 PS_ARITH
 00002000 D1_SEG_REAL
 00006000 D2_SEG_REAL
 00009000 IDT_SEG_REAL
 0000C000 S_SEG_REAL
 0000FFFC ESP_REAL
 0000FFFF realmd_mask
-00020000 TEST_BASE1
 00020000 TEST_BASE
+00020000 TEST_BASE1
 00060000 TEST_BASE2
 0FFFA000 rodata_seg
