@@ -86,8 +86,8 @@ input zf,cf,sf,vf,pf;
 output take_br;
 
 reg take_br;
-wire cxo = big ? ecx==32'h0001 : ecx[15:0]==16'h0001;	// CX is one
-wire cxz = big ? ecx==32'h0000 : ecx[15:0]==16'h0000;	// CX is zero
+wire cxo = ecx==32'h1;//big ? ecx==32'h0001 : ecx[15:0]==16'h0001;	// CX is one
+wire cxz = ecx==32'h0;//big ? ecx==32'h0000 : ecx[15:0]==16'h0000;	// CX is zero
 
 always_comb
 	case(ir)

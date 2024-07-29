@@ -124,11 +124,11 @@ rf80386_pkg::LxDT1:
 	begin
 		if (lidt) begin
 			idt_desc.limit_lo <= dat[15:0];
-			{idt_desc.base_hi,idt_desc.base_lo} <= OperandSize==8'd32 ? dat[47:16] : {8'h00,dat[39:16]};
+			{idt_desc.base_hi,idt_desc.base_lo} <= OperandSize==8'd32 ? dat[47:16] : {`REALMODE_PG16,dat[39:16]};
 		end
 		else if (lgdt) begin
 			gdt_desc.limit_lo <= dat[15:0];
-			{gdt_desc.base_hi,gdt_desc.base_lo} <= OperandSize==8'd32 ? dat[47:16] : {8'h00,dat[39:16]};
+			{gdt_desc.base_hi,gdt_desc.base_lo} <= OperandSize==8'd32 ? dat[47:16] : {`REALMODE_PG16,dat[39:16]};
 		end
 		else if (lmsw) begin
 			cr0[3:0] <= dat[3:0];

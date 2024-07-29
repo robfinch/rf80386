@@ -38,14 +38,14 @@
 
 rf80386_pkg::OUTW:	// Entry point for OUT port,AX
 	begin
-		ea <= {12'h000,bundle[7:0]};
+		ea <= {24'h000,bundle[7:0]};
 		eip <= eip + 2'd1;
 		tGoto(rf80386_pkg::OUTW1);
 	end
 rf80386_pkg::OUTW1:	// Entry point for OUT [DX],AX
 	begin
 		ad <= ea;
-		sel <= cs_desc.db ? 16'h000F : 16'h0003;
+		sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
 		dat <= eax;
 		tGosub(rf80386_pkg::STORE_IO,rf80386_pkg::IFETCH);
 	end

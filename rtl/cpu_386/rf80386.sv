@@ -38,7 +38,7 @@
 //  System Verilog 
 //
 //  Vivado 2022.2
-//	11937 LUTs / 2196 FFs / 8 DSPs
+//	12165 LUTs / 2286 FFs / 8 DSPs
 // ============================================================================
 
 import const_pkg::*;
@@ -88,6 +88,7 @@ reg [2:0] cyc_type;			// type of bus sycle
 reg [7:0] OperandSize;
 reg [7:0] AddrSize;
 reg [7:0] StkAddrSize;
+reg wrvz;
 reg lidt, lgdt, lmsw;
 reg lsl, ltr;
 reg sidt, sgdt, smsw;
@@ -129,7 +130,7 @@ reg [1:0] S43;
 reg wrregs;
 reg wrsregs;
 wire take_br;
-reg [3:0] shftamt;
+reg [4:0] shftamt;
 reg ld_div16,ld_div32,ld_div64;		// load divider
 reg div_sign;
 reg read_code;
@@ -172,8 +173,8 @@ lfsr31 ulfsr1(rst_i, clk_i, 1'b1, 1'b0, lfsr31o);
 always_ff @(posedge CLK)
 	if (rst_i) begin
 		tid <= 4'd1;
-		cr0 <= 32'd1;		// boot in protected mode
-//		cr0 <= 32'd0;		// boot in real mode
+//		cr0 <= 32'd1;		// boot in protected mode
+		cr0 <= 32'd0;		// boot in real mode
 		lidt <= 1'b0;
 		lgdt <= 1'b0;
 		lmsw <= 1'b0;
@@ -195,6 +196,7 @@ always_ff @(posedge CLK)
 		esp <= 32'h0;
 		esi <= 32'h0;
 		edi <= 32'h0;
+		wrvz <= 1'b0;
 		pf <= 1'b0;
 		cf <= 1'b0;
 		df <= 1'b0;
@@ -216,23 +218,23 @@ always_ff @(posedge CLK)
 		hasFetchedModrm <= 1'b0;
 //		cs <= `CS_RESET;
 		cs_desc.db <= 1'b1;							// 32-bit mode
-		cs_desc.base_lo <= 24'h000000;	// base = 0
-		cs_desc.base_hi <= 8'h00;			
+		cs_desc.base_lo <= 24'hF00000;	// base = 0
+		cs_desc.base_hi <= 8'hFF;			
 		cs_desc.limit_lo <= 16'hFFFF;		// limit = max
 		cs_desc.limit_hi <= 4'hF;
 		cs_desc.g <= 1'b1;							// 4096 bytes granularity
 		cs_desc.p <= 1'b1;							// segment is present
-		eip <= 32'hFFFF0000;
+		eip <= 32'h000F0000;
 		ds_desc.db <= 1'b1;							// 32-bit mode
-		ds_desc.base_lo <= 24'h000000;	// base = 0
-		ds_desc.base_hi <= 8'h00;			
+		ds_desc.base_lo <= 24'hF00000;	// base = 0
+		ds_desc.base_hi <= 8'hFF;			
 		ds_desc.limit_lo <= 16'hFFFF;		// limit = max
 		ds_desc.limit_hi <= 4'hF;
 		ds_desc.g <= 1'b1;							// 4096 bytes granularity
 		ds_desc.p <= 1'b1;							// segment is present
 		ss_desc.db <= 1'b1;							// 32-bit mode
-		ss_desc.base_lo <= 24'h000000;	// base = 0
-		ss_desc.base_hi <= 8'h00;			
+		ss_desc.base_lo <= 24'hF00000;	// base = 0
+		ss_desc.base_hi <= 8'hFF;			
 		ss_desc.limit_lo <= 16'hFFFF;		// limit = max
 		ss_desc.limit_hi <= 4'hF;
 		ss_desc.g <= 1'b1;							// 4096 bytes granularity

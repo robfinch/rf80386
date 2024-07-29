@@ -316,10 +316,10 @@ rf80386_pkg::DECODE:
 	`INW: tGoto(rf80386_pkg::INW);
 	`OUTB: tGoto(rf80386_pkg::OUTB);
 	`OUTW: tGoto(rf80386_pkg::OUTW);
-	`INB_DX: begin ea <= {`SEG_SHIFT,dx}; tGoto(rf80386_pkg::INB1); end
-	`INW_DX: begin ea <= {`SEG_SHIFT,dx}; tGoto(rf80386_pkg::INW1); end
-	`OUTB_DX: begin ea <= {`SEG_SHIFT,dx}; tGoto(rf80386_pkg::OUTB1); end
-	`OUTW_DX: begin ea <= {`SEG_SHIFT,dx}; tGoto(rf80386_pkg::OUTW1); end
+	`INB_DX: begin ea <= {16'h0,dx}; tGoto(rf80386_pkg::INB1); end
+	`INW_DX: begin ea <= {16'h0,dx}; tGoto(rf80386_pkg::INW1); end
+	`OUTB_DX: begin ea <= {16'h0,dx}; tGoto(rf80386_pkg::OUTB1); end
+	`OUTW_DX: begin ea <= {16'h0,dx}; tGoto(rf80386_pkg::OUTW1); end
 	`INSB: tGoto(rf80386_pkg::INSB);
 	`OUTSB: tGoto(rf80386_pkg::OUTSB);
 	`OUTSW: tGoto(rf80386_pkg::OUTSW);

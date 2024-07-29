@@ -103,6 +103,7 @@ rf80386_pkg::IFETCH:
 		jccl <= 1'b0;
 		data16 <= 16'h0000;
 		cnt <= 7'd0;
+		wrvz <= 1'b0;
 //		if (prefix1!=8'h00 && prefix2 !=8'h00 && is_prefix)
 //			state <= TRIPLE_PREFIX;
 		if (is_prefix) begin
@@ -141,6 +142,23 @@ rf80386_pkg::IFETCH:
     end
     else begin
 			tGoto(rf80386_pkg::IFETCH_ACK);
+		end
+		// Flags for shifts and rotates
+		if (wrvz) begin
+			if (w) begin
+				if (OperandSize==8'd32) begin
+					zf <= res[31:0]==32'h00;
+					sf <= res[31];
+				end
+				else begin
+					zf <= res[15:0]==16'h00;
+					sf <= res[15];
+				end
+			end
+			else begin
+				zf <= res[7:0]==8'h00;
+				sf <= res[7];
+			end
 		end
 	end
 

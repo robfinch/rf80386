@@ -50,6 +50,7 @@ rf80386_pkg::FETCH_IMM8:
 	begin
 		if (ir==`SHI8 || ir==`SHI16) begin
 			shftamt <= bundle[4:0];
+			b <= a;
 		end
 		else begin
 			case(ir)

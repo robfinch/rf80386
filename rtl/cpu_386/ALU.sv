@@ -91,21 +91,21 @@ wire eq  = cs_desc.db ? a == b : a[15:0]==b[15:0];
 wire ltu = cs_desc.db ? a < b : a[15:0] < b[15:0];
 wire lt  = as < bs;
 
-wire [63:0] shlo32 = {32'h0000,b} << shftamt;
+wire [64:0] shlo32 = {32'h0000,b} << shftamt;
 wire [63:0] shruo32 = {b,32'h0000} >> shftamt;
-wire [31:0] shro32 = ~(~b >> shftamt);
+wire [63:0] shro32 = ~(~{b,32'h0} >> shftamt);
 wire [64:0] shlco32 = {32'h0000,b,cf} << shftamt;
 wire [64:0] shrcuo32 = {cf,b,32'h0000} >> shftamt;
 
-wire [31:0] shlo16 = {16'h0000,b[15:0]} << shftamt;
+wire [32:0] shlo16 = {16'h0000,b[15:0]} << shftamt;
 wire [31:0] shruo16 = {b[15:0],16'h0000} >> shftamt;
-wire [15:0] shro16 = ~(~b >> shftamt);
+wire [31:0] shro16 = ~(~{b,16'h0} >> shftamt);
 wire [32:0] shlco16 = {16'h0000,b[15:0],cf} << shftamt;
 wire [32:0] shrcuo16 = {cf,b[15:0],16'h0000} >> shftamt;
 
-wire [15:0] shlo8 = {8'h00,b[7:0]} << shftamt;
+wire [16:0] shlo8 = {8'h00,b[7:0]} << shftamt;
 wire [15:0] shruo8 = {b[7:0],8'h00} >> shftamt;
-wire [ 7:0] shro8 = ~(~b[7:0] >> shftamt);
+wire [15:0] shro8 = ~(~{b[7:0],8'h00} >> shftamt);
 wire [16:0] shlco8 = {8'h00,b,cf} << shftamt;
 wire [16:0] shrcuo8 = {cf,b[7:0],8'h00} >> shftamt;
 

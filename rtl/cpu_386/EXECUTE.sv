@@ -429,6 +429,7 @@ rf80386_pkg::EXECUTE:
 		8'hD0,8'hD1,8'hD2,8'hD3,`SHI8,`SHI16:
 			begin
 				tGoto(rf80386_pkg::IFETCH);
+				wrvz <= 1'b1;
 				wrregs <= 1'b1;
 				rrr <= rm;
 				if (w) begin
@@ -437,45 +438,44 @@ rf80386_pkg::EXECUTE:
 						3'b000:	// ROL
 							begin
 								res <= shlo32[31:0]|shlo32[63:32];
-								cf <= bmsb;
-								vf <= bmsb^b[30];
+								cf <= shlo32[32];
+								vf <= shlo32[32]^shlo32[31];
 							end
 						3'b001:	// ROR
 							begin
 								res <= shruo32[31:0]|shruo32[63:32];
-								cf <= b[0];
-								vf <= cf^b[31];
+								cf <= shruo32[31];
+								vf <= shruo32[31]^shruo32[30];
 							end
 						3'b010:	// RCL
 							begin
-								res <= shlco32[32:1]|shlco32[64:33];
-								cf <= b[31];
-								vf <= b[31]^b[30];
+								res <= shlco32[31:0]|shlco32[63:32];
+								cf <= shlco32[32];
 							end
 						3'b011:	// RCR
 							begin
 								res <= shrcuo32[31:0]|shrcuo32[63:32];
-								cf <= b[0];
-								vf <= cf^b[31];
+								cf <= shrcuo32[31];
+								vf <= shrcuo32[31]^shrcuo32[30];
 							end
 						3'b100:	// SHL
 							begin
 								res <= shlo32[31:0];
 								cf <= shlo32[32];
-								vf <= b[31]^b[30];
+								vf <= shlo32[32]^shlo32[31];
 							end
 						3'b101:	// SHR
 							begin
 								res <= shruo32[63:32];
 								cf <= shruo32[31];
-								vf <= b[31];
+								vf <= shruo32[63]^b[31];
 							end
 						3'b110:
 							tGoto(INVALID_OPCODE);
 						3'b111:	// SAR
 							begin
-								res <= shro32;
-								cf <= b[0];
+								res <= shro32[63:32];
+								cf <= shro32[31];
 								vf <= 1'b0;
 							end
 						endcase
@@ -484,45 +484,45 @@ rf80386_pkg::EXECUTE:
 						3'b000:	// ROL
 							begin
 								res <= shlo16[15:0]|shlo16[31:16];
-								cf <= bmsb;
-								vf <= bmsb^b[14];
+								cf <= shlo16[16];
+								vf <= shlo16[16]^shlo16[15];
 							end
 						3'b001:	// ROR
 							begin
 								res <= shruo16[15:0]|shruo16[31:16];
-								cf <= b[0];
-								vf <= cf^b[15];
+								cf <= shruo16[15];
+								vf <= shruo16[15]^shruo16[14];
 							end
 						3'b010:	// RCL
 							begin
-								res <= shlco16[16:1]|shlco16[32:17];
-								cf <= b[15];
-								vf <= b[15]^b[14];
+								res <= shlco16[15:0]|shlco16[31:16];
+								cf <= shlco16[16];
+								vf <= shlco16[16]^shlco16[15];
 							end
 						3'b011:	// RCR
 							begin
 								res <= shrcuo16[15:0]|shrcuo16[31:16];
-								cf <= b[0];
-								vf <= cf^b[15];
+								cf <= shrcuo16[15];
+								vf <= shrcuo16[15]^shrcuo16[14];
 							end
 						3'b100:	// SHL
 							begin
 								res <= shlo16[15:0];
 								cf <= shlo16[16];
-								vf <= b[15]^b[14];
+								vf <= shlo16[16]^shlo16[15];
 							end
 						3'b101:	// SHR
 							begin
 								res <= shruo16[31:16];
 								cf <= shruo16[15];
-								vf <= b[15];
+								vf <= shruo16[31]^b[15];
 							end
 						3'b110:
 							tGoto(INVALID_OPCODE);
 						3'b111:	// SAR
 							begin
-								res <= shro16;
-								cf <= b[0];
+								res <= shro16[31:16];
+								cf <= shro16[15];
 								vf <= 1'b0;
 							end
 						endcase
@@ -532,45 +532,45 @@ rf80386_pkg::EXECUTE:
 					3'b000:	// ROL
 						begin
 							res <= shlo8[7:0]|shlo8[15:8];
-							cf <= b[7];
-							vf <= b[7]^b[6];
+							cf <= shlo8[8];
+							vf <= shlo8[8]^shlo8[7];
 						end
 					3'b001:	// ROR
 						begin
 							res <= shruo8[15:8]|shruo8[7:0];
-							cf <= b[0];
-							vf <= cf^b[7];
+							cf <= shruo8[7];
+							vf <= shruo8[7]^shruo8[6];
 						end
 					3'b010:	// RCL
 						begin
-							res <= shlco8[8:1]|shlco8[16:9];
-							cf <= b[7];
-							vf <= b[7]^b[6];
+							res <= shlco8[7:0]|shlco8[15:8];
+							cf <= shlco8[8];
+							vf <= shlco8[8]^shlco8[7];
 						end
 					3'b011:	// RCR
 						begin
 							res <= shrcuo8[15:8]|shrcuo8[7:0];
-							cf <= b[0];
-							vf <= cf^b[7];
+							cf <= shrcuo8[7];
+							vf <= shrcuo8[7]^shrcuo8[6];
 						end
 					3'b100:	// SHL
 						begin
 							res <= shlo8[7:0];
 							cf <= shlo8[8];
-							vf <= b[7]^b[6];
+							vf <= shlo8[8]^shlo8[7];
 						end
 					3'b101:	// SHR
 						begin
 							res <= shruo8[15:8];
 							cf <= shruo8[7];
-							vf <= b[7];
+							vf <= shruo8[15]^b[7];
 						end
 					3'b110:
 						tGoto(INVALID_OPCODE);
 					3'b111:	// SAR
 						begin
-							res <= shro8;
-							cf <= b[0];
+							res <= shro8[15:8];
+							cf <= shro8[7];
 							vf <= 1'b0;
 						end
 					endcase

@@ -39,7 +39,7 @@
 rf80386_pkg::OUTB:	// Entry point for OUTB port,AL
 	begin
 		eip <= eip + 2'd1;
-		ea <= {12'h000,bundle[7:0]};
+		ea <= {24'h000,bundle[7:0]};
 		tGoto(rf80386_pkg::OUTB1);
 	end
 rf80386_pkg::OUTB1:	// Entry point for OUTB [DX],AL

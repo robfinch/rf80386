@@ -261,7 +261,7 @@ rf80386_pkg::LOAD_IO_ACK:
 	if (ftam_resp.ack && ftam_resp.tid.tranid==tid) begin
 		dat <= (ftam_resp.dat >> {ad[3:0],3'b0}) & ls_mask;
 		if (|sel_shift[19:16])
-			tGoto(rf80386_pkg::LOAD2);
+			tGoto(rf80386_pkg::LOAD_IO2);
 		else
 			tReturn();
 	end

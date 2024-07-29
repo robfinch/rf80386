@@ -262,6 +262,8 @@ always_comb
 	16'h0001:	ls_mask <= 128'hFF;
 	16'h0003:	ls_mask <= 128'hFFFF;
 	16'h000F:	ls_mask <= 128'hFFFFFFFF;
+	16'h003F:	ls_mask <= 128'hFFFFFFFFFFFF;	// lidt / lgdt
+	16'h00FF:	ls_mask <= 128'hFFFFFFFFFFFFFFFF;
 	default:	ls_mask <= 128'h0;
 	endcase
 
