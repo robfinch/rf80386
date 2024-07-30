@@ -86,8 +86,33 @@ rf80386_pkg::DECODER2:
 				begin
 					tGosub(rf80386_pkg::LAR,rf80386_pkg::IFETCH);
 				end
-			`LSS,`LFS,`LGS:
+			`LSS:
 				begin
+					d_lss <= 1'b1;
+					w <= 1'b1;
+					mod   <= bundle[7:6];
+					rrr   <= bundle[5:3];
+					sreg3 <= bundle[5:3];
+					TTT   <= bundle[5:3];
+					rm    <= bundle[2:0];
+					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
+					tGoto(rf80386_pkg::EACALC);
+				end
+			`LFS:
+				begin
+					d_lfs <= 1'b1;
+					w <= 1'b1;
+					mod   <= bundle[7:6];
+					rrr   <= bundle[5:3];
+					sreg3 <= bundle[5:3];
+					TTT   <= bundle[5:3];
+					rm    <= bundle[2:0];
+					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
+					tGoto(rf80386_pkg::EACALC);
+				end
+			`LGS:
+				begin
+					d_lgs <= 1'b1;
 					w <= 1'b1;
 					mod   <= bundle[7:6];
 					rrr   <= bundle[5:3];

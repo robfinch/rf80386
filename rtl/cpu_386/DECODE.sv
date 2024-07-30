@@ -71,8 +71,6 @@ rf80386_pkg::DECODE:
 			tGoto(rf80386_pkg::REGFETCHA);
 		end
 
-	`LEA: tGoto(rf80386_pkg::EXECUTE);
-
 	//-----------------------------------------------------------------
 	// Immediate Loads
 	//-----------------------------------------------------------------
@@ -347,6 +345,18 @@ rf80386_pkg::DECODE:
 			end
 			tGoto(rf80386_pkg::FETCH_DISP16b);
 		end
+	`MOV_S2R,`MOV_R2S:
+		begin
+			w <= 1'b1;
+			$display("Fetching mod/rm, w=",1'b1);
+			mod   <= bundle[7:6];
+			rrr   <= bundle[5:3];
+			sreg3 <= bundle[5:3];
+			TTT   <= bundle[5:3];
+			rm    <= bundle[2:0];
+			$display("Mod/RM=%b_%b_%b", bundle[7:6],bundle[5:3],bundle[2:0]);
+			tGoto(rf80386_pkg::EACALC);
+		end
 
 	default:
 		begin
@@ -355,8 +365,10 @@ rf80386_pkg::DECODE:
 		//-----------------------------------------------------------------
 		// MOD/RM instructions
 		//-----------------------------------------------------------------
-		if (ir==`MOV_R2S || ir==`MOV_S2R)
-			w <= 1'b1;
+		if (ir==`LDS)
+			d_lds <= 1'b1;
+		if (ir==`LES)
+			d_les <= 1'b1;
 		if (ir==`LDS || ir==`LES)
 			w <= 1'b1;
 		if (fetch_modrm) begin

@@ -95,6 +95,7 @@ reg sidt, sgdt, smsw;
 reg sldt, str;
 reg verr, verw;
 reg jccl;
+reg d_lss,d_lfs,d_lgs,d_lds,d_les;
 reg w;						// 0=8 bit, 1=16 bit
 reg d;
 reg v;						// 1=count in cl, 0 = count is one
@@ -175,6 +176,8 @@ always_ff @(posedge CLK)
 	if (rst_i) begin
 		tid <= 4'd1;
 		rty_wait <= 5'd0;
+		tick <= 32'd0;
+		insn_count <= 32'd0;
 //		cr0 <= 32'd1;		// boot in protected mode
 		cr0 <= 32'd0;		// boot in real mode
 		lidt <= 1'b0;
@@ -190,6 +193,11 @@ always_ff @(posedge CLK)
 		verr <= 1'b0;
 		verw <= 1'b0;
 		jccl <= 1'b0;
+		d_lds <= 1'b0;
+		d_les <= 1'b0;
+		d_lfs <= 1'b0;
+		d_lgs <= 1'b0;
+		d_lss <= 1'b0;
 		eax <= 32'h0;
 		ebx <= 32'h0;
 		ecx <= 32'h0;
@@ -234,6 +242,24 @@ always_ff @(posedge CLK)
 		ds_desc.limit_hi <= 4'hF;
 		ds_desc.g <= 1'b1;							// 4096 bytes granularity
 		ds_desc.p <= 1'b1;							// segment is present
+		es_desc.base_lo <= 24'hF00000;	// base = 0
+		es_desc.base_hi <= 8'hFF;			
+		es_desc.limit_lo <= 16'hFFFF;		// limit = max
+		es_desc.limit_hi <= 4'hF;
+		es_desc.g <= 1'b1;							// 4096 bytes granularity
+		es_desc.p <= 1'b1;							// segment is present
+		fs_desc.base_lo <= 24'hF00000;	// base = 0
+		fs_desc.base_hi <= 8'hFF;			
+		fs_desc.limit_lo <= 16'hFFFF;		// limit = max
+		fs_desc.limit_hi <= 4'hF;
+		fs_desc.g <= 1'b1;							// 4096 bytes granularity
+		fs_desc.p <= 1'b1;							// segment is present
+		gs_desc.base_lo <= 24'hF00000;	// base = 0
+		gs_desc.base_hi <= 8'hFF;			
+		gs_desc.limit_lo <= 16'hFFFF;		// limit = max
+		gs_desc.limit_hi <= 4'hF;
+		gs_desc.g <= 1'b1;							// 4096 bytes granularity
+		gs_desc.p <= 1'b1;							// segment is present
 		ss_desc.db <= 1'b1;							// 32-bit mode
 		ss_desc.base_lo <= 24'hF00000;	// base = 0
 		ss_desc.base_hi <= 8'hFF;			
@@ -282,7 +308,8 @@ always_ff @(posedge CLK)
 		wrsregs <= 1'b0;
 		ld_div16 <= 1'b0;
 		ld_div32 <= 1'b0;
-		
+		tick <= tick + 2'd1;
+
 		tClearBus();
 
 `include "WRITEBACK.sv"

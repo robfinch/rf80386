@@ -50,23 +50,23 @@ rf80386_pkg::EXECUTE:
 				end
 			`LSS:
 				begin
-					wrsregs <= 1'b1;
-					res <= alu_o;
-					rrr <= 3'd2;
+					wrregs <= 1'b1;
+					res <= a;
+					ss <= b;
 					tGoto(rf80386_pkg::IFETCH);
 				end
 			`LFS:
 				begin
-					wrsregs <= 1'b1;
-					res <= alu_o;
-					rrr <= 3'd4;
+					wrregs <= 1'b1;
+					res <= a;
+					fs <= b;
 					tGoto(rf80386_pkg::IFETCH);
 				end
 			`LGS:
 				begin
-					wrsregs <= 1'b1;
-					res <= alu_o;
-					rrr <= 3'd5;
+					wrregs <= 1'b1;
+					res <= a;
+					gs <= b;
 					tGoto(rf80386_pkg::IFETCH);
 				end
 			`LLDT: tGoto(rf80386_pkg::LLDT);
@@ -336,7 +336,7 @@ rf80386_pkg::EXECUTE:
 		`LEA:
 			begin
 				w <= 1'b1;
-				res <= ea;
+				res <= offsdisp;
 				if (mod==2'b11) begin
 					int_num <= 8'h06;
 					tGoto(INT);
@@ -348,16 +348,16 @@ rf80386_pkg::EXECUTE:
 			end
 		`LDS:
 			begin
-				wrsregs <= 1'b1;
-				res <= alu_o;
-				rrr <= 3'd3;
+				wrregs <= 1'b1;
+				res <= a;
+				ds <= b;
 				tGoto(rf80386_pkg::IFETCH);
 			end
 		`LES:
 			begin
-				wrsregs <= 1'b1;
-				res <= alu_o;
-				rrr <= 3'd0;
+				wrregs <= 1'b1;
+				res <= a;
+				es <= b;
 				tGoto(rf80386_pkg::IFETCH);
 			end
 		`MOV_RR8,`MOV_RR16:
@@ -387,14 +387,19 @@ rf80386_pkg::EXECUTE:
 		`MOV_I8M,`MOV_I16M:
 			begin
 				res <= alu_o;
-				tGoto(rrr==3'd0 ? STORE_DATA : INVALID_OPCODE);
+				if (mod==2'd3) begin
+					wrregs <= 1'b1;
+					tGoto(rf80386_pkg::IFETCH);
+				end
+				else
+					tGoto(TTT==3'd0 ? STORE_DATA : INVALID_OPCODE);
 			end
 
 		`MOV_S2R:
 			begin
 				w <= 1'b1;
 				rrr <= rm;
-				res <= b;
+				res <= alu_o;
 				if (mod==2'b11) begin
 					tGoto(rf80386_pkg::IFETCH);
 					wrregs <= 1'b1;

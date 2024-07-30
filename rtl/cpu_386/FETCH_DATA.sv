@@ -42,17 +42,19 @@ rf80386_pkg::FETCH_DATA:
 		if (ltr)
 			sel <= 16'h0003;
 		else if (ir==`BOUND) begin
-			if (cs_desc.db)
+			if (OperandSize==8'd32)
 				sel <= 16'h00FF;
 			else
 				sel <= 16'h000F;
 		end
 		else begin
-			if (cs_desc.db)
+			if (OperandSize==8'd32)
 				sel <= w ? 16'h000F : 16'h0001;
 			else
 				sel <= w ? 16'h0003 : 16'h0001;
 		end
+		if (d_lss|d_lds|d_les|d_lfs|d_lgs)
+			sel <= OperandSize==8'd32 ? 16'h003F : 16'h000F;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::FETCH_DATA1);
 	end
 rf80386_pkg::FETCH_DATA1:
@@ -115,6 +117,16 @@ rf80386_pkg::FETCH_DATA1:
 					a[ 7:0] <= dat[7:0];
 					a[31:8] <= {24{dat[7]}};
 				end
+			end
+		end
+		if (d_lss|d_lds|d_les|d_lfs|d_lgs) begin
+			if (OperandSize==8'd32) begin
+				a <= dat[31:0];
+				b <= dat[47:32];
+			end
+			else begin
+				a <= dat[15:0];
+				b <= dat[31:16];
 			end
 		end
 		case(ir)

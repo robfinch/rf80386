@@ -49,8 +49,9 @@
 //
 rf80386_pkg::IFETCH:
 	begin
+		insn_count <= insn_count + 2'd1;
 		$display("\r\n******************************************************");
-		$display("time: %d", $time);
+		$display("time: %d  tick: %d  insns: %d", $time, tick, insn_count);
 		$display("CSIP: %h", csip);
 		$display("EAX=%h  ESI=%h", eax, esi);
 		$display("EBX=%h  EDI=%h", ebx, edi);
@@ -97,6 +98,11 @@ rf80386_pkg::IFETCH:
 		sgdt <= 1'b0;
 		sldt <= 1'b0;
 		smsw <= 1'b0;
+		d_lds <= 1'b0;
+		d_les <= 1'b0;
+		d_lfs <= 1'b0;
+		d_lgs <= 1'b0;
+		d_lss <= 1'b0;
 		str <= 1'b0;
 		verr <= 1'b0;
 		verw <= 1'b0;

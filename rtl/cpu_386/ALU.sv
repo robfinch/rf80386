@@ -186,7 +186,7 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 			alu_o <= a;
 		`MOV_RR8,`MOV_RR16:
 			alu_o <= b;
-		`MOV_MR,`MOV_R2S,
+		`MOV_MR,`MOV_R2S,`MOV_S2R,
 		`MOV_I8M,`MOV_I16M,
 		`MOV_I2AL,`MOV_I2DL,`MOV_I2CL,`MOV_I2BL,`MOV_I2AH,`MOV_I2DH,`MOV_I2CH,`MOV_I2BH,
 		`MOV_I2AX,`MOV_I2DX,`MOV_I2CX,`MOV_I2BX,`MOV_I2SP,`MOV_I2BP,`MOV_I2SI,`MOV_I2DI:
@@ -332,10 +332,12 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 					end
 				end
 			`LSS,`LFS,`LGS:
-				alu_o <= a;
+				alu_o <= {b[15:0],a[15:0]};
 			default:
 				alu_o <= 32'h0;
 			endcase
+		`LDS,`LES:
+			alu_o <= {b[15:0],a[15:0]};
 		default: alu_o <= 32'h0000;
 		endcase
 	end

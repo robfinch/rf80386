@@ -84,6 +84,9 @@ desc386_t gdt_desc;
 desc386_t ldt_desc;
 reg [31:0] gdtr, ldtr;
 
+reg [31:0] tick;
+reg [31:0] insn_count;
+
 // renamed byte registers for convenience
 wire [7:0] al = eax[7:0];
 wire [7:0] ah = eax[15:8];
@@ -111,12 +114,12 @@ wire [15:0] di = edi[15:0];
 
 reg [31:0] cs_base, ss_base, ds_base, es_base, fs_base, gs_base;
 
-always_ff @(posedge clk_i) cs_base <= ~realMode ? {cs_desc.base_hi, cs_desc.base_lo} : {cs_desc.base_hi, cs_desc.base_lo} + {12'h000,cs,`SEG_SHIFT};
-always_ff @(posedge clk_i) ss_base <= ~realMode ? {ss_desc.base_hi, ss_desc.base_lo} : {ss_desc.base_hi, ss_desc.base_lo} + {12'h000,ss,`SEG_SHIFT};
-always_ff @(posedge clk_i) ds_base <= ~realMode ? {ds_desc.base_hi, ds_desc.base_lo} : {ds_desc.base_hi, ds_desc.base_lo} + {12'h000,ds,`SEG_SHIFT};
-always_ff @(posedge clk_i) es_base <= ~realMode ? {es_desc.base_hi, es_desc.base_lo} : {es_desc.base_hi, es_desc.base_lo} + {12'h000,es,`SEG_SHIFT};
-always_ff @(posedge clk_i) fs_base <= ~realMode ? {fs_desc.base_hi, fs_desc.base_lo} : {fs_desc.base_hi, fs_desc.base_lo} + {12'h000,fs,`SEG_SHIFT};
-always_ff @(posedge clk_i) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base_lo} : {gs_desc.base_hi, gs_desc.base_lo} + {12'h000,gs,`SEG_SHIFT};
+always_ff @(posedge clk_i) cs_base <= ~realMode ? {cs_desc.base_hi, cs_desc.base_lo} : {`REALMODE_PG1M,cs,`SEG_SHIFT};
+always_ff @(posedge clk_i) ss_base <= ~realMode ? {ss_desc.base_hi, ss_desc.base_lo} : {`REALMODE_PG1M,ss,`SEG_SHIFT};
+always_ff @(posedge clk_i) ds_base <= ~realMode ? {ds_desc.base_hi, ds_desc.base_lo} : {`REALMODE_PG1M,ds,`SEG_SHIFT};
+always_ff @(posedge clk_i) es_base <= ~realMode ? {es_desc.base_hi, es_desc.base_lo} : {`REALMODE_PG1M,es,`SEG_SHIFT};
+always_ff @(posedge clk_i) fs_base <= ~realMode ? {fs_desc.base_hi, fs_desc.base_lo} : {`REALMODE_PG1M,fs,`SEG_SHIFT};
+always_ff @(posedge clk_i) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base_lo} : {`REALMODE_PG1M,gs,`SEG_SHIFT};
 
 wire [31:0] idt_base = {idt_desc.base_hi, idt_desc.base_lo};
 wire [31:0] gdt_base = {gdt_desc.base_hi, gdt_desc.base_lo};
@@ -179,7 +182,7 @@ always_comb
 // Needed only for moving the sreg to a reg in the EACALC. Plenty of room to
 // pipeline this, so it is.
 //
-always_ff @(posedge clk_i)
+always_comb
 	case(sreg3)
 	3'd0:	rfso <= es;
 	3'd1:	rfso <= cs;

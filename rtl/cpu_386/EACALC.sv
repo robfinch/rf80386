@@ -472,6 +472,7 @@ rf80386_pkg::EACALC1:
 					tGoto(rf80386_pkg::STORE_DATA);
 				end
 			end
+		`LEA:	tGoto(rf80386_pkg::EXECUTE);
 		default:
 			begin
 				$display("EACALC1: tGoto(FETCH_DATA");
