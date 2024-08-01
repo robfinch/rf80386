@@ -37,20 +37,29 @@
 
 rf80386_pkg::CALLF:
 	begin
+		old_cs <= cs;
+		old_eip <= eip;
+		if (realMode)
+			tGoto(rf80386_pkg::CALLF_RMD1);
+		else
+			tGoto(rf80386_pkg::CALLF1);
+	end
+rf80386_pkg::CALLF_RMD1:
+	begin
 		if (StkAddrSize==8'd32)
 			esp <= esp - 4'd2;
 		else
 			esp[15:0] <= esp - 4'd2;
-		tGoto(rf80386_pkg::CALLF1);
+		tGoto(rf80386_pkg::CALLF_RMD2);
 	end
-rf80386_pkg::CALLF1:
+rf80386_pkg::CALLF_RMD2:
 	begin
 		ad <= sssp;
 		dat <= cs;
 		sel <= 16'h0003;
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF2);
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF_RMD3);
 	end
-rf80386_pkg::CALLF2:
+rf80386_pkg::CALLF_RMD3:
 	begin
 		if (StkAddrSize==8'd32) begin
 			if (OperandSize32)
@@ -64,9 +73,9 @@ rf80386_pkg::CALLF2:
 			else
 				esp[15:0] <= esp - 4'd2;
 		end
-		tGoto(rf80386_pkg::CALLF3);
+		tGoto(rf80386_pkg::CALLF_RMD4);
 	end
-rf80386_pkg::CALLF3:
+rf80386_pkg::CALLF_RMD4:
 	begin
 		ad <= sssp;
 		dat <= eip;
@@ -74,18 +83,149 @@ rf80386_pkg::CALLF3:
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF4);
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF_RMD5);
 	end
-rf80386_pkg::CALLF4:
+rf80386_pkg::CALLF_RMD5:
 	begin
 		if (ir==8'hFF && rrr==3'b011)	// CALL FAR indirect
 			tGoto(rf80386_pkg::JUMP_VECTOR1);
-		else begin
-			cs <= selector;
-			eip <= offset;
-			if (selector != cs || !cs_desc_v)
-				tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
-			else
-				tGoto(rf80386_pkg::IFETCH);
+		cs <= selector;
+		eip <= offset;
+		tGoto(rf80386_pkg::IFETCH);
+	end
+
+rf80386_pkg::CALLF1:
+	begin
+		tGosub(rf80386_pkg::LOAD_GATE,rf80386_pkg::CALLF2);
+	end
+rf80386_pkg::CALLF2:
+	begin
+		// Default to general protection fault. It will be overridden if things
+		// work.
+		int_num = 8'd13;					// GP fault
+		tGoto(rf80386_pkg::INT2);
+		if (max_pl <= cgate.dpl) begin
+			case({cgate.s,cgate.typ})
+			5'b01100:	// CALL gate
+				begin
+					if (cgate.dpl <= cpl) begin
+						eip <= {cgate.offset_hi,cgate.offset_lo};
+						selector <= cgate.selector;
+						if (cgate.dpl==cpl)
+							tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF14);
+						else begin
+							cpycnt <= cgate.count;
+							tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF6);
+						end
+					end
+				end
+			endcase
 		end
+	end
+rf80386_pkg::CALLF6:
+	begin
+		if (cpycnt > 5'd0) begin
+			ad <= sssp;
+			sel <= 16'h000F;	// a word
+			tGosub(rf80386_pkg::LOAD,rf80386_pkg::CALLF7);
+		end
+		else begin
+			esp <= esp - {cgate.count,2'd0};
+			tGoto(rf80386_pkg::CALLF8);
+		end
+	end
+rf80386_pkg::CALLF7:
+	begin
+		cpycnt <= cpycnt - 2'd1;
+		esp <= esp + 4'd4;
+		parmbuf[cpycnt] <= dat[31:0];
+		tGoto(rf80386_pkg::CALLF6);
+	end
+rf80386_pkg::CALLF8:
+	begin
+		// Load ss:esp from TSS based on privilege level
+		ad <= tss_base + 32'd4 + {cgate.dpl,3'b0};
+		sel <= 16'h00FF;					// read eight bytes
+		tGosub(rf80386_pkg::LOAD,rf80386_pkg::CALLF9);
+	end
+rf80386_pkg::CALLF9:
+	begin
+		// Set ss:esp to priv level 0 from tss
+		old_ss <= ss;
+		old_esp <= esp;
+		ss <= dat[47:32];
+		esp <= dat[31:0];
+		tGoto(rf80386_pkg::CALLF10);
+	end
+rf80386_pkg::CALLF10:
+	begin
+		if (StkAddrSize==8'd32)
+			esp <= esp - 4'd4;
+		else
+			esp[15:0] <= esp - 4'd4;
+		tGoto(rf80386_pkg::CALLF11);
+	end
+rf80386_pkg::CALLF11:
+	begin
+		ad <= sssp;
+		dat <= old_ss;
+		sel <= 16'h0003;
+		if (StkAddrSize==8'd32)
+			esp <= esp - 4'd4;
+		else
+			esp[15:0] <= esp - 4'd4;
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF12);
+	end
+rf80386_pkg::CALLF12:
+	begin
+		ad <= sssp;
+		dat <= old_esp;
+		sel <= 16'h000F;
+		cpycnt <= cgate.count;
+		if (StkAddrSize==8'd32)
+			esp <= esp - 4'd4;
+		else
+			esp[15:0] <= esp - 4'd4;
+		if (cgate.count > 5'd0)
+			tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF13);
+		else
+			tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF14);
+	end
+rf80386_pkg::CALLF13:
+	begin
+		if (cpycnt > 5'd0) begin
+			ad <= sssp;
+			sel <= 16'h000F;
+			dat <= parmbuf[cpycnt];
+			if (StkAddrSize==8'd32)
+				esp <= esp - 4'd4;
+			else
+				esp[15:0] <= esp - 4'd4;
+			tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF13);
+			cpycnt <= cpycnt - 2'd1;
+		end
+		else
+			tGoto(rf80386_pkg::CALLF14);
+	end
+rf80386_pkg::CALLF14:
+	begin
+		ad <= sssp;
+		sel <= 16'h000F;
+		dat <= old_cs;
+		if (StkAddrSize==8'd32)
+			esp <= esp - 4'd4;
+		else
+			esp[15:0] <= esp - 4'd4;
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF15);
+	end
+rf80386_pkg::CALLF15:
+	begin
+		ad <= sssp;
+		sel <= 16'h000F;
+		dat <= old_eip;
+		if (StkAddrSize==8'd32)
+			esp <= esp - 4'd4;
+		else
+			esp[15:0] <= esp - 4'd4;
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH);
 	end

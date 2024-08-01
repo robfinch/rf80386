@@ -57,6 +57,9 @@ wire [31:0] adr_o_inc = adr_o + 2'd1;
 wire [4:0] modrm = {mod,rm};
 wire [31:0] offsdisp = offset + disp32;
 
+// Buffer for copying stack parameters
+reg [31:0] parmbuf [0:31];
+
 wire checkForInts = (prefix1==8'h00) && (prefix2==8'h00) && !int_disable;
  
 wire doCmp = ir==8'h38 || ir==8'h39 || ir==8'h3A || ir==8'h3B || ir==8'h3C || ir==8'h3D;
@@ -267,3 +270,4 @@ always_comb
 	default:	ls_mask <= 128'h0;
 	endcase
 
+wire [1:0] max_pl = cpl > selector.rpl ? cpl : selector.rpl;

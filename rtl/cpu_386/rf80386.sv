@@ -38,7 +38,7 @@
 //  System Verilog 
 //
 //  Vivado 2022.2
-//	13660 LUTs / 2661 FFs / 8 DSPs
+//	16945 LUTs / 2806 FFs / 8 DSPs
 // ============================================================================
 
 import const_pkg::*;
@@ -145,6 +145,8 @@ reg cyc_done;
 reg [31:0] tsp;
 reg [31:0] sndx;		// scaled index
 int_gate386_t igate;
+call_gate386_t cgate;
+reg [4:0] cpycnt;		// parameter stack copy count for call gates
 reg [3:0] tid;
 reg [4:0] rty_wait;
 reg [4:0] sto_wait;

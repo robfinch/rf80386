@@ -284,10 +284,25 @@ rf80386_pkg::LAR1:
 				res <= {dat[51:48],dat[15:0]};
 		end
 		else begin
-			if (cs_desc.db)
+			if (OperandSize32)
 				res <= {8'h00,dat[55:52],4'h0,dat[47:40],8'h00};
 			else
 				res <= {dat[47:40],8'h00};
 		end
+		tReturn();
+	end
+
+rf80386_pkg::LOAD_GATE:
+	begin
+		if (selector.ti)
+			ad <= ldt_base + {selector.ndx,3'd0};
+		else
+			ad <= gdt_base + {selector.ndx,3'd0};
+		sel <= 16'h00FF;
+		tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_GATE1);
+	end
+rf80386_pkg::LOAD_GATE1:
+	begin
+		cgate <= call_gate386_t'(dat);
 		tReturn();
 	end
