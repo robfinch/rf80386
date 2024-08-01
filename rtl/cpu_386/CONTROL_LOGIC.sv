@@ -267,5 +267,3 @@ always_comb
 	default:	ls_mask <= 128'h0;
 	endcase
 
-always_comb
-	igate = int_gate386_t'(dat[63:0]);

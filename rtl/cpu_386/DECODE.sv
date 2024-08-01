@@ -268,9 +268,10 @@ rf80386_pkg::DECODE:
 	`RETFPOP: tGoto(rf80386_pkg::FETCH_STK_ADJ1);
 	`IRET: tGoto(rf80386_pkg::IRET1);
 	`INT: tGoto(rf80386_pkg::INT);
-	`INT3: begin int_num <= 8'd3; tGoto(rf80386_pkg::INT2); end
+	`INT3: begin ir_ip <= eip; int_num <= 8'd3; tGoto(rf80386_pkg::INT2); end
 	`INTO:
 		if (vf) begin
+			ir_ip <= eip;
 			int_num <= 8'd4;
 			tGoto(rf80386_pkg::INT2);
 		end

@@ -48,7 +48,10 @@ reg sf;						// sign flag
 reg df;						// direction flag
 reg ie;						// interrupt enable flag
 reg tf;
-wire [31:0] flags = {1'b0,1'b0,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,pf,1'b0,cf};
+wire [31:0] flags = {1'b0,1'b0,1'b0,1'b0,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,pf,1'b0,cf};
+wire vm = flags[17];
+wire v86 = vm;
+reg [1:0] cpl;
 
 reg [7:0] ir;				// instruction register
 reg [7:0] ir2;				// extended instruction register
@@ -62,6 +65,7 @@ reg [31:0] esi;				// source index
 reg [31:0] edi;				// destination index
 reg [31:0] ebp;				// base pointer
 reg [31:0] esp;				// stack pointer
+reg [31:0] old_esp;		// stack pointer
 wire cxz = ecx==32'h0000;	// CX is zero
 
 reg [15:0] cs;				// code segment
@@ -71,6 +75,12 @@ reg [15:0] fs;				// extra segment
 reg [15:0] gs;				// extra segment
 reg [15:0] ss;				// stack segment
 reg [15:0] tr;				// task register
+reg [15:0] old_cs;		// code segment
+reg [15:0] old_ds;		// data segment
+reg [15:0] old_es;		// extra segment
+reg [15:0] old_fs;		// extra segment
+reg [15:0] old_gs;		// extra segment
+reg [15:0] old_ss;		// stack segment
 
 desc386_t cs_desc;
 desc386_t ds_desc;
@@ -78,7 +88,7 @@ desc386_t es_desc;
 desc386_t fs_desc;
 desc386_t gs_desc;
 desc386_t ss_desc;
-desc386_t tr_desc;
+desc386_t tss_desc;
 desc386_t idt_desc;
 desc386_t gdt_desc;
 desc386_t ldt_desc;
@@ -131,6 +141,7 @@ always_ff @(posedge clk_i) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base
 wire [31:0] idt_base = {idt_desc.base_hi, idt_desc.base_lo};
 wire [31:0] gdt_base = {gdt_desc.base_hi, gdt_desc.base_lo};
 wire [31:0] ldt_base = {ldt_desc.base_hi, ldt_desc.base_lo};
+wire [31:0] tss_base = {tss_desc.base_hi, tss_desc.base_lo};
 
 wire [31:0] csip = cs_base + eip;
 wire [31:0] sssp = ss_base + (StkAddrSize==8'd32 ? esp : sp);

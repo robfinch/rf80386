@@ -183,6 +183,7 @@ always_ff @(posedge CLK)
 		insn_count <= 32'd0;
 		imiss_count <= 32'd0;
 		int_disable <= 1'b0;
+		cpl <= 2'd0;		// most privileged
 //		cr0 <= 32'd1;		// boot in protected mode
 		cr0 <= 32'd0;		// boot in real mode
 		OperandSize32 = 1'b0;
@@ -209,7 +210,7 @@ always_ff @(posedge CLK)
 		eax <= 32'h0;
 		ebx <= 32'h0;
 		ecx <= 32'h0;
-		edx <= 32'h0;
+		edx <= {16'h0,8'h03,8'h40};		// dh=cpu dl=revision
 		ebp <= 32'h0;
 		esp <= 32'h0;
 		esi <= 32'h0;
