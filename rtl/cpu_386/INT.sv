@@ -152,9 +152,10 @@ rf80386_pkg::V86_INT7:
 		// Set ss:esp to priv level 0 from tss
 		ss <= dat[47:32];
 		esp <= dat[31:0];
-		tGoto(rf80386_pkg::LOAD,rf80386_pkg::V86_INT9);
+		tGoto(rf80386_pkg::V86_INT9);
 	end
 rf80386_pkg::V86_INT9:
+	begin
 		ad <= sssp;
 		sel <= 16'h000F;
 		dat <= old_gs;
@@ -241,7 +242,7 @@ rf80386_pkg::V86_INT18:
 rf80386_pkg::INT3:
 	begin
 		old_cs <= cs;
-		old_ip <= ir_ip;
+		old_eip <= ir_ip;
 		old_ds <= ds;
 		old_es <= es;
 		old_fs <= fs;
@@ -285,7 +286,7 @@ rf80386_pkg::INT6:
 				tGosub(rf80386_pkg::LOAD,rf80386_pkg::INT7);
 			end
 		end
-		else
+		//else
 			// fault
 	end
 rf80386_pkg::INT7:

@@ -255,7 +255,7 @@ rf80386_pkg::LLDT3:
 		end
 		else if (ltr) begin
 			tr <= selector;
-			tr_desc <= dat;
+			tss_desc <= dat;
 		end
 		else begin
 			ldtr <= selector;

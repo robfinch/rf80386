@@ -48,14 +48,15 @@ reg sf;						// sign flag
 reg df;						// direction flag
 reg ie;						// interrupt enable flag
 reg tf;
-wire [31:0] flags = {1'b0,1'b0,1'b0,1'b0,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,pf,1'b0,cf};
-wire vm = flags[17];
+reg vm;
+wire [31:0] flags = {vm,1'b0,1'b0,1'b0,1'b0,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,pf,1'b0,cf};
 wire v86 = vm;
 reg [1:0] cpl;
 
 reg [7:0] ir;				// instruction register
 reg [7:0] ir2;				// extended instruction register
 reg [31:0] eip;				// instruction pointer
+reg [31:0] old_eip;
 reg [31:0] ir_ip;			// instruction pointer of ir
 reg [31:0] eax;
 reg [31:0] ebx;

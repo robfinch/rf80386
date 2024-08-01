@@ -46,7 +46,7 @@
 rf80386_pkg::IRET1:
 	begin
 		ad <= sssp;
-		if (realmode) begin
+		if (realMode) begin
 			sel <= 16'h003F;
 			esp[15:0] <= esp[15:0] + 4'd6;
 		end
@@ -58,32 +58,32 @@ rf80386_pkg::IRET1:
 	end
 rf80386_pkg::IRET2:
 	begin
-		if (realmode) begin
-			eip[15:0] <= dat_i[15:0];
+		if (realMode) begin
+			eip[15:0] <= dat[15:0];
 			selector <= dat[31:16];
-			cf <= dat_i[32];
-			pf <= dat_i[34];
-			af <= dat_i[36];
-			zf <= dat_i[38];
-			sf <= dat_i[39];
-			tf <= dat_i[40];
-			ie <= dat_i[41];
-			df <= dat_i[42];
-			vf <= dat_i[43];
+			cf <= dat[32];
+			pf <= dat[34];
+			af <= dat[36];
+			zf <= dat[38];
+			sf <= dat[39];
+			tf <= dat[40];
+			ie <= dat[41];
+			df <= dat[42];
+			vf <= dat[43];
 		end
 		else begin
 			eip <= dat[31:0];
 			selector <= dat[47:32];
-			cf <= dat_i[64];
-			pf <= dat_i[66];
-			af <= dat_i[68];
-			zf <= dat_i[70];
-			sf <= dat_i[71];
-			tf <= dat_i[72];
-			ie <= dat_i[73];
-			df <= dat_i[74];
-			vf <= dat_i[75];
-			vm <= dat_i[81];
+			cf <= dat[64];
+			pf <= dat[66];
+			af <= dat[68];
+			zf <= dat[70];
+			sf <= dat[71];
+			tf <= dat[72];
+			ie <= dat[73];
+			df <= dat[74];
+			vf <= dat[75];
+			vm <= dat[81];
 		end
 		tGoto(rf80386_pkg::IRET3);
 	end
@@ -100,9 +100,9 @@ rf80386_pkg::IRET3:
 	end
 rf80386_pkg::IRET4:
 	begin
-		esp <= dat_i[31:0];
-		ss <= dat_i[47:32];
-		if (ss != dat_i[47:32] || !ss_desc_v)
+		esp <= dat[31:0];
+		ss <= dat[47:32];
+		if (ss != dat[47:32] || !ss_desc_v)
 			tGosub(rf80386_pkg::LOAD_SS_DESC,rf80386_pkg::IRET5);
 		else
 			tGoto(rf80386_pkg::IRET5);
