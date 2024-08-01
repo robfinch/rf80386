@@ -51,7 +51,7 @@ rf80386_pkg::IFETCH:
 	begin
 		insn_count <= insn_count + 2'd1;
 		$display("\r\n******************************************************");
-		$display("time: %d  tick: %d  insns: %d", $time, tick, insn_count);
+		$display("time: %d  tick: %d  insns: %d  imiss: %d", $time, tick, insn_count, imiss_count);
 		$display("CSIP: %h", csip);
 		$display("EAX=%h  ESI=%h", eax, esi);
 		$display("EBX=%h  EDI=%h", ebx, edi);

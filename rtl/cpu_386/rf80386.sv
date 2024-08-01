@@ -146,6 +146,7 @@ reg [31:0] sndx;		// scaled index
 int_gate386_t igate;
 reg [3:0] tid;
 reg [4:0] rty_wait;
+reg [4:0] sto_wait;
 
 reg nmi_armed;
 reg rst_nmi;				// reset the nmi flag
@@ -176,8 +177,10 @@ always_ff @(posedge CLK)
 	if (rst_i) begin
 		tid <= 4'd1;
 		rty_wait <= 5'd0;
+		sto_wait <= 5'd0;
 		tick <= 32'd0;
 		insn_count <= 32'd0;
+		imiss_count <= 32'd0;
 //		cr0 <= 32'd1;		// boot in protected mode
 		cr0 <= 32'd0;		// boot in real mode
 		lidt <= 1'b0;
@@ -309,6 +312,8 @@ always_ff @(posedge CLK)
 		ld_div16 <= 1'b0;
 		ld_div32 <= 1'b0;
 		tick <= tick + 2'd1;
+		if (!ihit)
+			imiss_count <= imiss_count + 2'd1;
 
 		tClearBus();
 

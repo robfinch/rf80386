@@ -409,21 +409,25 @@ rf80386_pkg::EXECUTE:
 			end
 		`MOV_R2S:
 			begin
-				if (realMode) begin
-					if (sreg4==3'd2 && alu_o[15:0]==16'h0)	begin // SS
+				if (sreg3==3'd1)	begin // move to CS?
+					int_num = 8'd6;				// Invalid opcode
+					tGoto(rf80386_pkg::INT2);
+				end
+				else if (realMode) begin
+					wrsregs <= 1'b1;
+					res <= alu_o;
+					tGoto(rf80386_pkg::IFETCH);
+				end
+				else begin
+					if (sreg3==3'd2 && alu_o[15:0]==16'h0)	begin // move NULL to SS?
 						int_num = 8'd13;					// GP
 						tGoto(rf80386_pkg::INT2);
 					end
 					else begin
 						wrsregs <= 1'b1;
 						res <= alu_o;
-						tGoto(rf80386_pkg::IFETCH);
+						tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::IFETCH);
 					end
-				end
-				else begin
-					wrsregs <= 1'b1;
-					res <= alu_o;
-					tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::IFETCH);
 				end
 			end
 		`LODSB:

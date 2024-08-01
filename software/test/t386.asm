@@ -82,9 +82,9 @@
 .set realmd_mask,0x0000ffff
 .set rodata_seg,0x0fffa000
 .set start_rodata,0xfffa0000
-.set TEST_BASE,0x20000
-.set TEST_BASE1,TEST_BASE+0x00000
-.set TEST_BASE2,TEST_BASE+0x40000
+.set TEST_BASE,0xFFFC0000
+.set TEST_BASE1,TEST_BASE+0x0000
+.set TEST_BASE2,TEST_BASE+0x2000
 
 	.section .pgtbl
 	.space 10
@@ -119,7 +119,7 @@ idt_addr:
 .set D1_SEG_REAL,TEST_BASE1 >> 4
 .set D2_SEG_REAL,TEST_BASE2 >> 4
 
-.set ESP_REAL,0xfffc
+.set ESP_REAL,0x7ffc
 
 
 .include "x86_e.asm"
@@ -154,7 +154,7 @@ _start1:
 
 .include "real_m.asm"
 #-------------------------------------------------------------------------------
-	POST $0
+	POST $0x00
 #-------------------------------------------------------------------------------
 #
 #   Real mode initialisation
@@ -172,7 +172,7 @@ _start1:
 	mov %dx,%es
 
 #-------------------------------------------------------------------------------
-	POST $1
+	POST $0x01
 #-------------------------------------------------------------------------------
 #
 #   Conditional jumps
@@ -190,7 +190,7 @@ _start1:
 #	testLoopNZ
 
 #-------------------------------------------------------------------------------
-	POST $2
+	POST $0x02
 #-------------------------------------------------------------------------------
 #
 #   Quick tests of unsigned 32-bit multiplication and division
@@ -205,6 +205,118 @@ _start1:
 	div %ecx
 	cmp %ebx,%eax
 	jne error
+
+.include "mov_m.asm"
+#-------------------------------------------------------------------------------
+	POST $0x03
+#-------------------------------------------------------------------------------
+#
+#   Move segment registers in real mode
+#
+.set cs,0
+.set ds,1
+.set es,2
+.set fs,3
+.set gs,4
+.set ss,5
+	testMovSegR_real ss
+	testMovSegR_real ds
+	testMovSegR_real es
+	testMovSegR_real fs
+	testMovSegR_real gs
+	testMovSegR_real cs
+
+	advTestSegReal
+
+.include "string_m.asm"
+#-------------------------------------------------------------------------------
+	POST $0x04
+#-------------------------------------------------------------------------------
+#
+#   Test store, move, scan, and compare string data
+#
+.set b,0
+.set w,1
+.set d,2
+
+	testStringOps b,0,16
+	testStringOps w,0,16
+	testStringOps d,0,16
+	testStringOps b,1,16
+	testStringOps w,1,16
+	testStringOps d,1,16
+	testStringReps b,0,16
+	testStringReps w,0,16
+	testStringReps d,0,16
+	testStringReps b,1,16
+	testStringReps w,1,16
+	testStringReps d,1,16
+
+	advTestSegReal
+
+.include "call_m.asm"
+#-------------------------------------------------------------------------------
+	POST $0x05
+#-------------------------------------------------------------------------------
+#
+#   Calls in real mode
+#
+.set sp,0
+	mov $0,%si
+	testCallNear sp
+	testCallFar C_SEG_REAL
+
+	advTestSegReal
+
+
+.include "load_ptr_m.asm"
+#-------------------------------------------------------------------------------
+	POST $0x06
+#-------------------------------------------------------------------------------
+#
+#   Load full pointer in real mode
+#
+	mov $0,%di
+	testLoadPtr ss
+	testLoadPtr ds
+	testLoadPtr es
+	testLoadPtr fs
+	testLoadPtr gs
+
+	advTestSegReal
+
+.include "lea_m.asm"
+#.include "lea_p.asm"
+postD:
+
+#-------------------------------------------------------------------------------
+	POST $0x0D
+#-------------------------------------------------------------------------------
+#
+#   16-bit addressing modes (LEA)
+#
+	mov $1,%ax
+	mov $2,%bx
+	mov $4,%cx
+	mov $8,%dx
+	mov $0x10,%si
+	mov $0x20,%di
+	testLEA16 0x4000, $0x4000
+	testLEA16 (%bx), $0x0002
+	testLEA16 (%si), $0x0010
+	testLEA16 (%di), $0x0020
+	testLEA16 0x40(%bx), $0x0042
+	testLEA16 0x40(%si), $0x0050
+	testLEA16 0x40(%di), $0x0060
+	testLEA16 0x4000(%bx), $0x4002
+	testLEA16 0x4000(%si), $0x4010
+	testLEA16 (%bx,%si), $0x0012
+	testLEA16 (%bx,%di), $0x0022
+	testLEA16 0x40(%bx,%si), $0x0052
+	testLEA16 0x40(%bx,%di), $0x0062
+	testLEA16 0x4000(%bx,%si), $0x4012
+	testLEA16 0x4000(%bx,%di), $0x4022
+
 
 #-------------------------------------------------------------------------------
 	POST $0xE0

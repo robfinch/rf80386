@@ -460,6 +460,18 @@ rf80386_pkg::EACALC1:
 //				bus_locked <= 1'b1;
 				tGoto(rf80386_pkg::FETCH_DATA);
 			end
+		`MOV_S2R:
+			begin
+				$display("EACALC1: tGoto(STORE_DATA");
+				if (w && (OperandSize==8'd32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF)) begin
+					int_num <= 8'h0d;
+					tGoto(rf80386_pkg::INT2);
+				end
+				else begin	
+					res <= rfso;
+					tGoto(rf80386_pkg::STORE_DATA);
+				end
+			end
 		8'b1000100?:	// Move to memory
 			begin
 				$display("EACALC1: tGoto(STORE_DATA");

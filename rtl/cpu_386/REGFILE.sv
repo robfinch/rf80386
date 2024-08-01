@@ -86,6 +86,7 @@ reg [31:0] gdtr, ldtr;
 
 reg [31:0] tick;
 reg [31:0] insn_count;
+reg [31:0] imiss_count;
 
 // renamed byte registers for convenience
 wire [7:0] al = eax[7:0];

@@ -6,13 +6,13 @@
 #
 
 .macro testLoadPtr arg1
-	mov \arg1,%cx
+	mov %\arg1,%cx
 	mov %es,%dx
 
-	movw $0x1234,(%es:%di)
-	movw $0xabcd,2(%es:%di)
-	l\arg1 (%es:%di),%bx
-	mov \arg1,%ax
+	movw $0x1234,%es:(%di)
+	movw $0xabcd,%es:2(%di)
+	l\arg1 %es:(%di),%bx
+	mov %\arg1,%ax
 	cmp $0xabcd,%ax
 	jne error
 	cmp $0x1234,%bx
@@ -20,15 +20,15 @@
 
 	mov %dx,%es
 
-	movd 0x12345678,(%es:%di)
-	movw 0xbcde,4(%es:%di)
-	l\arg1 (%es:%di),%ebx
-	mov \arg1,%ax
+	movl $0x12345678,%es:(%di)
+	movw $0xbcde,%es:4(%di)
+	l\arg1 %es:(%di),%ebx
+	mov %\arg1,%ax
 	cmp $0xbcde,%ax
 	jne error
 	cmp $0x12345678,%ebx
 	jne error
 
 	mov %dx,%es
-	mov %cx,\arg1
+	mov %cx,%\arg1
 .endm
