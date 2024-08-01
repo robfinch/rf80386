@@ -46,6 +46,9 @@ package rf80386_pkg;
 `define CS_RESET		16'hF000
 `endif
 
+`define REALMODE_PG16		8'hFF			// for lidt, lgdt
+`define REALMODE_PG1M		12'hFFF
+
 // Opcodes
 //
 `define MOV_RR	8'b1000100?
@@ -606,6 +609,7 @@ typedef enum logic [8:0] {
   INT,
   INT1,
   INT2,
+  
   INT3,
   INT4,
   INT5,
@@ -613,10 +617,40 @@ typedef enum logic [8:0] {
   INT7,
   INT8,
   INT9,
+  INT10,
+  INT11,
+  INT12,
+  INT13,
+  
+  RMD_INT3,
+  RMD_INT4,
+  RMD_INT5,
+  RMD_INT6,
+  RMD_INT7,
+  RMD_INT8,
+
+	V86_INT3,
+	V86_INT4,
+	V86_INT5,
+	V86_INT6,
+	V86_INT7,
+	V86_INT8,
+	V86_INT9,
+	V86_INT10,
+	V86_INT11,
+	V86_INT12,
+	V86_INT13,
+	V86_INT14,
+	V86_INT15,
+	V86_INT16,
+	V86_INT17,
+	V86_INT18,
 
   IRET1,
   IRET2,
   IRET3,
+  IRET4,
+  IRET5,
 
   XCHG_MEM,
 
@@ -652,9 +686,11 @@ typedef enum logic [8:0] {
 	LOAD2_ACK,
 	STORE,
 	STORE_ACK,
+	STORE_WAIT,
 	STORE1,
 	STORE2,
 	STORE2_ACK,
+	STORE_WAIT2,
 	IRQ_LOAD,
 	IRQ_LOAD_ACK,
 	LOAD_IO,
@@ -664,12 +700,15 @@ typedef enum logic [8:0] {
 	LOAD_IO2_ACK,
 	STORE_IO,
 	STORE_IO_ACK,
+	STORE_IO_WAIT,
 	STORE_IO1,
 	STORE_IO2,
 	STORE_IO2_ACK,
+	STORE_IO2_WAIT,
 
 	LOAD_CS_DESC,
 	LOAD_CS_DESC1,
+	LOAD_CS_DESC2,
 	LOAD_DS_DESC,
 	LOAD_DS_DESC1,
 	LOAD_ES_DESC,
