@@ -41,7 +41,7 @@ rf80386_pkg::STORE_DATA:
 		ad <= ea;
 		if (ir==`ARPL)
 			sel <= 16'h0003;
-		else if (OperandSize==8'd32)
+		else if (OperandSize32)
 			sel <= w ? 16'h000F : 16'h0001;
 		else
 			sel <= w ? 16'h0003 : 16'h0001;

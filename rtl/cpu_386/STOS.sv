@@ -56,7 +56,7 @@ rf80386_pkg::STOS:
 		tGoto(rf80386_pkg::IFETCH);
 	else begin
 		ad <= esdi;
-		if (OperandSize==8'd32) begin
+		if (OperandSize32) begin
 			dat <= w ? eax : al;
 			sel <= w ? 16'h000F : 16'h0001;
 		end
@@ -75,7 +75,7 @@ rf80386_pkg::STOS1:
 		else
 			tGoto(rf80386_pkg::IFETCH);
 		if (w) begin
-			if (OperandSize==8'd32) begin
+			if (OperandSize32) begin
 				if (df)
 					edi <= edi - 2'd4;
 				else

@@ -101,7 +101,7 @@ rf80386_pkg::FETCH_IMM16:
 		default:	;
 		endcase
 
-		if (OperandSize==8'd32) begin
+		if (OperandSize32) begin
 			b <= bundle[31:0];
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;

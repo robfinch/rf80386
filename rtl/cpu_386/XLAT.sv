@@ -37,7 +37,7 @@
 
 rf80386_pkg::XLAT:
 	begin
-		ad <= seg_reg + (OperandSize==8'd32 ? ebx : bx) + al;
+		ad <= seg_reg + (OperandSize32 ? ebx : bx) + al;
 		sel <= 16'h0001;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::XLAT_ACK);
 	end

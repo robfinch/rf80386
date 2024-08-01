@@ -38,7 +38,7 @@
 
 rf80386_pkg::FETCH_DISP16:
 	begin
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			disp32 <= bundle[31:0];
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;

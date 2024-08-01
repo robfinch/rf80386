@@ -37,22 +37,30 @@
 
 rf80386_pkg::CALL_IN:
 	begin
-		if (cs_desc.db)
-			esp <= esp - 4'd4;
-		else
-			esp <= esp - 4'd2;
+		if (StkAddrSize==8'd32) begin
+			if (OperandSize32)
+				esp <= esp - 4'd4;
+			else
+				esp <= esp - 4'd2;
+		end
+		else begin
+			if (OperandSize32)
+				esp[15:0] <= esp - 4'd4;
+			else
+				esp[15:0] <= esp - 4'd2;
+		end
 		tGoto(rf80386_pkg::CALL_IN1);
 	end
 rf80386_pkg::CALL_IN1:
 	begin
 		ad <= sssp;
 		dat <= eip;
-		sel <= cs_desc.db ? 16'h000F: 16'h0003;
+		sel <= OperandSize32 ? 16'h000F: 16'h0003;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALL_IN2);
 	end
 rf80386_pkg::CALL_IN2:
 	begin
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			ea <= cs_base + b;
 			if (mod==2'b11) begin
 				eip <= b;
@@ -74,7 +82,7 @@ rf80386_pkg::CALL_IN2:
 rf80386_pkg::CALL_IN3:
 	begin
 		ad <= ea;
-		if (cs_desc.db)
+		if (OperandSize32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;
@@ -82,7 +90,7 @@ rf80386_pkg::CALL_IN3:
 	end
 rf80386_pkg::CALL_IN4:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			b[31:0] <= dat[31:0];
 		else
 			b[15:0] <= dat[15:0];
@@ -90,7 +98,7 @@ rf80386_pkg::CALL_IN4:
 	end
 rf80386_pkg::CALL_IN5:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			eip <= b;
 		else
 			eip <= b[15:0];

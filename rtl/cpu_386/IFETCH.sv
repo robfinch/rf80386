@@ -64,9 +64,9 @@ rf80386_pkg::IFETCH:
 		// size prefix.
 		if (prefix1!=`OPSZ && prefix2!=`OPSZ && ir!=`OPSZ) begin
 			if (cs_desc.db & ~realMode)
-				OperandSize = 8'd32;
+				OperandSize32 = 1'b1;
 			else
-				OperandSize = 8'd16;
+				OperandSize32 = 1'b0;
 		end
 		if (prefix1!=`ADSZ && prefix2!=`ADSZ && ir!=`ADSZ) begin
 			if (cs_desc.db & ~realMode)
@@ -110,6 +110,7 @@ rf80386_pkg::IFETCH:
 		data16 <= 16'h0000;
 		cnt <= 7'd0;
 		wrvz <= 1'b0;
+		int_disable <= 1'b0;
 //		if (prefix1!=8'h00 && prefix2 !=8'h00 && is_prefix)
 //			state <= TRIPLE_PREFIX;
 		if (is_prefix) begin
@@ -120,9 +121,9 @@ rf80386_pkg::IFETCH:
 			prefix1 <= 8'h00;
 			prefix2 <= 8'h00;
 			if (cs_desc.db & ~realMode)
-				OperandSize = 8'd32;
+				OperandSize32 = 1'b1;
 			else
-				OperandSize = 8'd16;
+				OperandSize32 = 1'b0;
 			if (cs_desc.db & ~realMode)
 				AddrSize = 8'd32;
 			else
@@ -163,7 +164,7 @@ rf80386_pkg::IFETCH:
 			endcase
 			pf <= ~^res[7:0];
 			if (w) begin
-				if (OperandSize==8'd32) begin
+				if (OperandSize32) begin
 					zf <= res[31:0]==32'h00;
 					sf <= res[31];
 				end

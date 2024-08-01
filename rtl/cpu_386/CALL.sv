@@ -37,17 +37,26 @@
 
 rf80386_pkg::CALL:
 	begin
-		if (StkAddrSize==8'd32)
-			esp <= esp - 4'd4;
-		else
-			esp <= esp - 4'd2;
-		tGoto(rf80386_pkg::CALL1);
+		if (StkAddrSize==8'd32) begin
+			if (OperandSize32)
+				esp <= esp - 4'd4;
+			else
+				esp <= esp - 4'd2;
+			tGoto(rf80386_pkg::CALL1);
+		end
+		else begin
+			if (OperandSize32)
+				esp[15:0] <= sp - 4'd4;
+			else
+				esp[15:0] <= sp - 4'd2;
+			tGoto(rf80386_pkg::CALL1);
+		end
 	end
 rf80386_pkg::CALL1:
 	begin
 		ad <= sssp;
 		dat <= eip;
-		if (StkAddrSize==8'd32)
+		if (OperandSize32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;

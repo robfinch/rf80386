@@ -37,7 +37,10 @@
 
 rf80386_pkg::CALLF:
 	begin
-		esp <= esp - 4'd2;
+		if (StkAddrSize==8'd32)
+			esp <= esp - 4'd2;
+		else
+			esp[15:0] <= esp - 4'd2;
 		tGoto(rf80386_pkg::CALLF1);
 	end
 rf80386_pkg::CALLF1:
@@ -49,17 +52,25 @@ rf80386_pkg::CALLF1:
 	end
 rf80386_pkg::CALLF2:
 	begin
-		if (StkAddrSize==8'd32)
-			esp <= esp - 4'd4;
-		else
-			esp <= esp - 4'd2;
+		if (StkAddrSize==8'd32) begin
+			if (OperandSize32)
+				esp <= esp - 4'd4;
+			else
+				esp <= esp - 4'd2;
+		end
+		else begin
+			if (OperandSize32)
+				esp[15:0] <= esp - 4'd4;
+			else
+				esp[15:0] <= esp - 4'd2;
+		end
 		tGoto(rf80386_pkg::CALLF3);
 	end
 rf80386_pkg::CALLF3:
 	begin
 		ad <= sssp;
 		dat <= eip;
-		if (StkAddrSize==8'd32)
+		if (OperandSize32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;
@@ -72,7 +83,7 @@ rf80386_pkg::CALLF4:
 		else begin
 			cs <= selector;
 			eip <= offset;
-			if (selector != cs)
+			if (selector != cs || !cs_desc_v)
 				tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
 			else
 				tGoto(rf80386_pkg::IFETCH);

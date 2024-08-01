@@ -57,7 +57,7 @@ wire [31:0] adr_o_inc = adr_o + 2'd1;
 wire [4:0] modrm = {mod,rm};
 wire [31:0] offsdisp = offset + disp32;
 
-wire checkForInts = (prefix1==8'h00) && (prefix2==8'h00);
+wire checkForInts = (prefix1==8'h00) && (prefix2==8'h00) && !int_disable;
  
 wire doCmp = ir==8'h38 || ir==8'h39 || ir==8'h3A || ir==8'h3B || ir==8'h3C || ir==8'h3D;
 

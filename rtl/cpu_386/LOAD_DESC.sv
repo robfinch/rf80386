@@ -25,6 +25,7 @@ rf80386_pkg::LOAD_DS_DESC:
 rf80386_pkg::LOAD_DS_DESC1:
 	begin
 		ds_desc <= dat;
+		ds_desc_v <= 1'b1;
 		tReturn();
 	end
 
@@ -40,6 +41,7 @@ rf80386_pkg::LOAD_ES_DESC:
 rf80386_pkg::LOAD_ES_DESC1:
 	begin
 		es_desc <= dat;
+		es_desc_v <= 1'b1;
 		tReturn();
 	end
 
@@ -55,6 +57,7 @@ rf80386_pkg::LOAD_SS_DESC:
 rf80386_pkg::LOAD_SS_DESC1:
 	begin
 		ss_desc <= dat;
+		ss_desc_v <= 1'b1;
 		tReturn();
 	end
 
@@ -66,24 +69,24 @@ rf80386_pkg::LOAD_DESC:
 			ad <= gdt_base + {selector.ndx,3'd0};
 		sel <= 16'h00FF;
 		case(rrr)
-		3'd0:	if (es == selector) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
-		3'd1:	if (cs == selector) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
-		3'd2:	if (ss == selector) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
-		3'd3:	if (ds == selector) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
-		3'd4:	if (fs == selector) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
-		3'd5:	if (gs == selector) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd0:	if (es == selector && es_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd1:	if (cs == selector && cs_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd2:	if (ss == selector && ss_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd3:	if (ds == selector && ds_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd4:	if (fs == selector && fs_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd5:	if (gs == selector && gs_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
 		default:	tGoto(rf80386_pkg::RESET);
 		endcase
 	end
 rf80386_pkg::LOAD_DESC1:
 	begin
 		case(rrr)
-		3'd0:	es_desc <= dat;
-		3'd1:	cs_desc <= dat;
-		3'd2:	ss_desc <= dat;
-		3'd3:	ds_desc <= dat;
-		3'd4:	fs_desc <= dat;
-		3'd5:	gs_desc <= dat;
+		3'd0:	begin es_desc <= dat; es_desc_v <= 1'b1; end
+		3'd1:	begin cs_desc <= dat; cs_desc_v <= 1'b1; end
+		3'd2:	begin ss_desc <= dat; ss_desc_v <= 1'b1; end
+		3'd3:	begin ds_desc <= dat; ds_desc_v <= 1'b1; end
+		3'd4:	begin fs_desc <= dat; fs_desc_v <= 1'b1; end
+		3'd5:	begin gs_desc <= dat; gs_desc_v <= 1'b1; end
 		default:	;
 		endcase
 		tReturn();
@@ -124,11 +127,11 @@ rf80386_pkg::LxDT1:
 	begin
 		if (lidt) begin
 			idt_desc.limit_lo <= dat[15:0];
-			{idt_desc.base_hi,idt_desc.base_lo} <= OperandSize==8'd32 ? dat[47:16] : {`REALMODE_PG16,dat[39:16]};
+			{idt_desc.base_hi,idt_desc.base_lo} <= OperandSize32 ? dat[47:16] : {`REALMODE_PG16,dat[39:16]};
 		end
 		else if (lgdt) begin
 			gdt_desc.limit_lo <= dat[15:0];
-			{gdt_desc.base_hi,gdt_desc.base_lo} <= OperandSize==8'd32 ? dat[47:16] : {`REALMODE_PG16,dat[39:16]};
+			{gdt_desc.base_hi,gdt_desc.base_lo} <= OperandSize32 ? dat[47:16] : {`REALMODE_PG16,dat[39:16]};
 		end
 		else if (lmsw) begin
 			cr0[3:0] <= dat[3:0];

@@ -64,10 +64,10 @@ reg [31:0] alu_o;
 reg [31:0] a;
 reg [31:0] b;
 reg [31:0] c;
-wire amsb = w ? (OperandSize==8'd32 ? a[31] : a[15]) : a[7];
-wire bmsb = w ? (OperandSize==8'd32 ? b[31] : b[15]) : b[7];
-wire [31:0] as = OperandSize==8'd32 ? {!a[31],a[30:0]}: {!a[15],a[14:0]};
-wire [31:0] bs = OperandSize==8'd32 ? {!b[31],b[30:0]}: {!b[15],b[14:0]};
+wire amsb = w ? (OperandSize32 ? a[31] : a[15]) : a[7];
+wire bmsb = w ? (OperandSize32 ? b[31] : b[15]) : b[7];
+wire [31:0] as = OperandSize32 ? {!a[31],a[30:0]}: {!a[15],a[14:0]};
+wire [31:0] bs = OperandSize32 ? {!b[31],b[30:0]}: {!b[15],b[14:0]};
 wire signed [31:0] sa = a;
 wire signed [31:0] sb = b;
 wire signed [7:0] als = a[7:0];
@@ -225,8 +225,8 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 			3'd0:	alu_o <= a & b;			// TEST
 			3'd2:	alu_o <= ~b;			// NOT
 			3'd3:	alu_o <= -b;			// NEG
-			3'd4:	alu_o <= w ? (OperandSize==8'd32 ? p64[31:0] : p32[15:0]) : p16;		// MUL
-			3'd5:	alu_o <= w ? (OperandSize==8'd32 ? wp[31:0] : wp[15:0]) : p[15:0];	// IMUL
+			3'd4:	alu_o <= w ? (OperandSize32 ? p64[31:0] : p32[15:0]) : p16;		// MUL
+			3'd5:	alu_o <= w ? (OperandSize32 ? wp[31:0] : wp[15:0]) : p[15:0];	// IMUL
 			3'd6:	alu_o <= 32'h0000;		// DIV
 			3'd7:	alu_o <= 32'h0000;		// IDIV
 			default:	alu_o <= 32'h0000;
@@ -343,10 +343,10 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 	end
 
 assign pres = ~^alu_o[7:0];
-assign reszw = OperandSize==8'd32 ? alu_o==32'h0000 : alu_o[15:0]==16'h0000;
+assign reszw = OperandSize32 ? alu_o==32'h0000 : alu_o[15:0]==16'h0000;
 assign reszb = alu_o[7:0]==8'h00;
 assign resnb = alu_o[7];
-assign resnw = OperandSize==8'd32 ? alu_o[31] : alu_o[15];
+assign resnw = OperandSize32 ? alu_o[31] : alu_o[15];
 
 assign resz = w ? reszw : reszb;
 assign resn = w ? resnw : resnb;

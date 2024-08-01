@@ -68,7 +68,7 @@ rf80386_pkg::RETFPOP2:
 			wrregs <= 1'b1;
 			w <= 1'b1;
 			rrr <= 3'd4;
-			if (OperandSize==8'd32)
+			if (OperandSize32)
 				res <= esp + {bundle[15:0],1'b0};
 			else
 				res <= esp + bundle[15:0];

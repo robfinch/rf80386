@@ -38,7 +38,7 @@
 //  System Verilog 
 //
 //  Vivado 2022.2
-//	13523 LUTs / 2424 FFs / 8 DSPs
+//	13502 LUTs / 2417 FFs / 8 DSPs
 // ============================================================================
 
 import const_pkg::*;
@@ -85,7 +85,7 @@ wire resn;
 wire resz;
 
 reg [2:0] cyc_type;			// type of bus sycle
-reg [7:0] OperandSize;
+reg OperandSize32;
 reg [7:0] AddrSize;
 reg [7:0] StkAddrSize;
 reg wrvz;
@@ -96,6 +96,7 @@ reg sldt, str;
 reg verr, verw;
 reg jccl;
 reg d_lss,d_lfs,d_lgs,d_lds,d_les;
+reg int_disable;
 reg w;						// 0=8 bit, 1=16 bit
 reg d;
 reg v;						// 1=count in cl, 0 = count is one
@@ -159,7 +160,7 @@ wire NMI = nmi_i;
 `include "REGFILE.sv"	
 `include "CONTROL_LOGIC.sv"
 `include "WHICH_SEG.sv"
-evaluate_branch u4 (OperandSize==8'd32,ir,ecx,zf,cf,sf,vf,pf,take_br);
+evaluate_branch u4 (OperandSize32,ir,ecx,zf,cf,sf,vf,pf,take_br);
 `include "ALU.sv"
 nmi_detector u6 (rst_i, clk_i, nmi_i, rst_nmi, pe_nmi);
 
@@ -181,8 +182,12 @@ always_ff @(posedge CLK)
 		tick <= 32'd0;
 		insn_count <= 32'd0;
 		imiss_count <= 32'd0;
+		int_disable <= 1'b0;
 //		cr0 <= 32'd1;		// boot in protected mode
 		cr0 <= 32'd0;		// boot in real mode
+		OperandSize32 = 1'b0;
+		AddrSize = 8'd16;
+		StkAddrSize = 8'd16;
 		lidt <= 1'b0;
 		lgdt <= 1'b0;
 		lmsw <= 1'b0;
@@ -228,6 +233,12 @@ always_ff @(posedge CLK)
 		fs_desc <= {$bits(desc386_t){1'b0}};
 		gs_desc <= {$bits(desc386_t){1'b0}};
 		ss_desc <= {$bits(desc386_t){1'b0}};
+		cs_desc_v <= 1'b1;
+		ds_desc_v <= 1'b1;
+		es_desc_v <= 1'b1;
+		fs_desc_v <= 1'b1;
+		gs_desc_v <= 1'b1;
+		ss_desc_v <= 1'b1;
 		hasFetchedModrm <= 1'b0;
 //		cs <= `CS_RESET;
 		cs_desc.db <= 1'b1;							// 32-bit mode
@@ -270,9 +281,6 @@ always_ff @(posedge CLK)
 		ss_desc.limit_hi <= 4'hF;
 		ss_desc.g <= 1'b1;							// 4096 bytes granularity
 		ss_desc.p <= 1'b1;							// segment is present
-		OperandSize = 8'd32;
-		AddrSize = 8'd32;
-		StkAddrSize = 8'd32;
 		ftam_req <= {$bits(fta_cmd_request128_t){1'b0}};
 		ir <= `NOP;
 		prefix1 <= 8'h00;

@@ -82,6 +82,12 @@ desc386_t tr_desc;
 desc386_t idt_desc;
 desc386_t gdt_desc;
 desc386_t ldt_desc;
+reg cs_desc_v;
+reg ds_desc_v;
+reg es_desc_v;
+reg fs_desc_v;
+reg gs_desc_v;
+reg ss_desc_v;
 reg [31:0] gdtr, ldtr;
 
 reg [31:0] tick;

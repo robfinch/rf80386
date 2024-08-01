@@ -41,13 +41,13 @@ rf80386_pkg::POP:
 		case(ir)
 		`POP_AX,`POP_CX,`POP_BX,`POP_DX,
 		`POP_SI,`POP_DI,`POP_BP,`POP_SP:
-			sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
+			sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		`POP_SS,`POP_ES,`POP_DS:
 			sel <= 16'h0003;
 		`POPF:
-			sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
+			sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		`POP_MEM:
-			sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
+			sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		default: ;
 		endcase
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POP1);
@@ -63,7 +63,7 @@ rf80386_pkg::POP1:
 		`POP_AX,`POP_CX,`POP_BX,`POP_DX,
 		`POP_SI,`POP_DI,`POP_BP,`POP_SP:
 			begin
-				esp <= OperandSize==8'd32 ? esp + 4'd4 : esp + 4'd2;
+				esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
 				wrregs <= 1'b1;
 			end
 		`POP_SS:
@@ -91,10 +91,10 @@ rf80386_pkg::POP1:
 					tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
 			end
 		`POPF:
-			esp <= OperandSize==8'd32 ? esp + 4'd4 : esp + 4'd2;
+			esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
 		`POP_MEM:
 			begin
-				esp <= OperandSize==8'd32 ? esp + 4'd4 : esp + 4'd2;
+				esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
 				tGoto(rf80386_pkg::STORE_DATA);
 			end
 		`EXTOP:

@@ -45,7 +45,7 @@ rf80386_pkg::OUTW:	// Entry point for OUT port,AX
 rf80386_pkg::OUTW1:	// Entry point for OUT [DX],AX
 	begin
 		ad <= ea;
-		sel <= OperandSize==8'd32 ? 16'h000F : 16'h0003;
+		sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		dat <= eax;
 		tGosub(rf80386_pkg::STORE_IO,rf80386_pkg::IFETCH);
 	end

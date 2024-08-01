@@ -43,9 +43,9 @@ rf80386_pkg::DECODE:
 	`OPSZ:
 		begin
 			if (cs_desc.db & ~realMode)
-				OperandSize = 8'd16;
+				OperandSize32 = 1'b0;
 			else
-				OperandSize = 8'd32;
+				OperandSize32 = 1'b1;
 			tGoto(rf80386_pkg::IFETCH);
 		end
 	`ADSZ:
@@ -82,7 +82,7 @@ rf80386_pkg::DECODE:
 		begin
 			w <= 1'b1;
 			rrr <= ir[2:0];
-			if (OperandSize==8'd32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
+			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
 				int_num <= 8'h0d;
 				tGoto(rf80386_pkg::INT2);
 			end
@@ -118,7 +118,7 @@ rf80386_pkg::DECODE:
 			w <= 1'b1;
 			a <= ax;
 			rrr <= 3'd0;
-			if (OperandSize==8'd32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
+			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
 				int_num <= 8'h0d;
 				tGoto(rf80386_pkg::INT2);
 			end
@@ -210,7 +210,7 @@ rf80386_pkg::DECODE:
 	`POPA:	tGoto(rf80386_pkg::POPA);
 	`ENTER:	
 		begin
-			if (OperandSize==8'd32)
+			if (OperandSize32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -218,7 +218,7 @@ rf80386_pkg::DECODE:
 		end
 	`LEAVE:
 		begin
-			if (OperandSize==8'd32) begin
+			if (OperandSize32) begin
 				esp <= ebp;
 				ad <= ebp;
 			end
@@ -237,7 +237,7 @@ rf80386_pkg::DECODE:
 	`WAI: if (!busy_i) tGoto(rf80386_pkg::IFETCH);
 	`LOOP,`LOOPZ,`LOOPNZ: 
 		begin
-			if (OperandSize==8'd32)
+			if (OperandSize32)
 				ecx <= cx_dec;
 			else
 				ecx[15:0] <= cx_dec[15:0];
@@ -333,7 +333,7 @@ rf80386_pkg::DECODE:
 	//-----------------------------------------------------------------
 	`MOV_M2AL,`MOV_M2AX,`MOV_AL2M,`MOV_AX2M,`JMP:
 		begin
-			if (OperandSize==8'd32) begin
+			if (OperandSize32) begin
 				disp32 <= bundle[31:0];
 				bundle <= bundle[127:32];
 				eip <= eip + 4'd4;

@@ -221,7 +221,7 @@ rf80386_pkg::EXECUTE:
 				3'd4:
 					begin
 						if (w) begin
-							if (OperandSize==8'd32) begin
+							if (OperandSize32) begin
 								eax <= p64[31:0];
 								edx <= p64[63:32];
 								cf <= p64[63:32]!=32'd0;
@@ -249,7 +249,7 @@ rf80386_pkg::EXECUTE:
 				3'd5:
 					begin
 						if (w) begin
-							if (OperandSize==8'd32) begin
+							if (OperandSize32) begin
 								eax <= wp[31:0];
 								edx <= wp[63:32];
 								cf <= wp[63:32]!=16'd0;
@@ -409,6 +409,11 @@ rf80386_pkg::EXECUTE:
 			end
 		`MOV_R2S:
 			begin
+				// Disable interrupts until after fetch of next instruction if a move
+				// into ss is taking place. To simplify logic this is done even if the
+				// instruction causes a fault.
+				if (sreg3==3'd2)
+					int_disable <= 1'b1;
 				if (sreg3==3'd1)	begin // move to CS?
 					int_num = 8'd6;				// Invalid opcode
 					tGoto(rf80386_pkg::INT2);
@@ -419,14 +424,27 @@ rf80386_pkg::EXECUTE:
 					tGoto(rf80386_pkg::IFETCH);
 				end
 				else begin
-					if (sreg3==3'd2 && alu_o[15:0]==16'h0)	begin // move NULL to SS?
+					if (sreg3==3'd2 && alu_o[15:2]==14'h0)	begin // move NULL to SS?
 						int_num = 8'd13;					// GP
 						tGoto(rf80386_pkg::INT2);
 					end
 					else begin
 						wrsregs <= 1'b1;
 						res <= alu_o;
-						tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::IFETCH);
+						// Loading a NULL selector into a selector marks descriptor invalid.
+						// The descriptor cache is not loaded.
+						if (alu_o[15:2]==14'h0) begin
+							case(sreg3)
+							3'd0:	es_desc_v <= 1'b0;
+							3'd3:	ds_desc_v <= 1'b0;
+							3'd4:	fs_desc_v <= 1'b0;
+							3'd5: gs_desc_v <= 1'b0;
+							default:	;
+							endcase
+							tGoto(rf80386_pkg::IFETCH);
+						end
+						else
+							tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::IFETCH);
 					end
 				end
 			end
@@ -447,7 +465,7 @@ rf80386_pkg::EXECUTE:
 				w <= 1'b1;
 				rrr <= 3'd0;
 				res <= a;
-				if (OperandSize==8'd32) begin
+				if (OperandSize32) begin
 					if ( df) esi <= esi - 16'd4;
 					if (!df) esi <= esi + 16'd4;
 				end
@@ -467,7 +485,7 @@ rf80386_pkg::EXECUTE:
 					tGosub(rf80386_pkg::STORE_DATA,rf80386_pkg::IFETCH);
 				rrr <= rm;
 				if (w) begin
-					if (OperandSize==8'd32)
+					if (OperandSize32)
 						case(rrr)
 						3'b000:	// ROL
 							begin
@@ -662,7 +680,7 @@ rf80386_pkg::EXECUTE:
 				default:
 					begin
 						af <= carry   (1'b0,a[3],b[3],alu_o[3]);
-						if (OperandSize==8'd32)
+						if (OperandSize32)
 							vf <= overflow(1'b0,a[31],b[31],alu_o[31]);
 						else
 							vf <= overflow(1'b0,a[15],b[15],alu_o[15]);
