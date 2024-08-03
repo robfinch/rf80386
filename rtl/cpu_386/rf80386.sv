@@ -38,7 +38,7 @@
 //  System Verilog 
 //
 //  Vivado 2022.2
-//	19455 LUTs / 3090 FFs / 8 DSPs
+//	19993 LUTs / 3023 FFs / 9 DSPs
 // ============================================================================
 
 import const_pkg::*;
@@ -311,6 +311,7 @@ always_ff @(posedge CLK)
 		cnt <= 7'd0;
 		tsp <= 16'd0;
 		ftmp <= 32'h0;
+		d_jmp <= 1'b0;
 		tClearBus();
 		tGoto(rf80386_pkg::IFETCH);
 	end

@@ -58,17 +58,5 @@ rf80386_pkg::FETCH_OFFSET:
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;
 		end
-		if (ir==`CALLF)
-			tGoto(rf80386_pkg::CALLF);
-		else
-			tGoto(rf80386_pkg::JMPF);
-	end
-rf80386_pkg::JMPF:
-	begin
-		cs <= selector;
-		eip <= offset;
-		if (selector != cs)
-			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
-		else
-			tGoto(rf80386_pkg::IFETCH);
+		tGoto(rf80386_pkg::CALLF);
 	end

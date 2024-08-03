@@ -246,7 +246,7 @@ rf80386_pkg::DECODE:
 	`Jcc: tGoto(rf80386_pkg::BRANCH1);
 	`JCXZ: tGoto(rf80386_pkg::BRANCH1);
 	`JMPS: tGoto(rf80386_pkg::BRANCH1);
-	`JMPF: tGoto(rf80386_pkg::FETCH_OFFSET);
+	`JMPF: begin d_jmp <= 1'b1; tGoto(rf80386_pkg::FETCH_OFFSET); end
 	`CALL:
 		begin
 			if (AddrSize==8'd32) begin

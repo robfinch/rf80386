@@ -424,7 +424,6 @@ typedef enum logic [8:0] {
   RET,
   RETF,
   RETF1,
-  JMPF,
 
   CALLF,
   CALLF1,
@@ -448,6 +447,7 @@ typedef enum logic [8:0] {
   CALLF20,
   CALLF21,
   CALLF22,
+  CALLF25,
 
   CALLF_RMD1,
   CALLF_RMD2,
@@ -777,6 +777,45 @@ typedef enum logic [8:0] {
 	LAR1,
 	
 	TASK_SWITCH,
+	TASK_SWITCH1,
+	TASK_SWITCH2,
+	TASK_SWITCH3,
+	TASK_SWITCH4,
+	TASK_SWITCH5,
+	TASK_SWITCH6,
+	TASK_SWITCH7,
+	TASK_SWITCH8,
+	TASK_SWITCH9,
+	TASK_SWITCH10,
+	TASK_SWITCH11,
+	TASK_SWITCH12,
+	TASK_SWITCH13,
+	TASK_SWITCH14,
+	TASK_SWITCH15,
+	TASK_SWITCH16,
+	TASK_SWITCH17,
+	TASK_SWITCH18,
+	TASK_SWITCH19,
+	TASK_SWITCH20,
+	TASK_SWITCH30,
+	TASK_SWITCH31,
+	TASK_SWITCH32,
+	TASK_SWITCH33,
+	TASK_SWITCH34,
+	TASK_SWITCH35,
+	TASK_SWITCH36,
+	TASK_SWITCH37,
+	TASK_SWITCH38,
+	TASK_SWITCH39,
+	TASK_SWITCH40,
+	TASK_SWITCH41,
+	TASK_SWITCH42,
+	TASK_SWITCH43,
+	TASK_SWITCH44,
+	TASK_SWITCH45,
+	TASK_SWITCH46,
+	TASK_SWITCH47,
+	TASK_SWITCH48,
 	
 	LAST_STATE
 } e_80386state;
@@ -843,6 +882,77 @@ typedef struct packed
 	logic [15:0] offset_lo;
 } call_gate386_t;
 
+typedef struct packed
+{
+	logic [15:0] io_map_base;
+	logic [14:0] resv12;
+	logic t;
+	logic [15:0] resv11;
+	logic [15:0] ldt;
+	logic [15:0] resv10;
+	logic [15:0] gs;
+	logic [15:0] resv9;
+	logic [15:0] fs;
+	logic [15:0] resv8;
+	logic [15:0] ds;
+	logic [15:0] resv7;
+	logic [15:0] ss;
+	logic [15:0] resv6;
+	logic [15:0] cs;
+	logic [15:0] resv5;
+	logic [15:0] es;
+	logic [31:0] edi;
+	logic [31:0] esi;
+	logic [31:0] ebp;
+	logic [31:0] esp;
+	logic [31:0] ebx;
+	logic [31:0] edx;
+	logic [31:0] ecx;
+	logic [31:0] eax;
+	logic [31:0] eflags;
+	logic [31:0] eip;
+	logic [31:0] cr3;
+	logic [15:0] resv4;
+	logic [15:0] ss2;
+	logic [31:0] esp2;
+	logic [15:0] resv3;
+	logic [15:0] ss1;
+	logic [31:0] esp1;
+	logic [15:0] resv2;
+	logic [15:0] ss0;
+	logic [31:0] esp0;
+	logic [15:0] resv1;
+	logic [15:0] link;
+} task_state_segment386_t;
+
+`define TSS_LINK	8'd0
+`define TSS_ESP0	8'd4
+`define TSS_SS0		8'd8
+`define TSS_ESP1	8'd12
+`define TSS_SS1		8'd16
+`define TSS_ESP2	8'd20
+`define TSS_SS2		8'd24
+`define TSS_CR3		8'd28
+`define TSS_EIP		8'd32
+`define TSS_EFLAGS	8'd36
+`define TSS_EAX		8'd40
+`define TSS_ECX		8'd44
+`define TSS_EDX		8'd48
+`define TSS_EBX		8'd52
+`define TSS_ESP		8'd56
+`define TSS_EBP		8'd60
+`define TSS_ESI		8'd64
+`define TSS_EDI		8'd68
+`define TSS_ES		8'd72
+`define TSS_CS		8'd76
+`define TSS_SS		8'd80
+`define TSS_DS		8'd84
+`define TSS_FS		8'd88
+`define TSS_GS		8'd92
+`define TSS_LDT		8'd96
+`define TSS_T			8'd100
+`define TSS_IO_MAP_BASE		8'd102
+
 // g: granularity 1=4096 byte pages, 0=byte, limit is granular
 // DB: default operand size, 1=32 bit, 0=16 bit for code. data: max offset 1=0xffffffff, 0=0x0000ffff
 // L (64-bit mode)
@@ -852,7 +962,19 @@ typedef struct packed
 // s: 1=system segment, 0=code or data
 // 
 
+// Global variables
+reg d_jmp;							// jump instruction decoded
+e_80386state state;			// machine state
+e_80386state [5:0] stk_state;	// stacked machine state
+reg [1:0] rpl;
+reg [31:0] ad;
+reg [19:0] sel;
+reg [63:0] dat;
 reg [31:0] ldt_limit, gdt_limit;
+reg [31:0] tbase;
+reg [15:0] new_tr;
+desc386_t old_tss_desc;
+desc386_t new_tss_desc;
 
 function fnIsReadableCodeOrData;
 input desc386_t	desc;
@@ -869,5 +991,62 @@ begin
 	fnSelectorInLimit = {selector.ndx,3'b0} < table_limit;
 end
 endfunction
+
+task tGoto;
+input e_80386state nst;
+begin
+	state <= nst;
+end
+endtask
+
+task tGosub;
+input e_80386state tgt;
+input e_80386state rts;
+begin
+	stk_state[0] <= rts;
+	stk_state[1] <= stk_state[0];
+	stk_state[2] <= stk_state[1];
+	stk_state[3] <= stk_state[2];
+	stk_state[4] <= stk_state[3];
+	stk_state[5] <= stk_state[4];
+	tGoto(tgt);
+end
+endtask
+
+task tReturn;
+begin
+	state <= stk_state[0];
+	stk_state[0] <= stk_state[1];
+	stk_state[1] <= stk_state[2];
+	stk_state[2] <= stk_state[3];
+	stk_state[3] <= stk_state[4];
+	stk_state[4] <= stk_state[5];
+	stk_state[5] <= rf80386_pkg::RESET;
+end
+endtask
+
+task tWriteTSSReg;
+input [31:0] rval;
+input [7:0] offs;
+input wid;
+input e_80386state nxt;
+begin
+	ad <= tbase + offs;
+	sel <= wid ? 16'h000F : 16'h0003;
+	dat <= rval;
+	tGosub(rf80386_pkg::STORE,nxt);
+end
+endtask
+
+task tReadTSSReg;
+input [7:0] offs;
+input wid;
+input e_80386state nxt;
+begin
+	ad <= tbase + offs;
+	sel <= wid ? 16'h000F : 16'h0003;
+	tGosub(rf80386_pkg::LOAD,nxt);
+end
+endtask
 
 endpackage

@@ -35,7 +35,36 @@
 //
 // ============================================================================
 
-rf80386_pkg::TASK_SWITCH:	tGoto(rf80386_pkg::TASK_SWITCH2);	
+rf80386_pkg::TASK_SWITCH:	
+	begin
+		selector <= new_tr;
+		rrr <= 3'd6;	// tss_desc
+		old_tss_desc <= tss_desc;
+		tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::TASK_SWITCH1);
+	end
+rf80386_pkg::TASK_SWITCH1:
+	begin
+		if (!tss_desc.p) begin
+			int_num <= 8'd11;	//  segment not present
+			tGoto(rf80386_pkg::INT2);
+		end
+		else begin
+			casez({tss_desc.s,tss_desc.typ})
+			5'b00001,	// 286 task
+			5'b01001:	// 386 task
+				begin
+					new_tss_desc <= tss_desc;
+					tss_desc <= old_tss_desc;
+					tGoto(rf80386_pkg::TASK_SWITCH2);
+				end
+			default:
+				begin
+					int_num <= 8'd10;	//  invalid TSS
+					tGoto(rf80386_pkg::INT2);
+				end
+			endcase
+		end
+	end
 rf80386_pkg::TASK_SWITCH2:	tWriteTSSReg(eax,`TSS_EAX,1,rf80386_pkg::TASK_SWITCH3);
 rf80386_pkg::TASK_SWITCH3:	tWriteTSSReg(ecx,`TSS_ECX,1,rf80386_pkg::TASK_SWITCH4);
 rf80386_pkg::TASK_SWITCH4:	tWriteTSSReg(edx,`TSS_EDX,1,rf80386_pkg::TASK_SWITCH5);
@@ -49,18 +78,17 @@ rf80386_pkg::TASK_SWITCH11:	tWriteTSSReg(cs,`TSS_CS,0,rf80386_pkg::TASK_SWITCH12
 rf80386_pkg::TASK_SWITCH12:	tWriteTSSReg(ss,`TSS_SS,0,rf80386_pkg::TASK_SWITCH13);
 rf80386_pkg::TASK_SWITCH13:	tWriteTSSReg(ds,`TSS_DS,0,rf80386_pkg::TASK_SWITCH14);
 rf80386_pkg::TASK_SWITCH14:	tWriteTSSReg(fs,`TSS_FS,0,rf80386_pkg::TASK_SWITCH15);
-rf80386_pkg::TASK_SWITCH15:	tWriteTSSReg(gs,`TSS_GS,0,rf80386_pkg::TASK_SWITCH16);
-rf80386_pkg::TASK_SWITCH16:	tWriteTSSReg(ldt,`TSS_LDT,0,rf80386_pkg::TASK_SWITCH17);
-rf80386_pkg::TASK_SWITCH17:	tWriteTSSReg(cr3,`TSS_CR3,1,rf80386_pkg::TASK_SWITCH18);
+rf80386_pkg::TASK_SWITCH15:	tWriteTSSReg(gs,`TSS_GS,0,rf80386_pkg::TASK_SWITCH19);
+//rf80386_pkg::TASK_SWITCH16:	tWriteTSSReg(ldt,`TSS_LDT,0,rf80386_pkg::TASK_SWITCH17);
+//rf80386_pkg::TASK_SWITCH17:	tWriteTSSReg(cr3,`TSS_CR3,1,rf80386_pkg::TASK_SWITCH18);
 rf80386_pkg::TASK_SWITCH18:	tWriteTSSReg(eip,`TSS_EIP,1,rf80386_pkg::TASK_SWITCH19);
 rf80386_pkg::TASK_SWITCH19:	tWriteTSSReg(flags,`TSS_EFLAGS,1,rf80386_pkg::TASK_SWITCH20);
 
 rf80386_pkg::TASK_SWITCH20:
 	begin
 		tr <= new_tr;
-		selector <= new_tr;
-		rrr <= 3'd6;	// special TSS id
-		tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::TASK_SWITCH30);
+		tss_desc <= new_tss_desc;
+		tGoto(rf80386_pkg::TASK_SWITCH30);
 	end
 rf80386_pkg::TASK_SWITCH30:	tReadTSSReg(`TSS_EAX,1,rf80386_pkg::TASK_SWITCH31);
 rf80386_pkg::TASK_SWITCH31:	begin eax <= dat; tReadTSSReg(`TSS_ECX,1,rf80386_pkg::TASK_SWITCH32); end
@@ -92,5 +120,6 @@ rf80386_pkg::TASK_SWITCH48:
 		df <= dat[10];
 		vf <= dat[11];
 		vm <= dat[18];
+		cr0[3] <= 1'b1;	// task switched flag
 		tReturn();
 	end

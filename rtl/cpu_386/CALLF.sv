@@ -6,6 +6,8 @@
 //       ||
 //
 //  CALL FAR and CALL FAR indirect
+//  and
+//	JMP FAR and JMP FAR indirect
 //
 // BSD 3-Clause License
 // Redistribution and use in source and binary forms, with or without
@@ -39,8 +41,9 @@ rf80386_pkg::CALLF:
 	begin
 		old_cs <= cs;
 		old_eip <= eip;
+		rpl <= selector[1:0];
 		if (realMode || v86)
-			tGoto(rf80386_pkg::CALLF_RMD1);
+			tGoto(d_jmp ? rf80386_pkg::CALLF_RMD5 : rf80386_pkg::CALLF_RMD1);
 		else
 			tGoto(rf80386_pkg::CALLF1);
 	end
@@ -87,7 +90,7 @@ rf80386_pkg::CALLF_RMD4:
 	end
 rf80386_pkg::CALLF_RMD5:
 	begin
-		if (ir==8'hFF && rrr==3'b011)	// CALL FAR indirect
+		if (ir==8'hFF && (rrr==3'b101 | rrr==3'b011))	// JMP/CALL FAR indirect
 			tGoto(rf80386_pkg::JUMP_VECTOR1);
 		else begin
 			cs <= selector;
@@ -106,29 +109,43 @@ rf80386_pkg::CALLF2:
 		// work.
 		int_num = 8'd13;					// GP fault
 		tGoto(rf80386_pkg::INT2);
-		if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
-			if (!cgate.p)
-				int_num = 8'd11;						// segment not present
-			if (max_pl <= cgate.dpl) begin
-				casez({cgate.s,cgate.typ})
-				5'b00011,	// busy 286 task
-				5'b01011:	// busy 386 task
+		if (!cgate.p)
+			int_num = 8'd11;						// segment not present
+		casez({cgate.s,cgate.typ})
+		5'b00001,	// 286 task
+		5'b01001:	// 386 task
+			begin
+				old_tss_desc <= tss_desc;
+				tss_desc <= cgate;
+				if (cgate.dpl < cpl)
 					int_num = 8'd10;					// invalid TSS
-				5'b00101:	// task gate
-					if (cgate.dpl < cpl || cgate.dpl < selector[1:0])
-						int_num = 8'd10;					// invalid TSS
-					else if (!cgate.p)
-						int_num = 8'd11;					// segment not present
-					else if (tgate.selector[2]!=1'b0)	// must be global
-						int_num = 8'd10;					// invalid TSS
-					else if (!fnSelectorInLimit(tgate.selector))						
-						int_num = 8'd10;					// invalid TSS
-					else begin
-						new_tr <= tgate.selector;
-						tGosub(rf80386_pkg::TASK_SWITCH,rf80386_pkg::CALLF25);
-					end
-				5'b110??:	// non-conforming code segment
-					begin
+				else if (cgate.dpl < rpl)
+					int_num = 8'd10;					// invalid TSS
+				else
+					tGoto(rf80386_pkg::TASK_SWITCH1);
+			end
+		5'b00011,	// busy 286 task
+		5'b01011:	// busy 386 task
+			int_num = 8'd10;					// invalid TSS
+		5'b00101:	// task gate
+			if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
+				if (cgate.dpl < cpl || cgate.dpl < selector[1:0])
+					int_num = 8'd10;					// invalid TSS
+				else if (!cgate.p)
+					int_num = 8'd11;					// segment not present
+				else if (tgate.selector[2]!=1'b0)	// must be global
+					int_num = 8'd10;					// invalid TSS
+				else if (!fnSelectorInLimit(tgate.selector))						
+					int_num = 8'd10;					// invalid TSS
+				else begin
+					new_tr <= tgate.selector;
+					tGosub(rf80386_pkg::TASK_SWITCH,rf80386_pkg::CALLF25);
+				end
+			end
+		5'b110??:	// non-conforming code segment
+			begin
+				if (max_pl <= cgate.dpl) begin
+					if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
 						if (selector[1:0] <= cpl && cdesc.p) begin
 							if (cdesc.dpl == cpl) begin
 								if (esp < ss_limit - 4'd8) begin
@@ -145,8 +162,12 @@ rf80386_pkg::CALLF2:
 							end
 						end
 					end
-				5'b111??:	// conforming code segment
-					begin
+				end
+			end
+		5'b111??:	// conforming code segment
+			begin
+				if (max_pl <= cgate.dpl) begin
+					if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
 						if (cgate.dpl <= cpl && cgate.p) begin
 							if (esp < ss_limit - 4'd8) begin
 								if (eip < (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo})) begin
@@ -160,8 +181,12 @@ rf80386_pkg::CALLF2:
 							end
 						end
 					end
-				5'b01100:	// CALL gate
-					begin
+				end
+			end
+		5'b01100:	// CALL gate
+			begin
+				if (max_pl <= cgate.dpl) begin
+					if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
 						if (cgate.dpl >= cpl) begin
 							if (cgate.dpl >= selector[1:0] && cgate.p) begin
 								if (|cgate.selector[15:2] && fnSelectorInLimit(cgate.selector)) begin	// selector must be non-null and within limits
@@ -177,10 +202,10 @@ rf80386_pkg::CALLF2:
 							end
 						end
 					end
-				default:	;
-				endcase
+				end
 			end
-		end
+		default:	;
+		endcase
 	end
 rf80386_pkg::CALLF6:
 	begin
@@ -292,8 +317,18 @@ rf80386_pkg::CALLF13:
 			tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF13);
 			cpycnt <= cpycnt - 2'd1;
 		end
-		else
-			tGoto(rf80386_pkg::CALLF14);
+		else begin
+			if (d_jmp) begin
+				// reverse pre-decrement
+				if (StkAddrSize==8'd32)
+					esp <= esp + 4'd4;
+				else
+					esp[15:0] <= esp + 4'd4;
+				tGoto(rf80386_pkg::CALLF16);
+			end
+			else 
+				tGoto(rf80386_pkg::CALLF14);
+		end
 	end
 rf80386_pkg::CALLF14:
 	begin
@@ -319,7 +354,7 @@ rf80386_pkg::CALLF15:
 	end
 rf80386_pkg::CALLF16:
 	begin
-		if (ir==8'hFF && rrr==3'b011)	// CALL FAR indirect
+		if (ir==8'hFF && (rrr=3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
 			tGoto(rf80386_pkg::JUMP_VECTOR1);
 		else
 			tGoto(rf80386_pkg::IFETCH);
@@ -343,11 +378,20 @@ rf80386_pkg::CALLF20:
 			ad <= sssp;
 			sel <= 16'h000F;
 			dat <= old_cs;
-			if (StkAddrSize==8'd32)
-				esp <= esp - 4'd4;
-			else
-				esp[15:0] <= esp - 4'd4;
-			tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF21);
+			if (d_jmp) begin
+				if (StkAddrSize==8'd32)
+					esp <= esp + 4'd4;
+				else
+					esp[15:0] <= esp + 4'd4;
+				tGoto(rf80386_pkg::CALLF22);
+			end
+			else begin
+				if (StkAddrSize==8'd32)
+					esp <= esp - 4'd4;
+				else
+					esp[15:0] <= esp - 4'd4;
+				tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF21);
+			end
 		end
 	end
 rf80386_pkg::CALLF21:
@@ -355,16 +399,12 @@ rf80386_pkg::CALLF21:
 		ad <= sssp;
 		sel <= 16'h000F;
 		dat <= old_eip;
-		if (StkAddrSize==8'd32)
-			esp <= esp - 4'd4;
-		else
-			esp[15:0] <= esp - 4'd4;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF22);
 	end
 rf80386_pkg::CALLF22:
 	begin
 		cs[1:0] <= cpl;
-		if (ir==8'hFF && rrr==3'b011)	// CALL FAR indirect
+		if (ir==8'hFF && (rrr==3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
 			tGoto(rf80386_pkg::JUMP_VECTOR1);
 		else
 			tGoto(rf80386_pkg::IFETCH);

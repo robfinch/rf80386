@@ -111,6 +111,7 @@ rf80386_pkg::IFETCH:
 		d_lfs <= 1'b0;
 		d_lgs <= 1'b0;
 		d_lss <= 1'b0;
+		d_jmp <= 1'b0;
 		str <= 1'b0;
 		verr <= 1'b0;
 		verw <= 1'b0;
