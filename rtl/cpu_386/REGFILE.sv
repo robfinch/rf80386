@@ -131,6 +131,7 @@ wire [15:0] di = edi[15:0];
 // addressing.
 
 reg [31:0] cs_base, ss_base, ds_base, es_base, fs_base, gs_base;
+reg [31:0] cs_limit, ds_limit, es_limit, fs_limit, gs_limit, ss_limit;
 
 always_ff @(posedge clk_i) cs_base <= ~realMode ? {cs_desc.base_hi, cs_desc.base_lo} : {`REALMODE_PG1M,cs,`SEG_SHIFT};
 always_ff @(posedge clk_i) ss_base <= ~realMode ? {ss_desc.base_hi, ss_desc.base_lo} : {`REALMODE_PG1M,ss,`SEG_SHIFT};
@@ -138,6 +139,13 @@ always_ff @(posedge clk_i) ds_base <= ~realMode ? {ds_desc.base_hi, ds_desc.base
 always_ff @(posedge clk_i) es_base <= ~realMode ? {es_desc.base_hi, es_desc.base_lo} : {`REALMODE_PG1M,es,`SEG_SHIFT};
 always_ff @(posedge clk_i) fs_base <= ~realMode ? {fs_desc.base_hi, fs_desc.base_lo} : {`REALMODE_PG1M,fs,`SEG_SHIFT};
 always_ff @(posedge clk_i) gs_base <= ~realMode ? {gs_desc.base_hi, gs_desc.base_lo} : {`REALMODE_PG1M,gs,`SEG_SHIFT};
+
+always_comb cs_limit = realMode ? 32'h000FFFFF : cs_desc.g ? {cs_desc.limit_hi,cs_desc.limit_lo,12'h0} : {12'h0,cs_desc.limit_hi,cs_desc.limit_lo};
+always_comb ds_limit = realMode ? 32'h000FFFFF : ds_desc.g ? {ds_desc.limit_hi,ds_desc.limit_lo,12'h0} : {12'h0,ds_desc.limit_hi,ds_desc.limit_lo};
+always_comb es_limit = realMode ? 32'h000FFFFF : es_desc.g ? {es_desc.limit_hi,es_desc.limit_lo,12'h0} : {12'h0,es_desc.limit_hi,es_desc.limit_lo};
+always_comb fs_limit = realMode ? 32'h000FFFFF : fs_desc.g ? {fs_desc.limit_hi,fs_desc.limit_lo,12'h0} : {12'h0,fs_desc.limit_hi,fs_desc.limit_lo};
+always_comb gs_limit = realMode ? 32'h000FFFFF : gs_desc.g ? {gs_desc.limit_hi,gs_desc.limit_lo,12'h0} : {12'h0,gs_desc.limit_hi,gs_desc.limit_lo};
+always_comb ss_limit = realMode ? 32'h000FFFFF : ss_desc.g ? {ss_desc.limit_hi,ss_desc.limit_lo,12'h0} : {12'h0,ss_desc.limit_hi,ss_desc.limit_lo};
 
 wire [31:0] idt_base = {idt_desc.base_hi, idt_desc.base_lo};
 wire [31:0] gdt_base = {gdt_desc.base_hi, gdt_desc.base_lo};

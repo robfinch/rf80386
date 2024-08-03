@@ -52,12 +52,20 @@ rf80386_pkg::IFETCH:
 		insn_count <= insn_count + 2'd1;
 		$display("\r\n******************************************************");
 		$display("time: %d  tick: %d  insns: %d  imiss: %d", $time, tick, insn_count, imiss_count);
+		$display("Machine mode: %s states: %d", realMode ? "real" : v86 ? "v86" : "prot", LAST_STATE);
 		$display("CSIP: %h", csip);
 		$display("EAX=%h  ESI=%h", eax, esi);
 		$display("EBX=%h  EDI=%h", ebx, edi);
 		$display("ECX=%h  EBP=%h", ecx, ebp);
 		$display("EDX=%h  ESP=%h", edx, esp);
 		$display("CS=%h DS=%h ES=%h FS=%h GS=%h SS=%h", cs, ds, es, fs, gs, ss);
+		$display("Bases");
+		$display("   CS=%h DS=%h ES=%h FS=%h GS=%h, SS=%h",
+			cs_base, ds_base, es_base, fs_base, gs_base, ss_base);
+		$display("Limits");
+		$display("   CS=%h DS=%h ES=%h FS=%h GS=%h, SS=%h",
+			cs_limit, ds_limit, es_limit, fs_limit, gs_limit, ss_limit);
+
 		// Reset all instruction processing flags at instruction fetch
 		
 		// Default the size of operands and addresses, but not if there is a
