@@ -271,7 +271,6 @@ always_comb
 	endcase
 
 wire [1:0] max_pl = cpl > selector.rpl ? cpl : selector.rpl;
-reg [31:0] ldt_limit, gdt_limit;
 reg [31:0] table_limit;
 always_comb
 	ldt_limit = ldt_desc.g ? {ldt_desc.limit_hi,ldt_desc.limit_lo,12'h0} : {12'h0,ldt_desc.limit_hi,ldt_desc.limit_lo};
@@ -280,3 +279,4 @@ always_comb
 always_comb
 	table_limit = selector.ti ? ldt_limit : gdt_limit;
 wire selector_in_limit = {selector.ndx,3'b0} < table_limit;
+

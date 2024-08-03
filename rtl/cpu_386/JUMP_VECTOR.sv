@@ -39,7 +39,7 @@
 rf80386_pkg::JUMP_VECTOR1:
 	begin
 		ad <= ea;
-		if (cs_desc.db)
+		if (OperandSize32)
 			sel <= 16'h003F;
 		else
 			sel <= 16'h000F;
@@ -47,7 +47,7 @@ rf80386_pkg::JUMP_VECTOR1:
 	end
 rf80386_pkg::JUMP_VECTOR2:
 	begin
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			offset <= dat[31:0];
 			selector <= dat[47:32];
 		end
@@ -61,7 +61,9 @@ JUMP_VECTOR3:
 	begin
 		eip <= offset;
 		cs <= selector;
-		if (cs != selector)
+		if (realMode || v86)
+			tGoto(rf80386_pkg::IFETCH);
+		else if (cs != selector || !cs_desc_v)
 			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
 		else
 			tGoto(rf80386_pkg::IFETCH);

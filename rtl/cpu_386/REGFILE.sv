@@ -67,6 +67,7 @@ reg [31:0] edi;				// destination index
 reg [31:0] ebp;				// base pointer
 reg [31:0] esp;				// stack pointer
 reg [31:0] old_esp;		// stack pointer
+reg [31:0] new_esp;		// CALL far
 wire cxz = ecx==32'h0000;	// CX is zero
 
 reg [15:0] cs;				// code segment
@@ -82,6 +83,7 @@ reg [15:0] old_es;		// extra segment
 reg [15:0] old_fs;		// extra segment
 reg [15:0] old_gs;		// extra segment
 reg [15:0] old_ss;		// stack segment
+reg [15:0] new_ss;		// for CALL far
 
 desc386_t cs_desc;
 desc386_t ds_desc;

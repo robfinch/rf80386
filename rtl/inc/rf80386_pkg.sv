@@ -434,6 +434,26 @@ typedef enum logic [8:0] {
   CALLF5,
   CALLF6,
   CALLF7,
+  CALLF8,
+  CALLF9,
+  CALLF10,
+  CALLF11,
+  CALLF12,
+  CALLF13,
+  CALLF14,
+  CALLF15,
+  CALLF16,
+  CALLF17,
+  CALLF18,
+  CALLF20,
+  CALLF21,
+  CALLF22,
+
+  CALLF_RMD1,
+  CALLF_RMD2,
+  CALLF_RMD3,
+  CALLF_RMD4,
+  CALLF_RMD5,
 
   CALL,
   CALL1,
@@ -530,6 +550,22 @@ typedef enum logic [8:0] {
   RETFPOP,
   RETFPOP1,
   RETFPOP2,
+  RETFPOP3,
+  RETFPOP4,
+  RETFPOP5,
+  RETFPOP6,
+  RETFPOP7,
+  RETFPOP8,
+  RETFPOP9,
+  RETFPOP10,
+  RETFPOP11,
+  RETFPOP12,
+  RETFPOP13,
+  RETFPOP_SAME_LEVEL,
+  RETFPOP_OUTER_LEVEL,
+  RETFPOP_RMD1,
+  RETFPOP_RMD2,
+  RETFPOP_RMD3,
 
 	XLAT,
   XLAT_ACK,
@@ -718,6 +754,9 @@ typedef enum logic [8:0] {
 	LOAD_DESC,
 	LOAD_DESC1,
 	
+	LOAD_GATE,
+	LOAD_GATE1,
+	
 	LxDT,
 	LxDT1,
 	
@@ -735,8 +774,11 @@ typedef enum logic [8:0] {
 	LEAVE1,
 	
 	LAR,
-	LAR1
+	LAR1,
 	
+	TASK_SWITCH,
+	
+	LAST_STATE
 } e_80386state;
 
 typedef struct packed
@@ -777,6 +819,30 @@ typedef struct packed
 	logic [15:0] offset_lo;
 } int_gate386_t;
 
+typedef struct packed
+{
+	logic [15:0] resv3;
+	logic p;
+	logic [1:0] dpl;
+	logic [4:0] five;
+	logic [7:0] resv2;
+	logic [15:0] selector;
+	logic [15:0] resv1;
+} task_gate386_t;
+
+typedef struct packed
+{
+	logic [15:0] offset_hi;
+	logic p;
+	logic [1:0] dpl;
+	logic s;
+	logic [3:0] typ;
+	logic [2:0] zero;
+	logic [4:0] count;
+	logic [15:0] selector;
+	logic [15:0] offset_lo;
+} call_gate386_t;
+
 // g: granularity 1=4096 byte pages, 0=byte, limit is granular
 // DB: default operand size, 1=32 bit, 0=16 bit for code. data: max offset 1=0xffffffff, 0=0x0000ffff
 // L (64-bit mode)
@@ -785,5 +851,23 @@ typedef struct packed
 // dpl = descriptor privilege level
 // s: 1=system segment, 0=code or data
 // 
+
+reg [31:0] ldt_limit, gdt_limit;
+
+function fnIsReadableCodeOrData;
+input desc386_t	desc;
+begin
+	fnIsReadableCodeOrData = desc.s && desc.typ[3] ? desc.typ[1] : 1'b1;
+end
+endfunction
+
+function fnSelectorInLimit;
+input selector_t selector;
+reg [31:0] table_limit;
+begin
+	table_limit = selector.ti ? ldt_limit : gdt_limit;
+	fnSelectorInLimit = {selector.ndx,3'b0} < table_limit;
+end
+endfunction
 
 endpackage
