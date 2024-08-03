@@ -122,7 +122,7 @@ rf80386_pkg::CALLF2:
 				else if (cgate.dpl < rpl)
 					int_num = 8'd10;					// invalid TSS
 				else
-					tGoto(rf80386_pkg::TASK_SWITCH1);
+					tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::CALLF25);
 			end
 		5'b00011,	// busy 286 task
 		5'b01011:	// busy 386 task
@@ -354,7 +354,7 @@ rf80386_pkg::CALLF15:
 	end
 rf80386_pkg::CALLF16:
 	begin
-		if (ir==8'hFF && (rrr=3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
+		if (ir==8'hFF && (rrr==3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
 			tGoto(rf80386_pkg::JUMP_VECTOR1);
 		else
 			tGoto(rf80386_pkg::IFETCH);
