@@ -122,6 +122,7 @@ rf80386_pkg::LOAD_DESC:
 		3'd3:	if (ds == selector && ds_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
 		3'd4:	if (fs == selector && fs_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
 		3'd5:	if (gs == selector && gs_desc_v) tReturn(); else tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
+		3'd6:	tGosub(rf80386_pkg::LOAD,rf80386_pkg::LOAD_DESC1);
 		default:	tGoto(rf80386_pkg::RESET);
 		endcase
 	end
@@ -134,6 +135,7 @@ rf80386_pkg::LOAD_DESC1:
 		3'd3:	begin ds_desc <= dat; ds_desc_v <= 1'b1; end
 		3'd4:	begin fs_desc <= dat; fs_desc_v <= 1'b1; end
 		3'd5:	begin gs_desc <= dat; gs_desc_v <= 1'b1; end
+		3'd6:	begin tss_desc <= dat; tss_desc_v <= 1'b1; end
 		default:	;
 		endcase
 		tReturn();

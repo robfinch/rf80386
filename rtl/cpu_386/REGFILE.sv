@@ -35,7 +35,7 @@
 //
 // ============================================================================
 
-reg [31:0] cr0;
+reg [31:0] cr0,cr1,cr2,cr3;
 reg [31:0] rrro;			
 reg [31:0] rmo;				// register output (controlled by mod r/m byte)
 reg [31:0] rfso;
@@ -77,6 +77,7 @@ reg [15:0] fs;				// extra segment
 reg [15:0] gs;				// extra segment
 reg [15:0] ss;				// stack segment
 reg [15:0] tr;				// task register
+reg [15:0] ldt;
 reg [15:0] old_cs;		// code segment
 reg [15:0] old_ds;		// data segment
 reg [15:0] old_es;		// extra segment
@@ -101,6 +102,7 @@ reg es_desc_v;
 reg fs_desc_v;
 reg gs_desc_v;
 reg ss_desc_v;
+reg tss_desc_v;
 reg [31:0] gdtr, ldtr;
 
 reg [31:0] tick;
@@ -153,6 +155,7 @@ wire [31:0] idt_base = {idt_desc.base_hi, idt_desc.base_lo};
 wire [31:0] gdt_base = {gdt_desc.base_hi, gdt_desc.base_lo};
 wire [31:0] ldt_base = {ldt_desc.base_hi, ldt_desc.base_lo};
 wire [31:0] tss_base = {tss_desc.base_hi, tss_desc.base_lo};
+assign tbase = tss_base;
 
 wire [31:0] csip = cs_base + eip;
 wire [31:0] sssp = ss_base + (StkAddrSize==8'd32 ? esp : sp);

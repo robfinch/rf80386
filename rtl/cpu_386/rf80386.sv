@@ -38,7 +38,7 @@
 //  System Verilog 
 //
 //  Vivado 2022.2
-//	18540 LUTs / 2993 FFs / 8 DSPs
+//	19455 LUTs / 3090 FFs / 8 DSPs
 // ============================================================================
 
 import const_pkg::*;
@@ -66,8 +66,6 @@ reg [19:0] adr_o;
 
 reg [1:0] seg_sel;			// segment selection	0=ES,1=SS,2=CS (or none), 3=DS
 
-e_80386state state;			// machine state
-e_80386state [5:0] stk_state;	// stacked machine state
 reg hasFetchedModrm;
 reg hasFetchedDisp8;
 reg hasFetchedDisp16;
@@ -84,6 +82,7 @@ wire resnw;					// negative word
 wire resn;
 wire resz;
 
+reg [31:0] tss_flags;
 reg [2:0] cyc_type;			// type of bus sycle
 reg OperandSize32;
 reg [7:0] AddrSize;
@@ -105,8 +104,6 @@ reg [1:0] mod;
 reg [2:0] rrr;
 reg [2:0] rm;
 reg [7:0] sib;
-reg [31:0] ad;
-reg [19:0] sel;
 reg sxi;
 reg [2:0] sreg;
 reg [1:0] sreg2;
@@ -116,7 +113,6 @@ reg [7:0] lock_insn;
 reg [7:0] prefix1;
 reg [7:0] prefix2;
 reg [7:0] int_num;			// interrupt number to execute
-reg [63:0] dat;
 reg [31:0] seg_reg;			// segment register value for memory access
 reg [15:0] data16;			// caches data
 reg [15:0] disp16;			// caches displacement
@@ -382,6 +378,7 @@ always_ff @(posedge CLK)
 `include "LEAVE.sv"
 `include "LOADSTORE.sv"
 `include "LOAD_DESC.sv"
+`include "TASK.sv"
 			default:
 				state <= rf80386_pkg::IFETCH;
 			endcase
@@ -400,39 +397,6 @@ begin
 	ir2 <= bundle[7:0];
 	bundle <= bundle[127:8];
 	eip <= ip_inc;
-end
-endtask
-
-task tGoto;
-input e_80386state nst;
-begin
-	state <= nst;
-end
-endtask
-
-task tGosub;
-input e_80386state tgt;
-input e_80386state rts;
-begin
-	stk_state[0] <= rts;
-	stk_state[1] <= stk_state[0];
-	stk_state[2] <= stk_state[1];
-	stk_state[3] <= stk_state[2];
-	stk_state[4] <= stk_state[3];
-	stk_state[5] <= stk_state[4];
-	tGoto(tgt);
-end
-endtask
-
-task tReturn;
-begin
-	state <= stk_state[0];
-	stk_state[0] <= stk_state[1];
-	stk_state[1] <= stk_state[2];
-	stk_state[2] <= stk_state[3];
-	stk_state[3] <= stk_state[4];
-	stk_state[4] <= stk_state[5];
-	stk_state[5] <= rf80386_pkg::RESET;
 end
 endtask
 

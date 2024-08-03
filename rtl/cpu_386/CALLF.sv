@@ -123,8 +123,10 @@ rf80386_pkg::CALLF2:
 						int_num = 8'd10;					// invalid TSS
 					else if (!fnSelectorInLimit(tgate.selector))						
 						int_num = 8'd10;					// invalid TSS
-					else
-						tGoto(rf80386_pkg::TASK_SWITCH);
+					else begin
+						new_tr <= tgate.selector;
+						tGosub(rf80386_pkg::TASK_SWITCH,rf80386_pkg::CALLF25);
+					end
 				5'b110??:	// non-conforming code segment
 					begin
 						if (selector[1:0] <= cpl && cdesc.p) begin
@@ -326,26 +328,17 @@ rf80386_pkg::CALLF16:
 // Call at same privilege level
 rf80386_pkg::CALLF20:
 	begin
-		if (cs_desc.dpl > cpl) begin
+		tGoto(rf80386_pkg::INT2);
+		if (cs_desc.dpl > cpl)
 			int_num <= 8'd13;
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if (OperandSize32 && esp > ss_limit - 4'd6) begin
+		else if (OperandSize32 && esp > ss_limit - 4'd6)
 			int_num <= 8'd12;
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if (OperandSize32 && eip > cs_limit) begin
+		else if (OperandSize32 && eip > cs_limit)
 			int_num <= 8'd13;
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if (!OperandSize32 && esp > ss_limit - 4'd4) begin
+		else if (!OperandSize32 && esp > ss_limit - 4'd4)
 			int_num <= 8'd12;
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if (!OperandSize32 && {16'h0,eip[15:0]} > cs_limit) begin
+		else if (!OperandSize32 && {16'h0,eip[15:0]} > cs_limit)
 			int_num <= 8'd13;
-			tGoto(rf80386_pkg::INT2);
-		end
 		else begin
 			ad <= sssp;
 			sel <= 16'h000F;
@@ -373,6 +366,16 @@ rf80386_pkg::CALLF22:
 		cs[1:0] <= cpl;
 		if (ir==8'hFF && rrr==3'b011)	// CALL FAR indirect
 			tGoto(rf80386_pkg::JUMP_VECTOR1);
+		else
+			tGoto(rf80386_pkg::IFETCH);
+	end
+
+rf80386_pkg::CALLF25:
+	begin
+		if (eip >= cs_limit) begin
+			int_num <= 8'd10;	// invalid TSS
+			tGoto(rf80386_pkg::INT2);
+		end
 		else
 			tGoto(rf80386_pkg::IFETCH);
 	end
