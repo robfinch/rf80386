@@ -686,6 +686,9 @@ typedef enum logic [8:0] {
 	V86_INT17,
 	V86_INT18,
 
+	INT_INNER_PRIV,
+	INT_SAME_PRIV,
+	
   IRET1,
   IRET2,
   IRET3,
@@ -980,6 +983,7 @@ reg [31:0] tbase;
 reg [15:0] new_tr;
 desc386_t old_tss_desc;
 desc386_t new_tss_desc;
+reg next_ie;
 
 function fnIsReadableCodeOrData;
 input desc386_t	desc;

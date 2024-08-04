@@ -313,6 +313,7 @@ always_ff @(posedge CLK)
 		ftmp <= 32'h0;
 		d_jmp <= 1'b0;
 		nest_task <= 1'b0;
+		next_ie <= 1'b0;
 		tClearBus();
 		tGoto(rf80386_pkg::IFETCH);
 	end
