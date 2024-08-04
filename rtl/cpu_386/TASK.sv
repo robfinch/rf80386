@@ -78,7 +78,10 @@ rf80386_pkg::TASK_SWITCH11:	tWriteTSSReg(cs,`TSS_CS,0,rf80386_pkg::TASK_SWITCH12
 rf80386_pkg::TASK_SWITCH12:	tWriteTSSReg(ss,`TSS_SS,0,rf80386_pkg::TASK_SWITCH13);
 rf80386_pkg::TASK_SWITCH13:	tWriteTSSReg(ds,`TSS_DS,0,rf80386_pkg::TASK_SWITCH14);
 rf80386_pkg::TASK_SWITCH14:	tWriteTSSReg(fs,`TSS_FS,0,rf80386_pkg::TASK_SWITCH15);
-rf80386_pkg::TASK_SWITCH15:	tWriteTSSReg(gs,`TSS_GS,0,rf80386_pkg::TASK_SWITCH19);
+rf80386_pkg::TASK_SWITCH15:	tWriteTSSReg(gs,`TSS_GS,0,rf80386_pkg::TASK_SWITCH18);
+rf80386_pkg::TASK_SWITCH18:	
+	if (nest_task)
+		tWriteTSSReg(tr,`TSS_LINK,0,rf80386_pkg::TASK_SWITCH19);
 //rf80386_pkg::TASK_SWITCH16:	tWriteTSSReg(ldt,`TSS_LDT,0,rf80386_pkg::TASK_SWITCH17);
 //rf80386_pkg::TASK_SWITCH17:	tWriteTSSReg(cr3,`TSS_CR3,1,rf80386_pkg::TASK_SWITCH18);
 rf80386_pkg::TASK_SWITCH18:	tWriteTSSReg(eip,`TSS_EIP,1,rf80386_pkg::TASK_SWITCH19);
@@ -119,6 +122,7 @@ rf80386_pkg::TASK_SWITCH48:
 		ie <= dat[9];
 		df <= dat[10];
 		vf <= dat[11];
+		nt <= nest_task ? 1'b1 : dat[14];
 		vm <= dat[18];
 		cr0[3] <= 1'b1;	// task switched flag
 		tReturn();

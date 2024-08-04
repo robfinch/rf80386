@@ -280,3 +280,5 @@ always_comb
 	table_limit = selector.ti ? ldt_limit : gdt_limit;
 wire selector_in_limit = {selector.ndx,3'b0} < table_limit;
 
+int_gate386_t igatei = int_gate386_t'(dat[63:0]);
+wire [31:0] idt_limit = {16'h0,idt_desc.limit_lo};

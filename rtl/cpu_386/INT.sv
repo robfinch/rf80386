@@ -51,10 +51,18 @@ rf80386_pkg::INT2:
 	begin
 		if (realMode)
 			tGoto(rf80386_pkg::RMD_INT3);
-		else if (v86)
-			tGoto(rf80386_pkg::V86_INT3);
-		else
-			tGoto(rf80386_pkg::INT3);
+		else if (v86) begin
+			if ({int_num,3'd0} > idt_limit)
+				int_num <= 8'd13;		// general protection fault
+			else
+				tGoto(rf80386_pkg::V86_INT3);
+		end
+		else begin
+			if ({int_num,3'd0} > idt_limit)
+				int_num <= 8'd13;		// general protection fault
+			else
+				tGoto(rf80386_pkg::INT3);
+		end
 	end
 
 // Real mode interrupt sequence
@@ -113,18 +121,33 @@ rf80386_pkg::V86_INT3:
 		old_gs <= gs;
 		old_ss <= ss;
 		old_esp <= esp;
-		// Load interrupt gate
+		// Load gate
 		ad <= idt_base + {int_num,3'd0};
 		sel <= 16'h00FF;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::V86_INT4);
 	end
 rf80386_pkg::V86_INT4:
 	begin
-		// Load ss:esp from TSS privilege level 0
-		ad <= tss_base + 4'd4;		// esp
-		sel <= 16'h00FF;					// read eight bytes
-		igate <= int_gate386_t'(dat[63:0]);
-		tGosub(rf80386_pkg::LOAD,rf80386_pkg::V86_INT5);
+		case({igatei.s,igatei.typ})
+		5'b00101:	// task gate
+			tGoto(rf80386_pkg::INT_TASK1);
+		5'b00110,	// 286 int gate
+		5'b00111,	// 286 trap gate
+		5'b01110,	// 386 int gate
+		5'b01111:	// 386 trap gate
+			begin
+				// Load ss:esp from TSS privilege level 0
+				ad <= tss_base + 4'd4;		// esp
+				sel <= 16'h00FF;					// read eight bytes
+				igate <= int_gate386_t'(dat[63:0]);
+				tGosub(rf80386_pkg::LOAD,rf80386_pkg::V86_INT5);
+			end
+		default:
+			begin
+				int_num <= 8'd13;	// general protection fault
+				tGoto(rf80386_pkg::INT2);
+			end
+		endcase
 	end
 rf80386_pkg::V86_INT5:
 	begin
@@ -256,8 +279,26 @@ rf80386_pkg::INT3:
 	end
 rf80386_pkg::INT4:
 	begin
-		igate <= int_gate386_t'(dat[63:0]);
-		tGoto(rf80386_pkg::INT5);
+		case({igatei.s,igatei.typ})
+		5'b00101:	// task gate
+			tGoto(rf80386_pkg::INT_TASK1);
+		5'b00110,	// 286 int gate
+		5'b00111,	// 286 trap gate
+		5'b01110,	// 386 int gate
+		5'b01111:	// 386 trap gate
+			begin
+				// Load ss:esp from TSS privilege level 0
+				ad <= tss_base + 4'd4;		// esp
+				sel <= 16'h00FF;					// read eight bytes
+				igate <= int_gate386_t'(dat[63:0]);
+				tGoto(rf80386_pkg::INT5);
+			end
+		default:
+			begin
+				int_num <= 8'd13;	// general protection fault
+				tGoto(rf80386_pkg::INT2);
+			end
+		endcase
 	end
 rf80386_pkg::INT5:
 	begin
@@ -340,3 +381,39 @@ rf80386_pkg::INT13:
 		dat <= old_eip;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH);
 	end
+
+
+rf80386_pkg::INT_TASK1:
+	begin
+		tGoto(rf80386_pkg::INT2);
+		if (igate.selector[2])	// global table?
+			int_num <= 8'd10;			// invalid TSS
+		else if (!fnSelectorInLimit(igate.selector))
+			int_num <= 8'd10;			// invalid TSS
+		else begin
+			selector <= igate.selector;
+			new_tr <= igate.selector;
+			old_tss_desc <= tss_desc;
+			rrr <= 3'd6;
+			tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::INT_TASK2);
+		end
+	end
+rf80386_pkg::INT_TASK2:
+	begin
+		tGoto(rf80386_pkg::INT2);
+		if (!tss_desc.p)
+			int_num <= 8'd11;		// segment not present
+		else begin
+			nest_task <= 1'b1;
+			tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::INT_TASK3);
+		end
+	end
+rf80386_pkg::INT_TASK3:
+	begin
+		tGoto(rf80386_pkg::INT2);
+		if (eip > cs_limit)
+			int_num <= 8'd13;		// general protection fault
+		else
+			tGoto(rf80386_pkg::IFETCH);
+	end
+

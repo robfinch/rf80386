@@ -658,6 +658,10 @@ typedef enum logic [8:0] {
   INT12,
   INT13,
   
+  INT_TASK1,
+  INT_TASK2,
+  INT_TASK3,
+  
   RMD_INT3,
   RMD_INT4,
   RMD_INT5,
@@ -966,6 +970,7 @@ typedef struct packed
 reg d_jmp;							// jump instruction decoded
 e_80386state state;			// machine state
 e_80386state [5:0] stk_state;	// stacked machine state
+reg nest_task;
 reg [1:0] rpl;
 reg [31:0] ad;
 reg [19:0] sel;
