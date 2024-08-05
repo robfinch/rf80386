@@ -56,12 +56,11 @@ rf80386_pkg::STOS:
 		tGoto(rf80386_pkg::IFETCH);
 	else begin
 		ad <= esdi;
+		dat <= eax;
 		if (OperandSize32) begin
-			dat <= w ? eax : al;
 			sel <= w ? 16'h000F : 16'h0001;
 		end
 		else begin
-			dat <= w ? ax : al;
 			sel <= w ? 16'h0003 : 16'h0001;
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::STOS1);

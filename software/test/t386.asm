@@ -213,12 +213,6 @@ _start1:
 #
 #   Move segment registers in real mode
 #
-.set cs,0
-.set ds,1
-.set es,2
-.set fs,3
-.set gs,4
-.set ss,5
 	testMovSegR_real ss
 	testMovSegR_real ds
 	testMovSegR_real es
@@ -261,7 +255,6 @@ _start1:
 #
 #   Calls in real mode
 #
-.set sp,0
 	mov $0,%si
 	testCallNear sp
 	testCallFar C_SEG_REAL

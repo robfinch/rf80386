@@ -59,7 +59,12 @@
 		mov $value,%al
 		addr\arg3
 		stosb		 	# STORE EAX in ES:EDI
-		cmp %al,%es:(%ebx)
+		.if \arg3 = 16
+			addr32
+			cmp %al,%es:(%ebx)
+		.else
+			cmp %al,%es:(%ebx)
+		.endif
 		jne error
 		cmp $off_cmp,%edi
 		jne error
@@ -98,7 +103,12 @@
 		addr\arg3
 		movsb        # MOVE data from DS:ESI to ES:EDI
 		mov $value,%al
-		cmp %al,%es:(%ebx)
+		.if \arg3 = 16
+			addr32
+			cmp %al,%es:(%ebx)
+		.else
+			cmp %al,%es:(%ebx)
+		.endif
 		jne error
 		cmp $off_cmp,%edi
 		jne error
@@ -125,7 +135,12 @@
 		mov $value,%ax
 		addr\arg3
 		stosw     # STORE EAX in ES:EDI
-		cmp %ax,%es:(%ebx)
+		.if \arg3 = 16
+			addr32
+			cmp %ax,%es:(%ebx)
+		.else
+			cmp %ax,%es:(%ebx)
+		.endif
 		jne error
 		cmp $off_cmp,%edi
 		jne error
@@ -164,7 +179,12 @@
 		addr\arg3
 		movsw 					# MOVE data from DS:ESI to ES:EDI
 		mov $value,%ax
-		cmp %ax,%es:(%ebx)
+		.if \arg3 = 16
+			addr32
+			cmp %ax,%es:(%ebx)
+		.else
+			cmp %ax,%es:(%ebx)
+		.endif
 		jne error
 		cmp $off_cmp,%edi
 		jne error
@@ -191,7 +211,12 @@
 		mov $value,%eax
 		addr\arg3
 		stosl     # STORE EAX in ES:EDI
-		cmp %eax,%es:(%ebx)
+		.if \arg3 = 16
+			addr32
+			cmp %eax,%es:(%ebx)
+		.else
+			cmp %eax,%es:(%ebx)
+		.endif
 		jne error
 		cmp $off_cmp,%edi
 		jne error
@@ -230,7 +255,12 @@
 		addr\arg3
 		movsl        # MOVE data from DS:ESI to ES:EDI
 		mov $value,%eax
-		cmp %eax,%es:(%ebx)
+		.if \arg3 = 16
+			addr32
+			cmp %eax,%es:(%ebx)
+		.else
+			cmp %eax,%es:(%ebx)
+		.endif
 		jne error
 		cmp $off_cmp,%edi
 		jne error

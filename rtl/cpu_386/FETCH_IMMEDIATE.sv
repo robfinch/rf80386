@@ -81,6 +81,7 @@ rf80386_pkg::FETCH_IMM8:
 
 rf80386_pkg::FETCH_IMM16:
 	begin
+		if (!hasFetchedData)
 		case(ir)
 		`ALU_I2R8:
 			begin

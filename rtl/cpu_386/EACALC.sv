@@ -73,6 +73,23 @@ rf80386_pkg::EACALC:
 							offset <= 32'h0000;
 						end
 					4'b0111:	offset <= {16'h0,bx};
+					4'd8:	offset <= eax;
+					4'd9:	offset <= ecx;
+					4'd10:	offset <= edx;
+					4'd11:	offset <= ebx;
+					4'd12:
+						begin
+							tGoto(rf80386_pkg::EACALC_SIB);
+							offset <= 32'h0000;
+						end
+					4'd13:
+						begin
+							tGoto(rf80386_pkg::EACALC_DISP16);
+							offset <= 32'h0000;
+						end
+					4'd14:	offset <= esi;
+					4'd15:	offset <= edi;
+					/*
 					4'b1000:	offset <= {ebx + esi};
 					4'b1001:	offset <= {ebx + edi};
 					4'b1010:	offset <= {ebp + esi};
@@ -85,6 +102,7 @@ rf80386_pkg::EACALC:
 							offset <= 32'h0000;
 						end
 					4'b1111:	offset <= ebx;
+					*/
 					endcase
 				end
 				else begin

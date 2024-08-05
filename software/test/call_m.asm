@@ -6,8 +6,8 @@
 #
 .macro testCallNear arg1
 
-	.if \arg1 = sp
-		mov \arg1,%ax
+	.ifc \arg1, sp
+		mov %\arg1,%ax
 rel16\@:
 		clc
 		data16
@@ -16,7 +16,7 @@ rel16\@:
 		jmp rel32\@
 nearfn16\@:
 		sub $2,%ax
-		cmp %ax,\arg1
+		cmp %ax,%\arg1
 		jne error
 		add $2,%ax
 		stc
@@ -32,7 +32,7 @@ rel32\@:
 		jmp rm16\@
 nearfn32\@:
 		sub $4,%ax
-		cmp %ax,\arg1
+		cmp %ax,%\arg1
 		jne error
 		add $4,%ax
 		stc
@@ -48,12 +48,12 @@ rm16\@:
 		jnc error
 rm32\@:
 		clc
-		mov $nearfn32,%ebx
+		mov $nearfn32\@,%ebx
 		data32
 		call %ebx
 		jnc error
 	.else
-		mov \arg1,%eax
+		mov %\arg1,%eax
 rel16\@:
 		clc
 		data16
@@ -62,7 +62,7 @@ rel16\@:
 		jmp rel32\@
 nearfn16\@:
 		sub $2,%eax
-		cmp %eax,\arg1
+		cmp %eax,%\arg1
 		jne error
 		add $2,%eax
 		stc
@@ -78,7 +78,7 @@ rel32\@:
 		jmp rm16\@
 nearfn32\@:
 		sub $4,%eax
-		cmp %eax,\arg1
+		cmp %eax,%\arg1
 		jne error
 		add $4,%eax
 		stc
@@ -94,7 +94,7 @@ rm16\@:
 		jnc error
 rm32\@:
 		clc
-		mov $nearfn32,%ebx
+		mov $nearfn32\@,%ebx
 		data32
 		call %ebx
 		jnc error
@@ -112,7 +112,7 @@ rm32\@:
 
 	clc
 	data16
-	callw \arg1:farfn16\@
+	callw $\arg1,$farfn16\@
 	jnc error
 	jmp o32\@
 farfn16\@:
@@ -128,7 +128,7 @@ farfn16\@:
 o32\@:
 	clc
 	data32
-	calll \arg1:farfn32\@
+	calll $\arg1,$farfn32\@
 	jnc error
 	jmp m1616\@
 farfn32\@:

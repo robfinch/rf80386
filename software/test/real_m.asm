@@ -56,6 +56,7 @@ aloop\@:
 	cmp $ESP_REAL-6,%sp
 	jne error
 	cmpw $C_SEG_REAL,%ss:ESP_REAL-4
+	jne error
 	cmpw $\arg2,%ss:ESP_REAL-6
 	jne error
 	mov $0,%ax

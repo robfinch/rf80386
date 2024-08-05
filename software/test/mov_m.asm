@@ -4,14 +4,14 @@
 #   %1 the segment register to test
 #
 .macro testMovSegR_real arg1
-	.if \arg1 = cs
+	.ifc \arg1, cs
 	mov $C_SEG_REAL,%dx
 	.else
 	mov $D1_SEG_REAL,%dx
 	.endif
 
 	# MOV reg to Sreg
-	.if \arg1 = cs
+	.ifc \arg1, cs
 	realModeFaultTest EX_UD, "mov %dx", \arg1 # test for #UD
 	.else
 	mov %dx,%\arg1
@@ -38,13 +38,13 @@
 	jne error
 
 	# MOV word mem to Sreg
-	.if \arg1 = cs
+	.ifc \arg1, cs
 	realModeFaultTest EX_UD, "mov 0", \arg1 # test for #UD
 	.else
 	mov %ds,%cx	 	# save current DS in CX
 	xor %ax,%ax
 	mov %ax,%\arg1
-	.if \arg1 = ds
+	.ifc \arg1, ds
 	mov %cx,%es
 	mov %es:0,%\arg1
 	.else
@@ -60,14 +60,14 @@
 
 .macro testMovSegR_prot arg1
 	mov $-1,%edx
-	.if \arg1 = cs
+	.ifc \arg1, cs
 	mov $C_SEG_PROT32,%dx
 	%else
 	mov $D1_SEG_PROT,%dx
 	%endif
 
 	# MOV reg to Sreg
-	.if \arg1 = cs
+	.ifc \arg1, cs
 	loadProtModeStack
 	protModeFaultTest EX_UD, $0, "mov %dx", \arg1 	# #UD: attempt is made to load the CS register.
 	.else
@@ -95,13 +95,13 @@
 	jne error
 
 	# MOV word mem to Sreg
-	.if \arg1 = cs
+	.ifc \arg1, cs
 	protModeFaultTest EX_UD, $0, "mov 0", \arg1 # test for #UD
 	.else
 	mov %ds,%cx 	# save current DS in CX
 	mov $DTEST_SEG_PROT,%ax
 	mov %ax,%\arg1
-	.if %1 = ds
+	.ifc \arg1, ds
 	mov %cx,%es
 	mov %es:0,%\arg1
 	.else
@@ -113,7 +113,7 @@
 	.endif
 
 	loadProtModeStack
-	.if \arg1 = ss
+	.ifc \arg1, ss
 	# #GP(0) If attempt is made to load SS register with NULL segment selector.
 	mov $NULL,%ax
 	protModeFaultTest EX_GP, $0, "mov %ax", \arg1
@@ -127,11 +127,11 @@
 	mov $NP_SEG_PROT,%ax
 	protModeFaultTest EX_SS, $NP_SEG_PROT, "mov %ax", \arg1
 	.endif
-	.if \arg1 != cs
+	.ifnc \arg1, cs
 	# #GP(selector) If segment selector index is outside descriptor table limits.
 	mov $0xFFF8,%ax
 	protModeFaultTest EX_GP, $0xfff8, "mov %ax", \arg1
-	.if \arg1 != ss
+	.ifnc \arg1, ss
 	# #NP(selector) If the DS, ES, FS, or GS register is being loaded and the segment pointed to is marked not present.
 	mov $NP_SEG_PROT,%ax
 	protModeFaultTest EX_NP, $NP_SEG_PROT, "mov %ax", \arg1
