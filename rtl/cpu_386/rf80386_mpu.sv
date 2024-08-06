@@ -1,5 +1,6 @@
 import const_pkg::*;
 import fta_bus_pkg::*;
+import bigfoot_pkg::*;
 
 module rf80386_mpu(rst, clk, fta_req, fta_resp);
 parameter CORENO = 1;
@@ -25,7 +26,7 @@ wire ic_invline = 1'b0;
 wire brtgtv = 1'b0;
 wire icnop;
 wire [15:0] ip_asid=16'h0;
-wire [31:0] csip;
+wire [31:0] csip,pcsip;
 wire [31:0] icpc;
 wire ihito;
 wire ihit;
@@ -39,6 +40,7 @@ wire wr_ic;
 wire [31:0] icdp = 32'h0;
 wire ic_port;
 reg [127:0] bundle;
+wire pc_padr_v;
 
 always_comb
 	ic_line = {ic_line_hi.data,ic_line_lo.data};
@@ -61,7 +63,7 @@ uic1
 	.nop(brtgtv),
 	.nop_o(icnop),
 	.ip_asid(ip_asid),
-	.ip({6'd0,csip}),
+	.ip({8'd0,csip}),
 	.ip_o(icpc),
 	.ihit_o(ihito),
 	.ihit(ihit),
@@ -96,17 +98,70 @@ icctrl1
 //	.tlb_v(pc_tlb_v),
 //	.tlb_v(1'b1),
 	.miss_vadr(ic_miss_adr),
-//	.miss_padr(pc_tlb_res),
-	.miss_padr(ic_miss_adr),
+	.miss_padr(pcsip),
+//	.miss_padr(ic_miss_adr),
 //	.miss_asid(tlb_pc_entry.vpn.asid),
 	.miss_asid(ip_asid),
-	.miss_padr_v(1'b1),
+	.miss_padr_v(pc_padr_v),
 	.wr_ic(wr_ic),
 	.way(ic_wway),
 	.line_o(ic_line_o),
 	.snoop_adr(snoop_adr),
 	.snoop_v(snoop_v),
 	.snoop_cid(snoop_cid)
+);
+
+tlb3way utlb (
+	.rst(rst),
+	.clk(clk),
+	.wr(1'b0),
+	.way(2'd0), 
+	.entry_no(10'h0), 
+	.entry_i(96'd0),
+	.entry_o(),
+	.vadr0(40'h0),
+	.vadr1(40'h0),
+	.omd0(bigfoot_pkg::OM_SUPERVISOR),
+	.omd1(bigfoot_pkg::OM_SUPERVISOR),
+	.pc_omd(bigfoot_pkg::OM_SUPERVISOR),
+	.asid0(16'h0),
+	.asid1(16'h0), 
+	.pc_asid(ip_asid),
+	.entry0_o(),
+	.entry1_o(),
+	.miss_o(),
+	.missadr_o(),
+	.missasid_o(),
+	.missid_o(),
+	.missqn_o(),
+	.missack(1'b0),
+	.padr0_v(),
+	.tlb1_v(),
+	.op0(),
+	.op1(),
+	.tlb0_op(),
+	.tlb1_op(),
+	.padr0(), 
+	.tlb1_res(), 
+	.pc_ladr({8'h00,ic_miss_adr}),
+	.pc_padr(pcsip),
+	.pc_padr_v(pc_padr_v),
+	.load0_i(1'd0),
+	.load1_i(1'd0),
+	.store0_i(1'd0),
+	.store1_i(1'd0),
+	.load0_o(),
+	.load1_o(),
+	.store0_o(),
+	.store1_o(),
+	.stall_tlb0(),
+	.stall_tlb1(),
+	.agen0_rndx_i(8'd0),
+	.agen1_rndx_i(8'd0),
+	.agen0_rndx_o(),
+	.agen1_rndx_o(),
+	.agen0_v(),
+	.agen1_v()
 );
 
 rf80386 #(.CORENO(CORENO), .CID(1)) ucpu1
