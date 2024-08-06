@@ -71,6 +71,33 @@ rf80386_pkg::EXECUTE:
 				end
 			`LLDT: tGoto(rf80386_pkg::LLDT);
 			`LxDT: tGoto(rf80386_pkg::LxDT);
+			`MOV_R2CR:
+				case(rrr)
+				3'd0:	cr0 <= a;
+				3'd2:	cr2 <= a;
+				3'd3:
+					begin
+						cr3 <= a;							
+						ad <= 32'hFFF4FF40;
+						dat <= a;
+						sel <= 16'hFFFF;
+//						tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH);
+						tGoto(rf80386_pkg::IFETCH);
+					end
+				default:	;
+				endcase
+			`MOV_CR2R:
+				begin
+					w <= 1'b1;
+					wrregs <= 1'b1;
+					rrr <= rm;
+					case(rrr)
+					3'd0:	res <= cr0;
+					3'd2:	res <= cr2;
+					3'd3:	res <= cr3;
+					default:	;
+					endcase
+				end
 			default:	;
 			endcase
 

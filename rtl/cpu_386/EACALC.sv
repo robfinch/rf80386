@@ -245,6 +245,26 @@ rf80386_pkg::EACALC:
 			begin
 				tGoto(rf80386_pkg::EXECUTE);
 				casez(ir)
+				`EXTOP:
+					case(ir2)
+					`MOV_R2CR:
+						begin
+							a <= rmo;
+						end
+					default:
+					  begin
+							// d=1 value goes to register, d=0 value comes from reg.
+							if (~d) begin
+								a <= rmo;
+								b <= rrro;
+								rrr <= rm;
+							end
+							else begin
+								a <= rrro;
+								b <= rmo;
+							end
+						end
+					endcase
 				`SHI8,`SHI16,
 				`ALU_I2R8:
 					begin

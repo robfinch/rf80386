@@ -190,6 +190,21 @@ rf80386_pkg::DECODER2:
 					jccl <= 1'b1;
 					tGoto(rf80386_pkg::BRANCH1);
 				end
+			//-----------------------------------------------------------------
+			// Move control register
+			//-----------------------------------------------------------------
+			`MOV_R2CR,`MOV_CR2R:	
+				begin
+					w <= 1'b1;
+					mod   <= bundle[7:6];
+					rrr   <= bundle[5:3];
+					sreg3 <= bundle[5:3];
+					TTT   <= bundle[5:3];
+					rm    <= bundle[2:0];
+					$display("Mod/RM=%b_%b_%b", dat_i[7:6],dat_i[5:3],dat_i[2:0]);
+					tGoto(rf80386_pkg::EACALC);		// override state transition
+				end
+
 			default:	;
 			endcase
 		default:	;
