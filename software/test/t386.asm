@@ -83,6 +83,7 @@
 .set rodata_seg,0x0fffa000
 .set start_rodata,0xfffa0000
 .set TEST_BASE,0xFFFC0000
+.set TEST_CODE,0xFFFF0000
 .set TEST_BASE1,TEST_BASE+0x0000
 .set TEST_BASE2,TEST_BASE+0x2000
 
@@ -277,6 +278,121 @@ _start1:
 	testLoadPtr gs
 
 	advTestSegReal
+
+# ==============================================================================
+#	Protected mode tests
+# ==============================================================================
+
+#-------------------------------------------------------------------------------
+	POST $0x08
+#-------------------------------------------------------------------------------
+#
+#   GDT, LDT, PDT, and PT setup, enter protected mode
+#
+	jmp initGDT
+
+.set ESP_R0_PROT,0x0000FFFF
+.set ESP_R3_PROT,0x00007FFF
+
+.include "protected_m.asm"
+
+
+#;; support for ROM based GDT (currently unused)
+romGDT:
+romGDTEnd:
+romGDTaddr:
+	.2byte romGDTEnd - romGDT - 1 	# 16-bit limit
+	.4byte romGDT  									# 32-bit base address
+#;;
+
+ptrGDTreal: # pointer to the pmode GDT for real mode code
+	.4byte 0         			# 32-bit offset
+	.2byte GDT_SEG_REAL  	# 16-bit segment selector
+ptrIDTreal: # pointer to the pmode IDT for real mode code
+	.4byte 0
+	.2byte IDT_SEG_REAL
+
+initGDT:
+	# the first descriptor in the GDT is always a dud (the null selector)
+	defGDTDesc 0,0,0,0,0
+	defGDTDesc C_SEG_PROT16,  0xffff0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_PRESENT
+	defGDTDesc C_SEG_PROT32,  0xffff0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_PRESENT,EXT_32BIT
+	defGDTDesc CU_SEG_PROT32, 0xffff0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_PRESENT|ACC_DPL_3,EXT_32BIT
+	defGDTDesc CC_SEG_PROT32, 0xffff0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_TYPE_CONFORMING|ACC_PRESENT|EXT_32BIT
+	defGDTDesc IDT_SEG_PROT,  0xFFF90400,0x000000ff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc IDTU_SEG_PROT, 0xFFF90400,0x000000ff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3
+	defGDTDesc GDT_DSEG_PROT, 0xFFF90500,0x000002ff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc GDTU_DSEG_PROT,0xFFF90500,0x000002ff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3
+	defGDTDesc LDT_SEG_PROT,  0xFFF90800,0x000007ff,ACC_TYPE_LDT|ACC_PRESENT
+	defGDTDesc LDT_DSEG_PROT, 0xFFF90800,0x000007ff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc PG_SEG_PROT,   0xfff80000,0x00002fff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc S_SEG_PROT32,  0xfffc0000,0x0008ffff,ACC_TYPE_DATA_W|ACC_PRESENT,EXT_32BIT
+	defGDTDesc SU_SEG_PROT32, 0xfffc0000,0x0008ffff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3,EXT_32BIT
+	defGDTDesc TSS_PROT,      0xfff94000,0x00000fff,ACC_TYPE_TSS|ACC_PRESENT|ACC_DPL_3
+	defGDTDesc TSS_DSEG_PROT, 0xfff94000,0x00000fff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc FLAT_SEG_PROT, 0x00000000,0xffffffff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc RING0_GATE # placeholder for a call gate used to switch to ring 0
+
+	jmp initIDT
+
+ptrIDTprot: # pointer to the IDT for pmode
+	.4byte 0         		# 32-bit offset
+	.2byte IDT_SEG_PROT # 16-bit segment selector
+ptrIDTUprot: # pointer to the IDT for pmode
+	.4byte 0            	# 32-bit offset
+	.2byte IDTU_SEG_PROT  # 16-bit segment selector
+ptrGDTprot: # pointer to the GDT for pmode (kernel mode data segment)
+	.4byte 0
+	.2byte GDT_DSEG_PROT
+ptrGDTUprot: # pointer to the GDT for pmode (user mode data segment)
+	.4byte 0
+	.2byte GDTU_DSEG_PROT
+ptrLDTprot: # pointer to the LDT for pmode
+	.4byte 0
+	.2byte LDT_DSEG_PROT
+ptrPDprot: # pointer to the Page Directory for pmode
+	.4byte 0
+	.2byte PG_SEG_PROT
+ptrPT0prot: ; pointer to Page Table 0
+	.4byte 0x1000
+	.2byte PG_SEG_PROT
+ptrPT1prot: ; pointer to Page Table 1
+	.4byte 0x2000
+	.2byte PG_SEG_PROT
+ptrSSprot: ; pointer to the stack for pmode
+	.4byte ESP_R0_PROT
+	.2byte S_SEG_PROT32
+ptrTSSprot: ; pointer to the task state segment
+	.4byte 0
+	.2byte TSS_DSEG_PROT
+addrProtIDT: ; address of pmode IDT to be used with lidt
+	.2byte 0xFF              						# 16-bit limit
+	.4byte (IDT_SEG_REAL << 4)|0xffff0000 	# 32-bit base address
+addrGDT: # address of GDT to be used with lgdt
+	.2byte GDT_SEG_LIMIT
+	.4byte (GDT_SEG_REAL << 4)|0xffff0000
+
+; Initializes an interrupt gate in system memory in real mode
+initIntGateReal:
+	pushad
+	initIntGate
+	popad
+	ret
+
+initIDT:
+	lds %cs:ptrIDTreal,%ebx
+	mov $C_SEG_PROT32,%esi
+	mov $DefaultExcHandler,%edi
+	mov $ACC_DPL_0,%dx
+.set vector,00
+.rep 0x15
+	mov $vector,%eax
+	call initIntGateReal
+.set vector,vector+1
+.endr
+
+#	jmp initPaging
+
 
 .include "lea_m.asm"
 #.include "lea_p.asm"

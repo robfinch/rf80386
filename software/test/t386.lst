@@ -3,7 +3,7 @@ Sections:
 01: ".bss" (0-A)
 02: ".data" (0-A)
 03: ".rodata" (0-6)
-04: ".text" (0-185A)
+04: ".text" (0-1DA8)
 
 
 Source: "t386.asm"
@@ -92,49 +92,50 @@ Source: "t386.asm"
                       	    83: .set rodata_seg,0x0fffa000
                       	    84: .set start_rodata,0xfffa0000
                       	    85: .set TEST_BASE,0xFFFC0000
-                      	    86: .set TEST_BASE1,TEST_BASE+0x0000
-                      	    87: .set TEST_BASE2,TEST_BASE+0x2000
-                      	    88: 
-                      	    89: 	.section .pgtbl
-00:00000000 00        	    90: 	.space 10
+                      	    86: .set TEST_CODE,0xFFFF0000
+                      	    87: .set TEST_BASE1,TEST_BASE+0x0000
+                      	    88: .set TEST_BASE2,TEST_BASE+0x2000
+                      	    89: 
+                      	    90: 	.section .pgtbl
+00:00000000 00        	    91: 	.space 10
 00:00000001 *
-                      	    91: 
-                      	    92: 	.bss
-01:00000000 00        	    93: 	.space	10
+                      	    92: 
+                      	    93: 	.bss
+01:00000000 00        	    94: 	.space	10
 01:00000001 *
-                      	    94: 
-                      	    95: 	.data
-02:00000000 00        	    96: 	.space	10
+                      	    95: 
+                      	    96: 	.data
+02:00000000 00        	    97: 	.space	10
 02:00000001 *
-                      	    97: 
-                      	    98: 	.rodata
-                      	    99: idt_addr:
-03:00000000 0004      	   100: 	.2byte 0x400
-03:00000002 0000F9FF  	   101: 	.4byte 0xFFF90000		# Linear address of table
-                      	   102: 
-                      	   103: #	.org	0xF0000
-                      	   104: 	.text
-                      	   105: 	.code16
-                      	   106: #	.align	0
-                      	   107: .extern	_bootrom
-                      	   108: .extern _Fibonacci
-                      	   109: 
-                      	   110: #
-                      	   111: #   Real mode segments
-                      	   112: #
-                      	   113: .set C_SEG_REAL,0x0000
-                      	   114: .set S_SEG_REAL,0xC000
-                      	   115: .set IDT_SEG_REAL,0x9000
-                      	   116: .set IDT_SEG_PROT,0x9040
-                      	   117: .set GDT_SEG_REAL,0x9050
-                      	   118: .set GDT_SEG_LIMIT,0x2FF
-                      	   119: .set D1_SEG_REAL,TEST_BASE1 >> 4
-                      	   120: .set D2_SEG_REAL,TEST_BASE2 >> 4
-                      	   121: 
-                      	   122: .set ESP_REAL,0x7ffc
-                      	   123: 
+                      	    98: 
+                      	    99: 	.rodata
+                      	   100: idt_addr:
+03:00000000 0004      	   101: 	.2byte 0x400
+03:00000002 0000F9FF  	   102: 	.4byte 0xFFF90000		# Linear address of table
+                      	   103: 
+                      	   104: #	.org	0xF0000
+                      	   105: 	.text
+                      	   106: 	.code16
+                      	   107: #	.align	0
+                      	   108: .extern	_bootrom
+                      	   109: .extern _Fibonacci
+                      	   110: 
+                      	   111: #
+                      	   112: #   Real mode segments
+                      	   113: #
+                      	   114: .set C_SEG_REAL,0x0000
+                      	   115: .set S_SEG_REAL,0xC000
+                      	   116: .set IDT_SEG_REAL,0x9000
+                      	   117: .set IDT_SEG_PROT,0x9040
+                      	   118: .set GDT_SEG_REAL,0x9050
+                      	   119: .set GDT_SEG_LIMIT,0x2FF
+                      	   120: .set D1_SEG_REAL,TEST_BASE1 >> 4
+                      	   121: .set D2_SEG_REAL,TEST_BASE2 >> 4
+                      	   122: 
+                      	   123: .set ESP_REAL,0x7ffc
                       	   124: 
-                      	   125: .include "x86_e.asm"
+                      	   125: 
+                      	   126: .include "x86_e.asm"
 
 Source: "x86_e.asm"
                       	     1: .set PS_CF,0x0001
@@ -208,7 +209,7 @@ Source: "x86_e.asm"
                       	    69: 
 
 Source: "t386.asm"
-                      	   126: .include "macros_m.asm"
+                      	   127: .include "macros_m.asm"
 
 Source: "macros_m.asm"
                       	     1: #
@@ -302,7 +303,7 @@ Source: "macros_m.asm"
                       	    89: 
 
 Source: "t386.asm"
-                      	   127: .include "shift_m.asm"
+                      	   128: .include "shift_m.asm"
 
 Source: "shift_m.asm"
                       	     1: #
@@ -359,11 +360,11 @@ Source: "shift_m.asm"
                       	    52: 
 
 Source: "t386.asm"
-                      	   128: 
-                      	   129: _start:
-04:00000000 EB59      	   130: 	jmp _start1
-                      	   131: header:
-                      	   132: 	cpyright
+                      	   129: 
+                      	   130: _start:
+04:00000000 EB59      	   131: 	jmp _start1
+                      	   132: header:
+                      	   133: 	cpyright
 04:00000002 743338362E	     1M 	.ascii "t386.asm (c) 2024 Robert Finch (C) 2012-2015 Jeff Parsons, (C) 2017-2021 Marco Bortolin ",0
 04:00000007 61736D2028
 04:0000000C 6329203230
@@ -383,29 +384,29 @@ Source: "t386.asm"
 04:00000052 6F72746F6C
 04:00000057 696E20
 04:0000005A 00
-                      	   133: 
-                      	   134: _start1:
-04:0000005B FA        	   135: 	cli	
-                      	   136: # init IDT
-                      	   137: #	mov $17,%cx
-                      	   138: #	movl $error,%edx
-                      	   139: #	movl $0xfff90000,%eax
-                      	   140: #	movl $error,%edx
-                      	   141: #.aloop:
-                      	   142: #	movw %dx,(%eax)
-                      	   143: #	movw $0xf000,2(%eax)
-                      	   144: ##	movw $error,(,%eax,4)
-                      	   145: ##	movw $0xf000,2(,%eax,4)
-                      	   146: #	addl $4,%eax
-                      	   147: #	loop .aloop
-                      	   148: 
-                      	   149: #	mov $ESP_REAL,%esp
-                      	   150: 
-                      	   151: # ==============================================================================
-                      	   152: #	Real mode tests
-                      	   153: # ==============================================================================
-                      	   154: 
-                      	   155: .include "real_m.asm"
+                      	   134: 
+                      	   135: _start1:
+04:0000005B FA        	   136: 	cli	
+                      	   137: # init IDT
+                      	   138: #	mov $17,%cx
+                      	   139: #	movl $error,%edx
+                      	   140: #	movl $0xfff90000,%eax
+                      	   141: #	movl $error,%edx
+                      	   142: #.aloop:
+                      	   143: #	movw %dx,(%eax)
+                      	   144: #	movw $0xf000,2(%eax)
+                      	   145: ##	movw $error,(,%eax,4)
+                      	   146: ##	movw $0xf000,2(,%eax,4)
+                      	   147: #	addl $4,%eax
+                      	   148: #	loop .aloop
+                      	   149: 
+                      	   150: #	mov $ESP_REAL,%esp
+                      	   151: 
+                      	   152: # ==============================================================================
+                      	   153: #	Real mode tests
+                      	   154: # ==============================================================================
+                      	   155: 
+                      	   156: .include "real_m.asm"
 
 Source: "real_m.asm"
                       	     1: #
@@ -494,46 +495,46 @@ Source: "real_m.asm"
                       	    84: 
 
 Source: "t386.asm"
-                      	   156: #-------------------------------------------------------------------------------
-                      	   157: 	POST $0x00
+                      	   157: #-------------------------------------------------------------------------------
+                      	   158: 	POST $0x00
 04:0000005C B000      	     1M 	movb $0x00,%al
 04:0000005E BA9001    	     2M 	movw $POST_PORT,%dx
 04:00000061 EE        	     3M 	out %al,%dx
-                      	   158: #-------------------------------------------------------------------------------
-                      	   159: #
-                      	   160: #   Real mode initialisation
-                      	   161: #
-04:00000062 B800A0    	   162: 	mov $rodata_seg & realmd_mask,%ax
-04:00000065 8ED8      	   163: 	mov %ax,%ds
-04:00000067 0F011E0000	   164: 	lidt idt_addr-start_rodata
-                      	   165: 	initRealModeIDT
+                      	   159: #-------------------------------------------------------------------------------
+                      	   160: #
+                      	   161: #   Real mode initialisation
+                      	   162: #
+04:00000062 B800A0    	   163: 	mov $rodata_seg & realmd_mask,%ax
+04:00000065 8ED8      	   164: 	mov %ax,%ds
+04:00000067 0F011E0000	   165: 	lidt idt_addr-start_rodata
+                      	   166: 	initRealModeIDT
 04:0000006C B80090    	     1M 	mov $IDT_SEG_REAL,%ax
 04:0000006F 8ED8      	     2M 	mov %ax,%ds
 04:00000071 31FF      	     3M 	xor %di,%di
 04:00000073 B91100    	     4M 	mov $17,%cx
                       	     5M aloop7:
-04:00000076 C7053F18  	     6M 	movw $error,(%di)
+04:00000076 C7058D1D  	     6M 	movw $error,(%di)
 04:0000007A C745020000	     7M 	movw $C_SEG_REAL,2(%di)
 04:0000007F 83C704    	     8M 	add $4,%di
 04:00000082 E2F2      	     9M 	loop aloop7
-04:00000084 B800C0    	   166: 	mov $S_SEG_REAL,%ax
-04:00000087 8ED0      	   167: 	mov %ax,%ss
-04:00000089 BCFC7F    	   168: 	mov $ESP_REAL,%sp
-04:0000008C C7C200C0  	   169: 	mov $D1_SEG_REAL,%dx
-04:00000090 8EDA      	   170: 	mov %dx,%ds
-04:00000092 C7C200C2  	   171: 	mov $D2_SEG_REAL,%dx
-04:00000096 8EC2      	   172: 	mov %dx,%es
-                      	   173: 
-                      	   174: #-------------------------------------------------------------------------------
-                      	   175: 	POST $0x01
+04:00000084 B800C0    	   167: 	mov $S_SEG_REAL,%ax
+04:00000087 8ED0      	   168: 	mov %ax,%ss
+04:00000089 BCFC7F    	   169: 	mov $ESP_REAL,%sp
+04:0000008C C7C200C0  	   170: 	mov $D1_SEG_REAL,%dx
+04:00000090 8EDA      	   171: 	mov %dx,%ds
+04:00000092 C7C200C2  	   172: 	mov $D2_SEG_REAL,%dx
+04:00000096 8EC2      	   173: 	mov %dx,%es
+                      	   174: 
+                      	   175: #-------------------------------------------------------------------------------
+                      	   176: 	POST $0x01
 04:00000098 B001      	     1M 	movb $0x01,%al
 04:0000009A BA9001    	     2M 	movw $POST_PORT,%dx
 04:0000009D EE        	     3M 	out %al,%dx
-                      	   176: #-------------------------------------------------------------------------------
-                      	   177: #
-                      	   178: #   Conditional jumps
-                      	   179: #
-                      	   180: .include "jcc_m.asm"
+                      	   177: #-------------------------------------------------------------------------------
+                      	   178: #
+                      	   179: #   Conditional jumps
+                      	   180: #
+                      	   181: .include "jcc_m.asm"
 
 Source: "jcc_m.asm"
                       	     1: #
@@ -717,7 +718,7 @@ Source: "jcc_m.asm"
                       	   179: 
 
 Source: "t386.asm"
-                      	   181: 	testJcc 8
+                      	   182: 	testJcc 8
 04:0000009E B401      	     1M 	mov $PS_CF,%ah
 04:000000A0 9E        	     2M 	sahf         # dont use the stack (pushf/popf)
 04:000000A1 7324      	     3M 	jnc err110 	# 73 / 0F83   JNC  CF=0
@@ -871,7 +872,7 @@ Source: "t386.asm"
                       	   148M .endif
                       	   149M 
                       	   150M exit10:
-                      	   182: 	testJcc 16
+                      	   183: 	testJcc 16
 04:0000014B B401      	     1M 	mov $PS_CF,%ah
 04:0000014D 9E        	     2M 	sahf         # dont use the stack (pushf/popf)
 04:0000014E 0F83B700  	     3M 	jnc err111 	# 73 / 0F83   JNC  CF=0
@@ -1790,11 +1791,11 @@ Source: "t386.asm"
                       	   148M .endif
                       	   149M 
                       	   150M exit11:
-                      	   183: 
-                      	   184: #
-                      	   185: #   Loops
-                      	   186: #
-                      	   187: .include "loop_m.asm"
+                      	   184: 
+                      	   185: #
+                      	   186: #   Loops
+                      	   187: #
+                      	   188: .include "loop_m.asm"
 
 Source: "loop_m.asm"
                       	     1: #
@@ -1901,34 +1902,34 @@ Source: "loop_m.asm"
                       	   102: .endm
 
 Source: "t386.asm"
-                      	   188: #	testLoop
-                      	   189: #	testLoopZ
-                      	   190: #	testLoopNZ
-                      	   191: 
-                      	   192: #-------------------------------------------------------------------------------
-                      	   193: 	POST $0x02
+                      	   189: #	testLoop
+                      	   190: #	testLoopZ
+                      	   191: #	testLoopNZ
+                      	   192: 
+                      	   193: #-------------------------------------------------------------------------------
+                      	   194: 	POST $0x02
 04:000003A9 B002      	     1M 	movb $0x02,%al
 04:000003AB BA9001    	     2M 	movw $POST_PORT,%dx
 04:000003AE EE        	     3M 	out %al,%dx
-                      	   194: #-------------------------------------------------------------------------------
-                      	   195: #
-                      	   196: #   Quick tests of unsigned 32-bit multiplication and division
-                      	   197: #   Thorough arithmetical and logical tests are done later
-                      	   198: #
-04:000003AF 66B8010000	   199: 	mov $0x80000001,%eax
+                      	   195: #-------------------------------------------------------------------------------
+                      	   196: #
+                      	   197: #   Quick tests of unsigned 32-bit multiplication and division
+                      	   198: #   Thorough arithmetical and logical tests are done later
+                      	   199: #
+04:000003AF 66B8010000	   200: 	mov $0x80000001,%eax
 04:000003B4 80
-04:000003B5 66F7E8    	   200: 	imul %eax
-04:000003B8 66B8112233	   201: 	mov $0x44332211,%eax
+04:000003B5 66F7E8    	   201: 	imul %eax
+04:000003B8 66B8112233	   202: 	mov $0x44332211,%eax
 04:000003BD 44
-04:000003BE 6689C3    	   202: 	mov %eax,%ebx
-04:000003C1 66B9556677	   203: 	mov $0x88776655,%ecx
+04:000003BE 6689C3    	   203: 	mov %eax,%ebx
+04:000003C1 66B9556677	   204: 	mov $0x88776655,%ecx
 04:000003C6 88
-04:000003C7 66F7E1    	   204: 	mul %ecx
-04:000003CA 66F7F1    	   205: 	div %ecx
-04:000003CD 6639D8    	   206: 	cmp %ebx,%eax
-04:000003D0 0F856B14  	   207: 	jne error
-                      	   208: 
-                      	   209: .include "mov_m.asm"
+04:000003C7 66F7E1    	   205: 	mul %ecx
+04:000003CA 66F7F1    	   206: 	div %ecx
+04:000003CD 6639D8    	   207: 	cmp %ebx,%eax
+04:000003D0 0F85B919  	   208: 	jne error
+                      	   209: 
+                      	   210: .include "mov_m.asm"
 
 Source: "mov_m.asm"
                       	     1: #
@@ -2084,16 +2085,16 @@ Source: "mov_m.asm"
                       	   151: 
 
 Source: "t386.asm"
-                      	   210: #-------------------------------------------------------------------------------
-                      	   211: 	POST $0x03
+                      	   211: #-------------------------------------------------------------------------------
+                      	   212: 	POST $0x03
 04:000003D4 B003      	     1M 	movb $0x03,%al
 04:000003D6 BA9001    	     2M 	movw $POST_PORT,%dx
 04:000003D9 EE        	     3M 	out %al,%dx
-                      	   212: #-------------------------------------------------------------------------------
-                      	   213: #
-                      	   214: #   Move segment registers in real mode
-                      	   215: #
-                      	   216: 	testMovSegR_real ss
+                      	   213: #-------------------------------------------------------------------------------
+                      	   214: #
+                      	   215: #   Move segment registers in real mode
+                      	   216: #
+                      	   217: 	testMovSegR_real ss
                       	     1M 	.ifc ss, cs
                       	     2M 	mov $C_SEG_REAL,%dx
                       	     3M 	.else
@@ -2111,7 +2112,7 @@ Source: "t386.asm"
 04:000003E0 31C0      	    15M 	xor %ax,%ax
 04:000003E2 8CD0      	    16M 	mov %ss,%ax
 04:000003E4 39D0      	    17M 	cmp %dx,%ax
-04:000003E6 0F855514  	    18M 	jne error
+04:000003E6 0F85A319  	    18M 	jne error
                       	    19M 
                       	    20M 	# MOV Sreg to 32 bit reg
 04:000003EA 66B8FFFFFF	    21M 	mov $-1,%eax
@@ -2120,14 +2121,14 @@ Source: "t386.asm"
                       	    23M 	# bits 31:16 are undefined for Pentium and earlier processors.
                       	    24M 	# TODO: verify on real hw and check TEST_UNDEF
 04:000003F3 39D0      	    25M 	cmp %dx,%ax
-04:000003F5 0F854614  	    26M 	jne error
+04:000003F5 0F859419  	    26M 	jne error
                       	    27M 
                       	    28M 	# MOV Sreg to word mem
 04:000003F9 C7060000EF	    29M 	movw $0xbeef,0
 04:000003FE BE
 04:000003FF 8C160000  	    30M 	mov %ss,0
 04:00000403 39160000  	    31M 	cmp %dx,0
-04:00000407 0F853414  	    32M 	jne error
+04:00000407 0F858219  	    32M 	jne error
                       	    33M 
                       	    34M 	# MOV word mem to Sreg
                       	    35M 	.ifc ss, cs
@@ -2144,10 +2145,10 @@ Source: "t386.asm"
                       	    46M 	.endif
 04:00000415 8CD0      	    47M 	mov %ss,%ax
 04:00000417 39D0      	    48M 	cmp %dx,%ax
-04:00000419 0F852214  	    49M 	jne error
+04:00000419 0F857019  	    49M 	jne error
                       	    50M 	.endif
                       	    51M 
-                      	   217: 	testMovSegR_real ds
+                      	   218: 	testMovSegR_real ds
                       	     1M 	.ifc ds, cs
                       	     2M 	mov $C_SEG_REAL,%dx
                       	     3M 	.else
@@ -2165,7 +2166,7 @@ Source: "t386.asm"
 04:00000423 31C0      	    15M 	xor %ax,%ax
 04:00000425 8CD8      	    16M 	mov %ds,%ax
 04:00000427 39D0      	    17M 	cmp %dx,%ax
-04:00000429 0F851214  	    18M 	jne error
+04:00000429 0F856019  	    18M 	jne error
                       	    19M 
                       	    20M 	# MOV Sreg to 32 bit reg
 04:0000042D 66B8FFFFFF	    21M 	mov $-1,%eax
@@ -2174,14 +2175,14 @@ Source: "t386.asm"
                       	    23M 	# bits 31:16 are undefined for Pentium and earlier processors.
                       	    24M 	# TODO: verify on real hw and check TEST_UNDEF
 04:00000436 39D0      	    25M 	cmp %dx,%ax
-04:00000438 0F850314  	    26M 	jne error
+04:00000438 0F855119  	    26M 	jne error
                       	    27M 
                       	    28M 	# MOV Sreg to word mem
 04:0000043C C7060000EF	    29M 	movw $0xbeef,0
 04:00000441 BE
 04:00000442 8C1E0000  	    30M 	mov %ds,0
 04:00000446 39160000  	    31M 	cmp %dx,0
-04:0000044A 0F85F113  	    32M 	jne error
+04:0000044A 0F853F19  	    32M 	jne error
                       	    33M 
                       	    34M 	# MOV word mem to Sreg
                       	    35M 	.ifc ds, cs
@@ -2198,10 +2199,10 @@ Source: "t386.asm"
                       	    46M 	.endif
 04:0000045B 8CD8      	    47M 	mov %ds,%ax
 04:0000045D 39D0      	    48M 	cmp %dx,%ax
-04:0000045F 0F85DC13  	    49M 	jne error
+04:0000045F 0F852A19  	    49M 	jne error
                       	    50M 	.endif
                       	    51M 
-                      	   218: 	testMovSegR_real es
+                      	   219: 	testMovSegR_real es
                       	     1M 	.ifc es, cs
                       	     2M 	mov $C_SEG_REAL,%dx
                       	     3M 	.else
@@ -2219,7 +2220,7 @@ Source: "t386.asm"
 04:00000469 31C0      	    15M 	xor %ax,%ax
 04:0000046B 8CC0      	    16M 	mov %es,%ax
 04:0000046D 39D0      	    17M 	cmp %dx,%ax
-04:0000046F 0F85CC13  	    18M 	jne error
+04:0000046F 0F851A19  	    18M 	jne error
                       	    19M 
                       	    20M 	# MOV Sreg to 32 bit reg
 04:00000473 66B8FFFFFF	    21M 	mov $-1,%eax
@@ -2228,14 +2229,14 @@ Source: "t386.asm"
                       	    23M 	# bits 31:16 are undefined for Pentium and earlier processors.
                       	    24M 	# TODO: verify on real hw and check TEST_UNDEF
 04:0000047C 39D0      	    25M 	cmp %dx,%ax
-04:0000047E 0F85BD13  	    26M 	jne error
+04:0000047E 0F850B19  	    26M 	jne error
                       	    27M 
                       	    28M 	# MOV Sreg to word mem
 04:00000482 C7060000EF	    29M 	movw $0xbeef,0
 04:00000487 BE
 04:00000488 8C060000  	    30M 	mov %es,0
 04:0000048C 39160000  	    31M 	cmp %dx,0
-04:00000490 0F85AB13  	    32M 	jne error
+04:00000490 0F85F918  	    32M 	jne error
                       	    33M 
                       	    34M 	# MOV word mem to Sreg
                       	    35M 	.ifc es, cs
@@ -2252,10 +2253,10 @@ Source: "t386.asm"
                       	    46M 	.endif
 04:0000049E 8CC0      	    47M 	mov %es,%ax
 04:000004A0 39D0      	    48M 	cmp %dx,%ax
-04:000004A2 0F859913  	    49M 	jne error
+04:000004A2 0F85E718  	    49M 	jne error
                       	    50M 	.endif
                       	    51M 
-                      	   219: 	testMovSegR_real fs
+                      	   220: 	testMovSegR_real fs
                       	     1M 	.ifc fs, cs
                       	     2M 	mov $C_SEG_REAL,%dx
                       	     3M 	.else
@@ -2273,7 +2274,7 @@ Source: "t386.asm"
 04:000004AC 31C0      	    15M 	xor %ax,%ax
 04:000004AE 8CE0      	    16M 	mov %fs,%ax
 04:000004B0 39D0      	    17M 	cmp %dx,%ax
-04:000004B2 0F858913  	    18M 	jne error
+04:000004B2 0F85D718  	    18M 	jne error
                       	    19M 
                       	    20M 	# MOV Sreg to 32 bit reg
 04:000004B6 66B8FFFFFF	    21M 	mov $-1,%eax
@@ -2282,14 +2283,14 @@ Source: "t386.asm"
                       	    23M 	# bits 31:16 are undefined for Pentium and earlier processors.
                       	    24M 	# TODO: verify on real hw and check TEST_UNDEF
 04:000004BF 39D0      	    25M 	cmp %dx,%ax
-04:000004C1 0F857A13  	    26M 	jne error
+04:000004C1 0F85C818  	    26M 	jne error
                       	    27M 
                       	    28M 	# MOV Sreg to word mem
 04:000004C5 C7060000EF	    29M 	movw $0xbeef,0
 04:000004CA BE
 04:000004CB 8C260000  	    30M 	mov %fs,0
 04:000004CF 39160000  	    31M 	cmp %dx,0
-04:000004D3 0F856813  	    32M 	jne error
+04:000004D3 0F85B618  	    32M 	jne error
                       	    33M 
                       	    34M 	# MOV word mem to Sreg
                       	    35M 	.ifc fs, cs
@@ -2306,10 +2307,10 @@ Source: "t386.asm"
                       	    46M 	.endif
 04:000004E1 8CE0      	    47M 	mov %fs,%ax
 04:000004E3 39D0      	    48M 	cmp %dx,%ax
-04:000004E5 0F855613  	    49M 	jne error
+04:000004E5 0F85A418  	    49M 	jne error
                       	    50M 	.endif
                       	    51M 
-                      	   220: 	testMovSegR_real gs
+                      	   221: 	testMovSegR_real gs
                       	     1M 	.ifc gs, cs
                       	     2M 	mov $C_SEG_REAL,%dx
                       	     3M 	.else
@@ -2327,7 +2328,7 @@ Source: "t386.asm"
 04:000004EF 31C0      	    15M 	xor %ax,%ax
 04:000004F1 8CE8      	    16M 	mov %gs,%ax
 04:000004F3 39D0      	    17M 	cmp %dx,%ax
-04:000004F5 0F854613  	    18M 	jne error
+04:000004F5 0F859418  	    18M 	jne error
                       	    19M 
                       	    20M 	# MOV Sreg to 32 bit reg
 04:000004F9 66B8FFFFFF	    21M 	mov $-1,%eax
@@ -2336,14 +2337,14 @@ Source: "t386.asm"
                       	    23M 	# bits 31:16 are undefined for Pentium and earlier processors.
                       	    24M 	# TODO: verify on real hw and check TEST_UNDEF
 04:00000502 39D0      	    25M 	cmp %dx,%ax
-04:00000504 0F853713  	    26M 	jne error
+04:00000504 0F858518  	    26M 	jne error
                       	    27M 
                       	    28M 	# MOV Sreg to word mem
 04:00000508 C7060000EF	    29M 	movw $0xbeef,0
 04:0000050D BE
 04:0000050E 8C2E0000  	    30M 	mov %gs,0
 04:00000512 39160000  	    31M 	cmp %dx,0
-04:00000516 0F852513  	    32M 	jne error
+04:00000516 0F857318  	    32M 	jne error
                       	    33M 
                       	    34M 	# MOV word mem to Sreg
                       	    35M 	.ifc gs, cs
@@ -2360,10 +2361,10 @@ Source: "t386.asm"
                       	    46M 	.endif
 04:00000524 8CE8      	    47M 	mov %gs,%ax
 04:00000526 39D0      	    48M 	cmp %dx,%ax
-04:00000528 0F851313  	    49M 	jne error
+04:00000528 0F856118  	    49M 	jne error
                       	    50M 	.endif
                       	    51M 
-                      	   221: 	testMovSegR_real cs
+                      	   222: 	testMovSegR_real cs
                       	     1M 	.ifc cs, cs
 04:0000052C BA0000    	     2M 	mov $C_SEG_REAL,%dx
                       	     3M 	.else
@@ -2385,21 +2386,21 @@ Source: "t386.asm"
 04:00000545 BCFC7F    	     4M 	mov $ESP_REAL,%sp
                       	     5M test25:
 04:00000548 8ECA      	     6M 	mov %dx,%cs
-04:0000054A E9F212    	     7M 	jmp error
+04:0000054A E94018    	     7M 	jmp error
                       	     8M continue25:
                       	     9M 	realModeExcCheck EX_UD,test25
 04:0000054D 81FCF67F  	     1M 	cmp $ESP_REAL-6,%sp
-04:00000551 0F85EA12  	     2M 	jne error
+04:00000551 0F853818  	     2M 	jne error
 04:00000555 36833EF87F	     3M 	cmpw $C_SEG_REAL,%ss:ESP_REAL-4
 04:0000055A 00
-04:0000055B 0F85E012  	     4M 	jne error
+04:0000055B 0F852E18  	     4M 	jne error
 04:0000055F 36813EF67F	     5M 	cmpw $test25,%ss:ESP_REAL-6
 04:00000564 4805
-04:00000566 0F85D512  	     6M 	jne error
+04:00000566 0F852318  	     6M 	jne error
 04:0000056A B80000    	     7M 	mov $0,%ax
 04:0000056D 8ED8      	     8M 	mov %ax,%ds
-04:0000056F C70618003F	     9M 	movw $error,EX_UD*4
-04:00000574 18
+04:0000056F C70618008D	     9M 	movw $error,EX_UD*4
+04:00000574 1D
 04:00000575 C7061A0000	    10M 	movw $C_SEG_REAL,EX_UD*4+2
 04:0000057A 00
                       	    10M 	.else
@@ -2410,7 +2411,7 @@ Source: "t386.asm"
 04:0000057B 31C0      	    15M 	xor %ax,%ax
 04:0000057D 8CC8      	    16M 	mov %cs,%ax
 04:0000057F 39D0      	    17M 	cmp %dx,%ax
-04:00000581 0F85BA12  	    18M 	jne error
+04:00000581 0F850818  	    18M 	jne error
                       	    19M 
                       	    20M 	# MOV Sreg to 32 bit reg
 04:00000585 66B8FFFFFF	    21M 	mov $-1,%eax
@@ -2419,14 +2420,14 @@ Source: "t386.asm"
                       	    23M 	# bits 31:16 are undefined for Pentium and earlier processors.
                       	    24M 	# TODO: verify on real hw and check TEST_UNDEF
 04:0000058E 39D0      	    25M 	cmp %dx,%ax
-04:00000590 0F85AB12  	    26M 	jne error
+04:00000590 0F85F917  	    26M 	jne error
                       	    27M 
                       	    28M 	# MOV Sreg to word mem
 04:00000594 C7060000EF	    29M 	movw $0xbeef,0
 04:00000599 BE
 04:0000059A 8C0E0000  	    30M 	mov %cs,0
 04:0000059E 39160000  	    31M 	cmp %dx,0
-04:000005A2 0F859912  	    32M 	jne error
+04:000005A2 0F85E717  	    32M 	jne error
                       	    33M 
                       	    34M 	# MOV word mem to Sreg
                       	    35M 	.ifc cs, cs
@@ -2443,21 +2444,21 @@ Source: "t386.asm"
 04:000005BC BCFC7F    	     4M 	mov $ESP_REAL,%sp
                       	     5M test28:
 04:000005BF 8E0E0000  	     6M 	mov 0,%cs
-04:000005C3 E97912    	     7M 	jmp error
+04:000005C3 E9C717    	     7M 	jmp error
                       	     8M continue28:
                       	     9M 	realModeExcCheck EX_UD,test28
 04:000005C6 81FCF67F  	     1M 	cmp $ESP_REAL-6,%sp
-04:000005CA 0F857112  	     2M 	jne error
+04:000005CA 0F85BF17  	     2M 	jne error
 04:000005CE 36833EF87F	     3M 	cmpw $C_SEG_REAL,%ss:ESP_REAL-4
 04:000005D3 00
-04:000005D4 0F856712  	     4M 	jne error
+04:000005D4 0F85B517  	     4M 	jne error
 04:000005D8 36813EF67F	     5M 	cmpw $test28,%ss:ESP_REAL-6
 04:000005DD BF05
-04:000005DF 0F855C12  	     6M 	jne error
+04:000005DF 0F85AA17  	     6M 	jne error
 04:000005E3 B80000    	     7M 	mov $0,%ax
 04:000005E6 8ED8      	     8M 	mov %ax,%ds
-04:000005E8 C70618003F	     9M 	movw $error,EX_UD*4
-04:000005ED 18
+04:000005E8 C70618008D	     9M 	movw $error,EX_UD*4
+04:000005ED 1D
 04:000005EE C7061A0000	    10M 	movw $C_SEG_REAL,EX_UD*4+2
 04:000005F3 00
                       	    37M 	.else
@@ -2475,8 +2476,8 @@ Source: "t386.asm"
                       	    49M 	jne error
                       	    50M 	.endif
                       	    51M 
-                      	   222: 
-                      	   223: 	advTestSegReal
+                      	   223: 
+                      	   224: 	advTestSegReal
                       	     1M 	advTestBase
                       	     1M 	.set TEST_BASE1,TEST_BASE1+0x1000
                       	     2M 	.set TEST_BASE2,TEST_BASE2+0x1000
@@ -2486,8 +2487,8 @@ Source: "t386.asm"
 04:000005F8 8EDA      	     5M 	mov %dx,%ds
 04:000005FA C7C200C3  	     6M 	mov $D2_SEG_REAL,%dx
 04:000005FE 8EC2      	     7M 	mov %dx,%es
-                      	   224: 
-                      	   225: .include "string_m.asm"
+                      	   225: 
+                      	   226: .include "string_m.asm"
 
 Source: "string_m.asm"
                       	     1: #
@@ -2993,20 +2994,20 @@ Source: "string_m.asm"
                       	   501: 
 
 Source: "t386.asm"
-                      	   226: #-------------------------------------------------------------------------------
-                      	   227: 	POST $0x04
+                      	   227: #-------------------------------------------------------------------------------
+                      	   228: 	POST $0x04
 04:00000600 B004      	     1M 	movb $0x04,%al
 04:00000602 BA9001    	     2M 	movw $POST_PORT,%dx
 04:00000605 EE        	     3M 	out %al,%dx
-                      	   228: #-------------------------------------------------------------------------------
-                      	   229: #
-                      	   230: #   Test store, move, scan, and compare string data
-                      	   231: #
-                      	   232: .set b,0
-                      	   233: .set w,1
-                      	   234: .set d,2
-                      	   235: 
-                      	   236: 	testStringOps b,0,16
+                      	   229: #-------------------------------------------------------------------------------
+                      	   230: #
+                      	   231: #   Test store, move, scan, and compare string data
+                      	   232: #
+                      	   233: .set b,0
+                      	   234: .set w,1
+                      	   235: .set d,2
+                      	   236: 
+                      	   237: 	testStringOps b,0,16
                       	     1M 
                       	     2M 	.set value,0x12345678
                       	     3M 	.if b = b
@@ -3067,10 +3068,10 @@ Source: "t386.asm"
                       	    56M 		.else
                       	    57M 			cmp %al,%es:(%ebx)
                       	    58M 		.endif
-04:00000621 0F851A12  	    59M 		jne error
+04:00000621 0F856817  	    59M 		jne error
 04:00000625 6681FF0000	    60M 		cmp $off_cmp,%edi
 04:0000062A 0100
-04:0000062C 0F850F12  	    61M 		jne error
+04:0000062C 0F855D17  	    61M 		jne error
                       	    62M 
 04:00000630 66BEFFFF01	    63M 		mov $off_value,%esi
 04:00000635 00
@@ -3081,16 +3082,16 @@ Source: "t386.asm"
 04:00000642 8803      	    66M 		mov %al,%ds:(%ebx)
 04:00000644 268803    	    67M 		mov %al,%es:(%ebx)
 04:00000647 3C00      	    68M 		cmp $0,%al
-04:00000649 0F84F211  	    69M 		je error
+04:00000649 0F844017  	    69M 		je error
 04:0000064D 67        	    70M 		addr16
 04:0000064E A6        	    71M 		cmpsb     # COMPARE ES:EDI with DS:ESI
-04:0000064F 0F85EC11  	    72M 		jne error
+04:0000064F 0F853A17  	    72M 		jne error
 04:00000653 6681FF0000	    73M 		cmp $off_cmp,%edi
 04:00000658 0100
-04:0000065A 0F85E111  	    74M 		jne error
+04:0000065A 0F852F17  	    74M 		jne error
 04:0000065E 6681FE0000	    75M 		cmp $off_cmp,%esi
 04:00000663 0100
-04:00000665 0F85D611  	    76M 		jne error
+04:00000665 0F852417  	    76M 		jne error
                       	    77M 
 04:00000669 66BFFFFF01	    78M 		mov $off_value,%edi
 04:0000066E 00
@@ -3099,10 +3100,10 @@ Source: "t386.asm"
 04:00000675 3C00      	    81M 		cmp $0,%al
 04:00000677 67        	    82M 		addr16
 04:00000678 AE        	    83M 		scasb     # SCAN/COMPARE ES:EDI with EAX
-04:00000679 0F85C211  	    84M 		jne error
+04:00000679 0F851017  	    84M 		jne error
 04:0000067D 6681FF0000	    85M 		cmp $off_cmp,%edi
 04:00000682 0100
-04:00000684 0F85B711  	    86M 		jne error
+04:00000684 0F850517  	    86M 		jne error
                       	    87M 
 04:00000688 66BEFFFF01	    88M 		mov $off_value,%esi
 04:0000068D 00
@@ -3121,13 +3122,13 @@ Source: "t386.asm"
                       	   100M 		.else
                       	   101M 			cmp %al,%es:(%ebx)
                       	   102M 		.endif
-04:000006A7 0F859411  	   103M 		jne error
+04:000006A7 0F85E216  	   103M 		jne error
 04:000006AB 6681FF0000	   104M 		cmp $off_cmp,%edi
 04:000006B0 0100
-04:000006B2 0F858911  	   105M 		jne error
+04:000006B2 0F85D716  	   105M 		jne error
 04:000006B6 6681FE0000	   106M 		cmp $off_cmp,%esi
 04:000006BB 0100
-04:000006BD 0F857E11  	   107M 		jne error
+04:000006BD 0F85CC16  	   107M 		jne error
                       	   108M 
 04:000006C1 66BEFFFF01	   109M 		mov $off_value,%esi
 04:000006C6 00
@@ -3137,10 +3138,10 @@ Source: "t386.asm"
 04:000006D0 67        	   113M 		addr16
 04:000006D1 AC        	   114M 		lodsb       # LOAD data from DS:ESI into EAX
 04:000006D2 3C78      	   115M 		cmp $value & val_mask,%al
-04:000006D4 0F856711  	   116M 		jne error
+04:000006D4 0F85B516  	   116M 		jne error
 04:000006D8 6681FE0000	   117M 		cmp $off_cmp,%esi
 04:000006DD 0100
-04:000006DF 0F855C11  	   118M 		jne error
+04:000006DF 0F85AA16  	   118M 		jne error
                       	   119M 	.endif
                       	   120M 
                       	   121M 	.if b = w
@@ -3295,7 +3296,7 @@ Source: "t386.asm"
                       	   270M 		jne error
                       	   271M 	.endif
                       	   272M 
-                      	   237: 	testStringOps w,0,16
+                      	   238: 	testStringOps w,0,16
                       	     1M 
                       	     2M 	.set value,0x12345678
                       	     3M 	.if w = b
@@ -3432,10 +3433,10 @@ Source: "t386.asm"
                       	   132M 		.else
                       	   133M 			cmp %ax,%es:(%ebx)
                       	   134M 		.endif
-04:00000700 0F853B11  	   135M 		jne error
+04:00000700 0F858916  	   135M 		jne error
 04:00000704 6681FF0000	   136M 		cmp $off_cmp,%edi
 04:00000709 0100
-04:0000070B 0F853011  	   137M 		jne error
+04:0000070B 0F857E16  	   137M 		jne error
                       	   138M 
 04:0000070F 66BEFEFF01	   139M 		mov $off_value,%esi
 04:00000714 00
@@ -3446,16 +3447,16 @@ Source: "t386.asm"
 04:00000721 8903      	   142M 		mov %ax,%ds:(%ebx)
 04:00000723 268903    	   143M 		mov %ax,%es:(%ebx)
 04:00000726 83F800    	   144M 		cmp $0,%ax
-04:00000729 0F841211  	   145M 		je error
+04:00000729 0F846016  	   145M 		je error
 04:0000072D 67        	   146M 		addr16
 04:0000072E A7        	   147M 		cmpsw     # COMPARE ES:EDI with DS:ESI
-04:0000072F 0F850C11  	   148M 		jne error
+04:0000072F 0F855A16  	   148M 		jne error
 04:00000733 6681FF0000	   149M 		cmp $off_cmp,%edi
 04:00000738 0100
-04:0000073A 0F850111  	   150M 		jne error
+04:0000073A 0F854F16  	   150M 		jne error
 04:0000073E 6681FE0000	   151M 		cmp $off_cmp,%esi
 04:00000743 0100
-04:00000745 0F85F610  	   152M 		jne error
+04:00000745 0F854416  	   152M 		jne error
                       	   153M 
 04:00000749 66BFFEFF01	   154M 		mov $off_value,%edi
 04:0000074E 00
@@ -3464,10 +3465,10 @@ Source: "t386.asm"
 04:00000756 83F800    	   157M 		cmp $0,%ax
 04:00000759 67        	   158M 		addr16
 04:0000075A AF        	   159M 		scasw     # SCAN/COMPARE ES:EDI with EAX
-04:0000075B 0F85E010  	   160M 		jne error
+04:0000075B 0F852E16  	   160M 		jne error
 04:0000075F 6681FF0000	   161M 		cmp $off_cmp,%edi
 04:00000764 0100
-04:00000766 0F85D510  	   162M 		jne error
+04:00000766 0F852316  	   162M 		jne error
                       	   163M 
 04:0000076A 66BEFEFF01	   164M 		mov $off_value,%esi
 04:0000076F 00
@@ -3486,13 +3487,13 @@ Source: "t386.asm"
                       	   176M 		.else
                       	   177M 			cmp %ax,%es:(%ebx)
                       	   178M 		.endif
-04:0000078C 0F85AF10  	   179M 		jne error
+04:0000078C 0F85FD15  	   179M 		jne error
 04:00000790 6681FF0000	   180M 		cmp $off_cmp,%edi
 04:00000795 0100
-04:00000797 0F85A410  	   181M 		jne error
+04:00000797 0F85F215  	   181M 		jne error
 04:0000079B 6681FE0000	   182M 		cmp $off_cmp,%esi
 04:000007A0 0100
-04:000007A2 0F859910  	   183M 		jne error
+04:000007A2 0F85E715  	   183M 		jne error
                       	   184M 
 04:000007A6 66BEFEFF01	   185M 		mov $off_value,%esi
 04:000007AB 00
@@ -3502,10 +3503,10 @@ Source: "t386.asm"
 04:000007B6 67        	   189M 		addr16
 04:000007B7 AD        	   190M 		lodsw       # LOAD data from DS:ESI into EAX
 04:000007B8 3D7856    	   191M 		cmp $value & val_mask,%ax
-04:000007BB 0F858010  	   192M 		jne error
+04:000007BB 0F85CE15  	   192M 		jne error
 04:000007BF 6681FE0000	   193M 		cmp $off_cmp,%esi
 04:000007C4 0100
-04:000007C6 0F857510  	   194M 		jne error
+04:000007C6 0F85C315  	   194M 		jne error
                       	   195M 	.endif
                       	   196M 
                       	   197M 	.if w = d
@@ -3584,7 +3585,7 @@ Source: "t386.asm"
                       	   270M 		jne error
                       	   271M 	.endif
                       	   272M 
-                      	   238: 	testStringOps d,0,16
+                      	   239: 	testStringOps d,0,16
                       	     1M 
                       	     2M 	.set value,0x12345678
                       	     3M 	.if d = b
@@ -3799,10 +3800,10 @@ Source: "t386.asm"
                       	   208M 		.else
                       	   209M 			cmp %eax,%es:(%ebx)
                       	   210M 		.endif
-04:000007EF 0F854C10  	   211M 		jne error
+04:000007EF 0F859A15  	   211M 		jne error
 04:000007F3 6681FF0000	   212M 		cmp $off_cmp,%edi
 04:000007F8 0100
-04:000007FA 0F854110  	   213M 		jne error
+04:000007FA 0F858F15  	   213M 		jne error
                       	   214M 
 04:000007FE 66BEFCFF01	   215M 		mov $off_value,%esi
 04:00000803 00
@@ -3813,16 +3814,16 @@ Source: "t386.asm"
 04:00000810 668903    	   218M 		mov %eax,%ds:(%ebx)
 04:00000813 66268903  	   219M 		mov %eax,%es:(%ebx)
 04:00000817 6683F800  	   220M 		cmp $0,%eax
-04:0000081B 0F842010  	   221M 		je error
+04:0000081B 0F846E15  	   221M 		je error
 04:0000081F 67        	   222M 		addr16
 04:00000820 66A7      	   223M 		cmpsl     # COMPARE ES:EDI with DS:ESI
-04:00000822 0F851910  	   224M 		jne error
+04:00000822 0F856715  	   224M 		jne error
 04:00000826 6681FF0000	   225M 		cmp $off_cmp,%edi
 04:0000082B 0100
-04:0000082D 0F850E10  	   226M 		jne error
+04:0000082D 0F855C15  	   226M 		jne error
 04:00000831 6681FE0000	   227M 		cmp $off_cmp,%esi
 04:00000836 0100
-04:00000838 0F850310  	   228M 		jne error
+04:00000838 0F855115  	   228M 		jne error
                       	   229M 
 04:0000083C 66BFFCFF01	   230M 		mov $off_value,%edi
 04:00000841 00
@@ -3832,10 +3833,10 @@ Source: "t386.asm"
 04:0000084C 6683F800  	   233M 		cmp $0,%eax
 04:00000850 67        	   234M 		addr16
 04:00000851 66AF      	   235M 		scasl     # SCAN/COMPARE ES:EDI with EAX
-04:00000853 0F85E80F  	   236M 		jne error
+04:00000853 0F853615  	   236M 		jne error
 04:00000857 6681FF0000	   237M 		cmp $off_cmp,%edi
 04:0000085C 0100
-04:0000085E 0F85DD0F  	   238M 		jne error
+04:0000085E 0F852B15  	   238M 		jne error
                       	   239M 
 04:00000862 66BEFCFF01	   240M 		mov $off_value,%esi
 04:00000867 00
@@ -3857,13 +3858,13 @@ Source: "t386.asm"
                       	   252M 		.else
                       	   253M 			cmp %eax,%es:(%ebx)
                       	   254M 		.endif
-04:0000088F 0F85AC0F  	   255M 		jne error
+04:0000088F 0F85FA14  	   255M 		jne error
 04:00000893 6681FF0000	   256M 		cmp $off_cmp,%edi
 04:00000898 0100
-04:0000089A 0F85A10F  	   257M 		jne error
+04:0000089A 0F85EF14  	   257M 		jne error
 04:0000089E 6681FE0000	   258M 		cmp $off_cmp,%esi
 04:000008A3 0100
-04:000008A5 0F85960F  	   259M 		jne error
+04:000008A5 0F85E414  	   259M 		jne error
                       	   260M 
 04:000008A9 66BEFCFF01	   261M 		mov $off_value,%esi
 04:000008AE 00
@@ -3875,13 +3876,13 @@ Source: "t386.asm"
 04:000008BD 66AD      	   266M 		lodsl       # LOAD data from DS:ESI into EAX
 04:000008BF 663D785634	   267M 		cmp $value & val_mask,%eax
 04:000008C4 12
-04:000008C5 0F85760F  	   268M 		jne error
+04:000008C5 0F85C414  	   268M 		jne error
 04:000008C9 6681FE0000	   269M 		cmp $off_cmp,%esi
 04:000008CE 0100
-04:000008D0 0F856B0F  	   270M 		jne error
+04:000008D0 0F85B914  	   270M 		jne error
                       	   271M 	.endif
                       	   272M 
-                      	   239: 	testStringOps b,1,16
+                      	   240: 	testStringOps b,1,16
                       	     1M 
                       	     2M 	.set value,0x12345678
                       	     3M 	.if b = b
@@ -3942,10 +3943,10 @@ Source: "t386.asm"
                       	    56M 		.else
                       	    57M 			cmp %al,%es:(%ebx)
                       	    58M 		.endif
-04:000008EF 0F854C0F  	    59M 		jne error
+04:000008EF 0F859A14  	    59M 		jne error
 04:000008F3 6681FFFFFF	    60M 		cmp $off_cmp,%edi
 04:000008F8 0100
-04:000008FA 0F85410F  	    61M 		jne error
+04:000008FA 0F858F14  	    61M 		jne error
                       	    62M 
 04:000008FE 66BE000001	    63M 		mov $off_value,%esi
 04:00000903 00
@@ -3956,16 +3957,16 @@ Source: "t386.asm"
 04:00000910 8803      	    66M 		mov %al,%ds:(%ebx)
 04:00000912 268803    	    67M 		mov %al,%es:(%ebx)
 04:00000915 3C00      	    68M 		cmp $0,%al
-04:00000917 0F84240F  	    69M 		je error
+04:00000917 0F847214  	    69M 		je error
 04:0000091B 67        	    70M 		addr16
 04:0000091C A6        	    71M 		cmpsb     # COMPARE ES:EDI with DS:ESI
-04:0000091D 0F851E0F  	    72M 		jne error
+04:0000091D 0F856C14  	    72M 		jne error
 04:00000921 6681FFFFFF	    73M 		cmp $off_cmp,%edi
 04:00000926 0100
-04:00000928 0F85130F  	    74M 		jne error
+04:00000928 0F856114  	    74M 		jne error
 04:0000092C 6681FEFFFF	    75M 		cmp $off_cmp,%esi
 04:00000931 0100
-04:00000933 0F85080F  	    76M 		jne error
+04:00000933 0F855614  	    76M 		jne error
                       	    77M 
 04:00000937 66BF000001	    78M 		mov $off_value,%edi
 04:0000093C 00
@@ -3974,10 +3975,10 @@ Source: "t386.asm"
 04:00000943 3C00      	    81M 		cmp $0,%al
 04:00000945 67        	    82M 		addr16
 04:00000946 AE        	    83M 		scasb     # SCAN/COMPARE ES:EDI with EAX
-04:00000947 0F85F40E  	    84M 		jne error
+04:00000947 0F854214  	    84M 		jne error
 04:0000094B 6681FFFFFF	    85M 		cmp $off_cmp,%edi
 04:00000950 0100
-04:00000952 0F85E90E  	    86M 		jne error
+04:00000952 0F853714  	    86M 		jne error
                       	    87M 
 04:00000956 66BE000001	    88M 		mov $off_value,%esi
 04:0000095B 00
@@ -3996,13 +3997,13 @@ Source: "t386.asm"
                       	   100M 		.else
                       	   101M 			cmp %al,%es:(%ebx)
                       	   102M 		.endif
-04:00000975 0F85C60E  	   103M 		jne error
+04:00000975 0F851414  	   103M 		jne error
 04:00000979 6681FFFFFF	   104M 		cmp $off_cmp,%edi
 04:0000097E 0100
-04:00000980 0F85BB0E  	   105M 		jne error
+04:00000980 0F850914  	   105M 		jne error
 04:00000984 6681FEFFFF	   106M 		cmp $off_cmp,%esi
 04:00000989 0100
-04:0000098B 0F85B00E  	   107M 		jne error
+04:0000098B 0F85FE13  	   107M 		jne error
                       	   108M 
 04:0000098F 66BE000001	   109M 		mov $off_value,%esi
 04:00000994 00
@@ -4012,10 +4013,10 @@ Source: "t386.asm"
 04:0000099E 67        	   113M 		addr16
 04:0000099F AC        	   114M 		lodsb       # LOAD data from DS:ESI into EAX
 04:000009A0 3C78      	   115M 		cmp $value & val_mask,%al
-04:000009A2 0F85990E  	   116M 		jne error
+04:000009A2 0F85E713  	   116M 		jne error
 04:000009A6 6681FEFFFF	   117M 		cmp $off_cmp,%esi
 04:000009AB 0100
-04:000009AD 0F858E0E  	   118M 		jne error
+04:000009AD 0F85DC13  	   118M 		jne error
                       	   119M 	.endif
                       	   120M 
                       	   121M 	.if b = w
@@ -4170,7 +4171,7 @@ Source: "t386.asm"
                       	   270M 		jne error
                       	   271M 	.endif
                       	   272M 
-                      	   240: 	testStringOps w,1,16
+                      	   241: 	testStringOps w,1,16
                       	     1M 
                       	     2M 	.set value,0x12345678
                       	     3M 	.if w = b
@@ -4307,10 +4308,10 @@ Source: "t386.asm"
                       	   132M 		.else
                       	   133M 			cmp %ax,%es:(%ebx)
                       	   134M 		.endif
-04:000009CE 0F856D0E  	   135M 		jne error
+04:000009CE 0F85BB13  	   135M 		jne error
 04:000009D2 6681FFFEFF	   136M 		cmp $off_cmp,%edi
 04:000009D7 0100
-04:000009D9 0F85620E  	   137M 		jne error
+04:000009D9 0F85B013  	   137M 		jne error
                       	   138M 
 04:000009DD 66BE000001	   139M 		mov $off_value,%esi
 04:000009E2 00
@@ -4321,16 +4322,16 @@ Source: "t386.asm"
 04:000009EF 8903      	   142M 		mov %ax,%ds:(%ebx)
 04:000009F1 268903    	   143M 		mov %ax,%es:(%ebx)
 04:000009F4 83F800    	   144M 		cmp $0,%ax
-04:000009F7 0F84440E  	   145M 		je error
+04:000009F7 0F849213  	   145M 		je error
 04:000009FB 67        	   146M 		addr16
 04:000009FC A7        	   147M 		cmpsw     # COMPARE ES:EDI with DS:ESI
-04:000009FD 0F853E0E  	   148M 		jne error
+04:000009FD 0F858C13  	   148M 		jne error
 04:00000A01 6681FFFEFF	   149M 		cmp $off_cmp,%edi
 04:00000A06 0100
-04:00000A08 0F85330E  	   150M 		jne error
+04:00000A08 0F858113  	   150M 		jne error
 04:00000A0C 6681FEFEFF	   151M 		cmp $off_cmp,%esi
 04:00000A11 0100
-04:00000A13 0F85280E  	   152M 		jne error
+04:00000A13 0F857613  	   152M 		jne error
                       	   153M 
 04:00000A17 66BF000001	   154M 		mov $off_value,%edi
 04:00000A1C 00
@@ -4339,10 +4340,10 @@ Source: "t386.asm"
 04:00000A24 83F800    	   157M 		cmp $0,%ax
 04:00000A27 67        	   158M 		addr16
 04:00000A28 AF        	   159M 		scasw     # SCAN/COMPARE ES:EDI with EAX
-04:00000A29 0F85120E  	   160M 		jne error
+04:00000A29 0F856013  	   160M 		jne error
 04:00000A2D 6681FFFEFF	   161M 		cmp $off_cmp,%edi
 04:00000A32 0100
-04:00000A34 0F85070E  	   162M 		jne error
+04:00000A34 0F855513  	   162M 		jne error
                       	   163M 
 04:00000A38 66BE000001	   164M 		mov $off_value,%esi
 04:00000A3D 00
@@ -4361,13 +4362,13 @@ Source: "t386.asm"
                       	   176M 		.else
                       	   177M 			cmp %ax,%es:(%ebx)
                       	   178M 		.endif
-04:00000A5A 0F85E10D  	   179M 		jne error
+04:00000A5A 0F852F13  	   179M 		jne error
 04:00000A5E 6681FFFEFF	   180M 		cmp $off_cmp,%edi
 04:00000A63 0100
-04:00000A65 0F85D60D  	   181M 		jne error
+04:00000A65 0F852413  	   181M 		jne error
 04:00000A69 6681FEFEFF	   182M 		cmp $off_cmp,%esi
 04:00000A6E 0100
-04:00000A70 0F85CB0D  	   183M 		jne error
+04:00000A70 0F851913  	   183M 		jne error
                       	   184M 
 04:00000A74 66BE000001	   185M 		mov $off_value,%esi
 04:00000A79 00
@@ -4377,10 +4378,10 @@ Source: "t386.asm"
 04:00000A84 67        	   189M 		addr16
 04:00000A85 AD        	   190M 		lodsw       # LOAD data from DS:ESI into EAX
 04:00000A86 3D7856    	   191M 		cmp $value & val_mask,%ax
-04:00000A89 0F85B20D  	   192M 		jne error
+04:00000A89 0F850013  	   192M 		jne error
 04:00000A8D 6681FEFEFF	   193M 		cmp $off_cmp,%esi
 04:00000A92 0100
-04:00000A94 0F85A70D  	   194M 		jne error
+04:00000A94 0F85F512  	   194M 		jne error
                       	   195M 	.endif
                       	   196M 
                       	   197M 	.if w = d
@@ -4459,7 +4460,7 @@ Source: "t386.asm"
                       	   270M 		jne error
                       	   271M 	.endif
                       	   272M 
-                      	   241: 	testStringOps d,1,16
+                      	   242: 	testStringOps d,1,16
                       	     1M 
                       	     2M 	.set value,0x12345678
                       	     3M 	.if d = b
@@ -4674,10 +4675,10 @@ Source: "t386.asm"
                       	   208M 		.else
                       	   209M 			cmp %eax,%es:(%ebx)
                       	   210M 		.endif
-04:00000ABD 0F857E0D  	   211M 		jne error
+04:00000ABD 0F85CC12  	   211M 		jne error
 04:00000AC1 6681FFFCFF	   212M 		cmp $off_cmp,%edi
 04:00000AC6 0100
-04:00000AC8 0F85730D  	   213M 		jne error
+04:00000AC8 0F85C112  	   213M 		jne error
                       	   214M 
 04:00000ACC 66BE000001	   215M 		mov $off_value,%esi
 04:00000AD1 00
@@ -4688,16 +4689,16 @@ Source: "t386.asm"
 04:00000ADE 668903    	   218M 		mov %eax,%ds:(%ebx)
 04:00000AE1 66268903  	   219M 		mov %eax,%es:(%ebx)
 04:00000AE5 6683F800  	   220M 		cmp $0,%eax
-04:00000AE9 0F84520D  	   221M 		je error
+04:00000AE9 0F84A012  	   221M 		je error
 04:00000AED 67        	   222M 		addr16
 04:00000AEE 66A7      	   223M 		cmpsl     # COMPARE ES:EDI with DS:ESI
-04:00000AF0 0F854B0D  	   224M 		jne error
+04:00000AF0 0F859912  	   224M 		jne error
 04:00000AF4 6681FFFCFF	   225M 		cmp $off_cmp,%edi
 04:00000AF9 0100
-04:00000AFB 0F85400D  	   226M 		jne error
+04:00000AFB 0F858E12  	   226M 		jne error
 04:00000AFF 6681FEFCFF	   227M 		cmp $off_cmp,%esi
 04:00000B04 0100
-04:00000B06 0F85350D  	   228M 		jne error
+04:00000B06 0F858312  	   228M 		jne error
                       	   229M 
 04:00000B0A 66BF000001	   230M 		mov $off_value,%edi
 04:00000B0F 00
@@ -4707,10 +4708,10 @@ Source: "t386.asm"
 04:00000B1A 6683F800  	   233M 		cmp $0,%eax
 04:00000B1E 67        	   234M 		addr16
 04:00000B1F 66AF      	   235M 		scasl     # SCAN/COMPARE ES:EDI with EAX
-04:00000B21 0F851A0D  	   236M 		jne error
+04:00000B21 0F856812  	   236M 		jne error
 04:00000B25 6681FFFCFF	   237M 		cmp $off_cmp,%edi
 04:00000B2A 0100
-04:00000B2C 0F850F0D  	   238M 		jne error
+04:00000B2C 0F855D12  	   238M 		jne error
                       	   239M 
 04:00000B30 66BE000001	   240M 		mov $off_value,%esi
 04:00000B35 00
@@ -4732,13 +4733,13 @@ Source: "t386.asm"
                       	   252M 		.else
                       	   253M 			cmp %eax,%es:(%ebx)
                       	   254M 		.endif
-04:00000B5D 0F85DE0C  	   255M 		jne error
+04:00000B5D 0F852C12  	   255M 		jne error
 04:00000B61 6681FFFCFF	   256M 		cmp $off_cmp,%edi
 04:00000B66 0100
-04:00000B68 0F85D30C  	   257M 		jne error
+04:00000B68 0F852112  	   257M 		jne error
 04:00000B6C 6681FEFCFF	   258M 		cmp $off_cmp,%esi
 04:00000B71 0100
-04:00000B73 0F85C80C  	   259M 		jne error
+04:00000B73 0F851612  	   259M 		jne error
                       	   260M 
 04:00000B77 66BE000001	   261M 		mov $off_value,%esi
 04:00000B7C 00
@@ -4750,13 +4751,13 @@ Source: "t386.asm"
 04:00000B8B 66AD      	   266M 		lodsl       # LOAD data from DS:ESI into EAX
 04:00000B8D 663D785634	   267M 		cmp $value & val_mask,%eax
 04:00000B92 12
-04:00000B93 0F85A80C  	   268M 		jne error
+04:00000B93 0F85F611  	   268M 		jne error
 04:00000B97 6681FEFCFF	   269M 		cmp $off_cmp,%esi
 04:00000B9C 0100
-04:00000B9E 0F859D0C  	   270M 		jne error
+04:00000B9E 0F85EB11  	   270M 		jne error
                       	   271M 	.endif
                       	   272M 
-                      	   242: 	testStringReps b,0,16
+                      	   243: 	testStringReps b,0,16
                       	     1M 
                       	     2M 	.set bytes,0x100
                       	     3M 
@@ -4826,10 +4827,10 @@ Source: "t386.asm"
                       	    60M 		stosl    # store ECX items at ES:EDI with the value in EAX
                       	    61M 	.endif
 04:00000BD0 6683F900  	    62M 	cmp $0,%ecx
-04:00000BD4 0F85670C  	    63M 	jnz error           		# ECX must be 0
+04:00000BD4 0F85B511  	    63M 	jnz error           		# ECX must be 0
 04:00000BD8 6681FF0000	    64M 	cmp $off_cmp,%edi
 04:00000BDD 0100
-04:00000BDF 0F855C0C  	    65M 	jnz error
+04:00000BDF 0F85AA11  	    65M 	jnz error
 04:00000BE3 66BF00FF01	    66M 	mov $off_value,%edi  # reset EDI
 04:00000BE8 00
                       	    67M 	# now switch ES:EDI with DS:ESI
@@ -4879,13 +4880,13 @@ Source: "t386.asm"
                       	   108M 		cmpsl # find nonmatching items in ES:EDI and DS:ESI
                       	   109M 	.endif
 04:00000C0E 6683F900  	   110M 	cmp $0,%ecx
-04:00000C12 0F85290C  	   111M 	jnz error           		# ECX must be 0
+04:00000C12 0F857711  	   111M 	jnz error           		# ECX must be 0
 04:00000C16 6681FE0000	   112M 	cmp $off_cmp,%esi
 04:00000C1B 0100
-04:00000C1D 0F851E0C  	   113M 	jne error
+04:00000C1D 0F856C11  	   113M 	jne error
 04:00000C21 6681FF0000	   114M 	cmp $off_cmp,%edi
 04:00000C26 0100
-04:00000C28 0F85130C  	   115M 	jne error
+04:00000C28 0F856111  	   115M 	jne error
 04:00000C2C 66BF00FF01	   116M 	mov $off_value,%edi  # reset EDI
 04:00000C31 00
 04:00000C32 66BE00FF01	   117M 	mov $off_value,%esi  # reset ESI
@@ -4910,10 +4911,10 @@ Source: "t386.asm"
                       	   134M 		scasl         # SCAN first dword not equal to EAX
                       	   135M 	.endif
 04:00000C41 6683F900  	   136M 	cmp $0,%ecx
-04:00000C45 0F85F60B  	   137M 	jne error           		# ECX must be 0
+04:00000C45 0F854411  	   137M 	jne error           		# ECX must be 0
 04:00000C49 6681FF0000	   138M 	cmp $off_cmp,%edi
 04:00000C4E 0100
-04:00000C50 0F85EB0B  	   139M 	jne error
+04:00000C50 0F853911  	   139M 	jne error
 04:00000C54 66BF00FF01	   140M 	mov $off_value,%edi  		# rewind EDI
 04:00000C59 00
                       	   141M 
@@ -4958,13 +4959,13 @@ Source: "t386.asm"
                       	   176M 		movsl          # MOVE data from DS:ESI to ES:EDI
                       	   177M 	.endif
 04:00000C78 6683F900  	   178M 	cmp $0,%ecx
-04:00000C7C 0F85BF0B  	   179M 	jne error           	# ECX must be 0
+04:00000C7C 0F850D11  	   179M 	jne error           	# ECX must be 0
 04:00000C80 6681FE0000	   180M 	cmp $off_cmp,%esi
 04:00000C85 0100
-04:00000C87 0F85B40B  	   181M 	jne error
+04:00000C87 0F850211  	   181M 	jne error
 04:00000C8B 6681FF0000	   182M 	cmp $off_cmp,%edi
 04:00000C90 0100
-04:00000C92 0F85A90B  	   183M 	jne error
+04:00000C92 0F85F710  	   183M 	jne error
 04:00000C96 66B9000100	   184M 	mov $items,%ecx      	# reset ECX
 04:00000C9B 00
 04:00000C9C 66BF00FF01	   185M 	mov $off_value,%edi  	# reset EDI
@@ -4987,14 +4988,14 @@ Source: "t386.asm"
                       	   200M 		cmpsl  # COMPARE moved data in ES:EDI with DS:ESI
                       	   201M 	.endif
 04:00000CAB 6683F900  	   202M 	cmp $0,%ecx
-04:00000CAF 0F858C0B  	   203M 	jne error           # ECX must be 0
+04:00000CAF 0F85DA10  	   203M 	jne error           # ECX must be 0
 04:00000CB3 6681FE0000	   204M 	cmp $off_cmp,%esi
 04:00000CB8 0100
-04:00000CBA 0F85810B  	   205M 	jne error
+04:00000CBA 0F85CF10  	   205M 	jne error
 04:00000CBE 6681FF0000	   206M 	cmp $off_cmp,%edi
 04:00000CC3 0100
-04:00000CC5 0F85760B  	   207M 	jne error
-                      	   243: 	testStringReps w,0,16
+04:00000CC5 0F85C410  	   207M 	jne error
+                      	   244: 	testStringReps w,0,16
                       	     1M 
                       	     2M 	.set bytes,0x100
                       	     3M 
@@ -5064,10 +5065,10 @@ Source: "t386.asm"
                       	    60M 		stosl    # store ECX items at ES:EDI with the value in EAX
                       	    61M 	.endif
 04:00000CF7 6683F900  	    62M 	cmp $0,%ecx
-04:00000CFB 0F85400B  	    63M 	jnz error           		# ECX must be 0
+04:00000CFB 0F858E10  	    63M 	jnz error           		# ECX must be 0
 04:00000CFF 6681FF0000	    64M 	cmp $off_cmp,%edi
 04:00000D04 0100
-04:00000D06 0F85350B  	    65M 	jnz error
+04:00000D06 0F858310  	    65M 	jnz error
 04:00000D0A 66BF00FF01	    66M 	mov $off_value,%edi  # reset EDI
 04:00000D0F 00
                       	    67M 	# now switch ES:EDI with DS:ESI
@@ -5117,13 +5118,13 @@ Source: "t386.asm"
                       	   108M 		cmpsl # find nonmatching items in ES:EDI and DS:ESI
                       	   109M 	.endif
 04:00000D35 6683F900  	   110M 	cmp $0,%ecx
-04:00000D39 0F85020B  	   111M 	jnz error           		# ECX must be 0
+04:00000D39 0F855010  	   111M 	jnz error           		# ECX must be 0
 04:00000D3D 6681FE0000	   112M 	cmp $off_cmp,%esi
 04:00000D42 0100
-04:00000D44 0F85F70A  	   113M 	jne error
+04:00000D44 0F854510  	   113M 	jne error
 04:00000D48 6681FF0000	   114M 	cmp $off_cmp,%edi
 04:00000D4D 0100
-04:00000D4F 0F85EC0A  	   115M 	jne error
+04:00000D4F 0F853A10  	   115M 	jne error
 04:00000D53 66BF00FF01	   116M 	mov $off_value,%edi  # reset EDI
 04:00000D58 00
 04:00000D59 66BE00FF01	   117M 	mov $off_value,%esi  # reset ESI
@@ -5148,10 +5149,10 @@ Source: "t386.asm"
                       	   134M 		scasl         # SCAN first dword not equal to EAX
                       	   135M 	.endif
 04:00000D68 6683F900  	   136M 	cmp $0,%ecx
-04:00000D6C 0F85CF0A  	   137M 	jne error           		# ECX must be 0
+04:00000D6C 0F851D10  	   137M 	jne error           		# ECX must be 0
 04:00000D70 6681FF0000	   138M 	cmp $off_cmp,%edi
 04:00000D75 0100
-04:00000D77 0F85C40A  	   139M 	jne error
+04:00000D77 0F851210  	   139M 	jne error
 04:00000D7B 66BF00FF01	   140M 	mov $off_value,%edi  		# rewind EDI
 04:00000D80 00
                       	   141M 
@@ -5196,13 +5197,13 @@ Source: "t386.asm"
                       	   176M 		movsl          # MOVE data from DS:ESI to ES:EDI
                       	   177M 	.endif
 04:00000D9F 6683F900  	   178M 	cmp $0,%ecx
-04:00000DA3 0F85980A  	   179M 	jne error           	# ECX must be 0
+04:00000DA3 0F85E60F  	   179M 	jne error           	# ECX must be 0
 04:00000DA7 6681FE0000	   180M 	cmp $off_cmp,%esi
 04:00000DAC 0100
-04:00000DAE 0F858D0A  	   181M 	jne error
+04:00000DAE 0F85DB0F  	   181M 	jne error
 04:00000DB2 6681FF0000	   182M 	cmp $off_cmp,%edi
 04:00000DB7 0100
-04:00000DB9 0F85820A  	   183M 	jne error
+04:00000DB9 0F85D00F  	   183M 	jne error
 04:00000DBD 66B9800000	   184M 	mov $items,%ecx      	# reset ECX
 04:00000DC2 00
 04:00000DC3 66BF00FF01	   185M 	mov $off_value,%edi  	# reset EDI
@@ -5225,14 +5226,14 @@ Source: "t386.asm"
                       	   200M 		cmpsl  # COMPARE moved data in ES:EDI with DS:ESI
                       	   201M 	.endif
 04:00000DD2 6683F900  	   202M 	cmp $0,%ecx
-04:00000DD6 0F85650A  	   203M 	jne error           # ECX must be 0
+04:00000DD6 0F85B30F  	   203M 	jne error           # ECX must be 0
 04:00000DDA 6681FE0000	   204M 	cmp $off_cmp,%esi
 04:00000DDF 0100
-04:00000DE1 0F855A0A  	   205M 	jne error
+04:00000DE1 0F85A80F  	   205M 	jne error
 04:00000DE5 6681FF0000	   206M 	cmp $off_cmp,%edi
 04:00000DEA 0100
-04:00000DEC 0F854F0A  	   207M 	jne error
-                      	   244: 	testStringReps d,0,16
+04:00000DEC 0F859D0F  	   207M 	jne error
+                      	   245: 	testStringReps d,0,16
                       	     1M 
                       	     2M 	.set bytes,0x100
                       	     3M 
@@ -5302,10 +5303,10 @@ Source: "t386.asm"
 04:00000E1D 66AB      	    60M 		stosl    # store ECX items at ES:EDI with the value in EAX
                       	    61M 	.endif
 04:00000E1F 6683F900  	    62M 	cmp $0,%ecx
-04:00000E23 0F85180A  	    63M 	jnz error           		# ECX must be 0
+04:00000E23 0F85660F  	    63M 	jnz error           		# ECX must be 0
 04:00000E27 6681FF0000	    64M 	cmp $off_cmp,%edi
 04:00000E2C 0100
-04:00000E2E 0F850D0A  	    65M 	jnz error
+04:00000E2E 0F855B0F  	    65M 	jnz error
 04:00000E32 66BF00FF01	    66M 	mov $off_value,%edi  # reset EDI
 04:00000E37 00
                       	    67M 	# now switch ES:EDI with DS:ESI
@@ -5355,13 +5356,13 @@ Source: "t386.asm"
 04:00000E5D 66A7      	   108M 		cmpsl # find nonmatching items in ES:EDI and DS:ESI
                       	   109M 	.endif
 04:00000E5F 6683F900  	   110M 	cmp $0,%ecx
-04:00000E63 0F85D809  	   111M 	jnz error           		# ECX must be 0
+04:00000E63 0F85260F  	   111M 	jnz error           		# ECX must be 0
 04:00000E67 6681FE0000	   112M 	cmp $off_cmp,%esi
 04:00000E6C 0100
-04:00000E6E 0F85CD09  	   113M 	jne error
+04:00000E6E 0F851B0F  	   113M 	jne error
 04:00000E72 6681FF0000	   114M 	cmp $off_cmp,%edi
 04:00000E77 0100
-04:00000E79 0F85C209  	   115M 	jne error
+04:00000E79 0F85100F  	   115M 	jne error
 04:00000E7D 66BF00FF01	   116M 	mov $off_value,%edi  # reset EDI
 04:00000E82 00
 04:00000E83 66BE00FF01	   117M 	mov $off_value,%esi  # reset ESI
@@ -5386,10 +5387,10 @@ Source: "t386.asm"
 04:00000E91 66AF      	   134M 		scasl         # SCAN first dword not equal to EAX
                       	   135M 	.endif
 04:00000E93 6683F900  	   136M 	cmp $0,%ecx
-04:00000E97 0F85A409  	   137M 	jne error           		# ECX must be 0
+04:00000E97 0F85F20E  	   137M 	jne error           		# ECX must be 0
 04:00000E9B 6681FF0000	   138M 	cmp $off_cmp,%edi
 04:00000EA0 0100
-04:00000EA2 0F859909  	   139M 	jne error
+04:00000EA2 0F85E70E  	   139M 	jne error
 04:00000EA6 66BF00FF01	   140M 	mov $off_value,%edi  		# rewind EDI
 04:00000EAB 00
                       	   141M 
@@ -5434,13 +5435,13 @@ Source: "t386.asm"
 04:00000ECA 66A5      	   176M 		movsl          # MOVE data from DS:ESI to ES:EDI
                       	   177M 	.endif
 04:00000ECC 6683F900  	   178M 	cmp $0,%ecx
-04:00000ED0 0F856B09  	   179M 	jne error           	# ECX must be 0
+04:00000ED0 0F85B90E  	   179M 	jne error           	# ECX must be 0
 04:00000ED4 6681FE0000	   180M 	cmp $off_cmp,%esi
 04:00000ED9 0100
-04:00000EDB 0F856009  	   181M 	jne error
+04:00000EDB 0F85AE0E  	   181M 	jne error
 04:00000EDF 6681FF0000	   182M 	cmp $off_cmp,%edi
 04:00000EE4 0100
-04:00000EE6 0F855509  	   183M 	jne error
+04:00000EE6 0F85A30E  	   183M 	jne error
 04:00000EEA 66B9400000	   184M 	mov $items,%ecx      	# reset ECX
 04:00000EEF 00
 04:00000EF0 66BF00FF01	   185M 	mov $off_value,%edi  	# reset EDI
@@ -5463,14 +5464,14 @@ Source: "t386.asm"
 04:00000EFE 66A7      	   200M 		cmpsl  # COMPARE moved data in ES:EDI with DS:ESI
                       	   201M 	.endif
 04:00000F00 6683F900  	   202M 	cmp $0,%ecx
-04:00000F04 0F853709  	   203M 	jne error           # ECX must be 0
+04:00000F04 0F85850E  	   203M 	jne error           # ECX must be 0
 04:00000F08 6681FE0000	   204M 	cmp $off_cmp,%esi
 04:00000F0D 0100
-04:00000F0F 0F852C09  	   205M 	jne error
+04:00000F0F 0F857A0E  	   205M 	jne error
 04:00000F13 6681FF0000	   206M 	cmp $off_cmp,%edi
 04:00000F18 0100
-04:00000F1A 0F852109  	   207M 	jne error
-                      	   245: 	testStringReps b,1,16
+04:00000F1A 0F856F0E  	   207M 	jne error
+                      	   246: 	testStringReps b,1,16
                       	     1M 
                       	     2M 	.set bytes,0x100
                       	     3M 
@@ -5540,10 +5541,10 @@ Source: "t386.asm"
                       	    60M 		stosl    # store ECX items at ES:EDI with the value in EAX
                       	    61M 	.endif
 04:00000F4C 6683F900  	    62M 	cmp $0,%ecx
-04:00000F50 0F85EB08  	    63M 	jnz error           		# ECX must be 0
+04:00000F50 0F85390E  	    63M 	jnz error           		# ECX must be 0
 04:00000F54 6681FFFFFF	    64M 	cmp $off_cmp,%edi
 04:00000F59 0100
-04:00000F5B 0F85E008  	    65M 	jnz error
+04:00000F5B 0F852E0E  	    65M 	jnz error
 04:00000F5F 66BFFF0001	    66M 	mov $off_value,%edi  # reset EDI
 04:00000F64 00
                       	    67M 	# now switch ES:EDI with DS:ESI
@@ -5593,13 +5594,13 @@ Source: "t386.asm"
                       	   108M 		cmpsl # find nonmatching items in ES:EDI and DS:ESI
                       	   109M 	.endif
 04:00000F8A 6683F900  	   110M 	cmp $0,%ecx
-04:00000F8E 0F85AD08  	   111M 	jnz error           		# ECX must be 0
+04:00000F8E 0F85FB0D  	   111M 	jnz error           		# ECX must be 0
 04:00000F92 6681FEFFFF	   112M 	cmp $off_cmp,%esi
 04:00000F97 0100
-04:00000F99 0F85A208  	   113M 	jne error
+04:00000F99 0F85F00D  	   113M 	jne error
 04:00000F9D 6681FFFFFF	   114M 	cmp $off_cmp,%edi
 04:00000FA2 0100
-04:00000FA4 0F859708  	   115M 	jne error
+04:00000FA4 0F85E50D  	   115M 	jne error
 04:00000FA8 66BFFF0001	   116M 	mov $off_value,%edi  # reset EDI
 04:00000FAD 00
 04:00000FAE 66BEFF0001	   117M 	mov $off_value,%esi  # reset ESI
@@ -5624,10 +5625,10 @@ Source: "t386.asm"
                       	   134M 		scasl         # SCAN first dword not equal to EAX
                       	   135M 	.endif
 04:00000FBD 6683F900  	   136M 	cmp $0,%ecx
-04:00000FC1 0F857A08  	   137M 	jne error           		# ECX must be 0
+04:00000FC1 0F85C80D  	   137M 	jne error           		# ECX must be 0
 04:00000FC5 6681FFFFFF	   138M 	cmp $off_cmp,%edi
 04:00000FCA 0100
-04:00000FCC 0F856F08  	   139M 	jne error
+04:00000FCC 0F85BD0D  	   139M 	jne error
 04:00000FD0 66BFFF0001	   140M 	mov $off_value,%edi  		# rewind EDI
 04:00000FD5 00
                       	   141M 
@@ -5672,13 +5673,13 @@ Source: "t386.asm"
                       	   176M 		movsl          # MOVE data from DS:ESI to ES:EDI
                       	   177M 	.endif
 04:00000FF4 6683F900  	   178M 	cmp $0,%ecx
-04:00000FF8 0F854308  	   179M 	jne error           	# ECX must be 0
+04:00000FF8 0F85910D  	   179M 	jne error           	# ECX must be 0
 04:00000FFC 6681FEFFFF	   180M 	cmp $off_cmp,%esi
 04:00001001 0100
-04:00001003 0F853808  	   181M 	jne error
+04:00001003 0F85860D  	   181M 	jne error
 04:00001007 6681FFFFFF	   182M 	cmp $off_cmp,%edi
 04:0000100C 0100
-04:0000100E 0F852D08  	   183M 	jne error
+04:0000100E 0F857B0D  	   183M 	jne error
 04:00001012 66B9000100	   184M 	mov $items,%ecx      	# reset ECX
 04:00001017 00
 04:00001018 66BFFF0001	   185M 	mov $off_value,%edi  	# reset EDI
@@ -5701,14 +5702,14 @@ Source: "t386.asm"
                       	   200M 		cmpsl  # COMPARE moved data in ES:EDI with DS:ESI
                       	   201M 	.endif
 04:00001027 6683F900  	   202M 	cmp $0,%ecx
-04:0000102B 0F851008  	   203M 	jne error           # ECX must be 0
+04:0000102B 0F855E0D  	   203M 	jne error           # ECX must be 0
 04:0000102F 6681FEFFFF	   204M 	cmp $off_cmp,%esi
 04:00001034 0100
-04:00001036 0F850508  	   205M 	jne error
+04:00001036 0F85530D  	   205M 	jne error
 04:0000103A 6681FFFFFF	   206M 	cmp $off_cmp,%edi
 04:0000103F 0100
-04:00001041 0F85FA07  	   207M 	jne error
-                      	   246: 	testStringReps w,1,16
+04:00001041 0F85480D  	   207M 	jne error
+                      	   247: 	testStringReps w,1,16
                       	     1M 
                       	     2M 	.set bytes,0x100
                       	     3M 
@@ -5778,10 +5779,10 @@ Source: "t386.asm"
                       	    60M 		stosl    # store ECX items at ES:EDI with the value in EAX
                       	    61M 	.endif
 04:00001073 6683F900  	    62M 	cmp $0,%ecx
-04:00001077 0F85C407  	    63M 	jnz error           		# ECX must be 0
+04:00001077 0F85120D  	    63M 	jnz error           		# ECX must be 0
 04:0000107B 6681FFFFFF	    64M 	cmp $off_cmp,%edi
 04:00001080 0100
-04:00001082 0F85B907  	    65M 	jnz error
+04:00001082 0F85070D  	    65M 	jnz error
 04:00001086 66BFFF0001	    66M 	mov $off_value,%edi  # reset EDI
 04:0000108B 00
                       	    67M 	# now switch ES:EDI with DS:ESI
@@ -5831,13 +5832,13 @@ Source: "t386.asm"
                       	   108M 		cmpsl # find nonmatching items in ES:EDI and DS:ESI
                       	   109M 	.endif
 04:000010B1 6683F900  	   110M 	cmp $0,%ecx
-04:000010B5 0F858607  	   111M 	jnz error           		# ECX must be 0
+04:000010B5 0F85D40C  	   111M 	jnz error           		# ECX must be 0
 04:000010B9 6681FEFFFF	   112M 	cmp $off_cmp,%esi
 04:000010BE 0100
-04:000010C0 0F857B07  	   113M 	jne error
+04:000010C0 0F85C90C  	   113M 	jne error
 04:000010C4 6681FFFFFF	   114M 	cmp $off_cmp,%edi
 04:000010C9 0100
-04:000010CB 0F857007  	   115M 	jne error
+04:000010CB 0F85BE0C  	   115M 	jne error
 04:000010CF 66BFFF0001	   116M 	mov $off_value,%edi  # reset EDI
 04:000010D4 00
 04:000010D5 66BEFF0001	   117M 	mov $off_value,%esi  # reset ESI
@@ -5862,10 +5863,10 @@ Source: "t386.asm"
                       	   134M 		scasl         # SCAN first dword not equal to EAX
                       	   135M 	.endif
 04:000010E4 6683F900  	   136M 	cmp $0,%ecx
-04:000010E8 0F855307  	   137M 	jne error           		# ECX must be 0
+04:000010E8 0F85A10C  	   137M 	jne error           		# ECX must be 0
 04:000010EC 6681FFFFFF	   138M 	cmp $off_cmp,%edi
 04:000010F1 0100
-04:000010F3 0F854807  	   139M 	jne error
+04:000010F3 0F85960C  	   139M 	jne error
 04:000010F7 66BFFF0001	   140M 	mov $off_value,%edi  		# rewind EDI
 04:000010FC 00
                       	   141M 
@@ -5910,13 +5911,13 @@ Source: "t386.asm"
                       	   176M 		movsl          # MOVE data from DS:ESI to ES:EDI
                       	   177M 	.endif
 04:0000111B 6683F900  	   178M 	cmp $0,%ecx
-04:0000111F 0F851C07  	   179M 	jne error           	# ECX must be 0
+04:0000111F 0F856A0C  	   179M 	jne error           	# ECX must be 0
 04:00001123 6681FEFFFF	   180M 	cmp $off_cmp,%esi
 04:00001128 0100
-04:0000112A 0F851107  	   181M 	jne error
+04:0000112A 0F855F0C  	   181M 	jne error
 04:0000112E 6681FFFFFF	   182M 	cmp $off_cmp,%edi
 04:00001133 0100
-04:00001135 0F850607  	   183M 	jne error
+04:00001135 0F85540C  	   183M 	jne error
 04:00001139 66B9800000	   184M 	mov $items,%ecx      	# reset ECX
 04:0000113E 00
 04:0000113F 66BFFF0001	   185M 	mov $off_value,%edi  	# reset EDI
@@ -5939,14 +5940,14 @@ Source: "t386.asm"
                       	   200M 		cmpsl  # COMPARE moved data in ES:EDI with DS:ESI
                       	   201M 	.endif
 04:0000114E 6683F900  	   202M 	cmp $0,%ecx
-04:00001152 0F85E906  	   203M 	jne error           # ECX must be 0
+04:00001152 0F85370C  	   203M 	jne error           # ECX must be 0
 04:00001156 6681FEFFFF	   204M 	cmp $off_cmp,%esi
 04:0000115B 0100
-04:0000115D 0F85DE06  	   205M 	jne error
+04:0000115D 0F852C0C  	   205M 	jne error
 04:00001161 6681FFFFFF	   206M 	cmp $off_cmp,%edi
 04:00001166 0100
-04:00001168 0F85D306  	   207M 	jne error
-                      	   247: 	testStringReps d,1,16
+04:00001168 0F85210C  	   207M 	jne error
+                      	   248: 	testStringReps d,1,16
                       	     1M 
                       	     2M 	.set bytes,0x100
                       	     3M 
@@ -6016,10 +6017,10 @@ Source: "t386.asm"
 04:00001199 66AB      	    60M 		stosl    # store ECX items at ES:EDI with the value in EAX
                       	    61M 	.endif
 04:0000119B 6683F900  	    62M 	cmp $0,%ecx
-04:0000119F 0F859C06  	    63M 	jnz error           		# ECX must be 0
+04:0000119F 0F85EA0B  	    63M 	jnz error           		# ECX must be 0
 04:000011A3 6681FFFFFF	    64M 	cmp $off_cmp,%edi
 04:000011A8 0100
-04:000011AA 0F859106  	    65M 	jnz error
+04:000011AA 0F85DF0B  	    65M 	jnz error
 04:000011AE 66BFFF0001	    66M 	mov $off_value,%edi  # reset EDI
 04:000011B3 00
                       	    67M 	# now switch ES:EDI with DS:ESI
@@ -6069,13 +6070,13 @@ Source: "t386.asm"
 04:000011D9 66A7      	   108M 		cmpsl # find nonmatching items in ES:EDI and DS:ESI
                       	   109M 	.endif
 04:000011DB 6683F900  	   110M 	cmp $0,%ecx
-04:000011DF 0F855C06  	   111M 	jnz error           		# ECX must be 0
+04:000011DF 0F85AA0B  	   111M 	jnz error           		# ECX must be 0
 04:000011E3 6681FEFFFF	   112M 	cmp $off_cmp,%esi
 04:000011E8 0100
-04:000011EA 0F855106  	   113M 	jne error
+04:000011EA 0F859F0B  	   113M 	jne error
 04:000011EE 6681FFFFFF	   114M 	cmp $off_cmp,%edi
 04:000011F3 0100
-04:000011F5 0F854606  	   115M 	jne error
+04:000011F5 0F85940B  	   115M 	jne error
 04:000011F9 66BFFF0001	   116M 	mov $off_value,%edi  # reset EDI
 04:000011FE 00
 04:000011FF 66BEFF0001	   117M 	mov $off_value,%esi  # reset ESI
@@ -6100,10 +6101,10 @@ Source: "t386.asm"
 04:0000120D 66AF      	   134M 		scasl         # SCAN first dword not equal to EAX
                       	   135M 	.endif
 04:0000120F 6683F900  	   136M 	cmp $0,%ecx
-04:00001213 0F852806  	   137M 	jne error           		# ECX must be 0
+04:00001213 0F85760B  	   137M 	jne error           		# ECX must be 0
 04:00001217 6681FFFFFF	   138M 	cmp $off_cmp,%edi
 04:0000121C 0100
-04:0000121E 0F851D06  	   139M 	jne error
+04:0000121E 0F856B0B  	   139M 	jne error
 04:00001222 66BFFF0001	   140M 	mov $off_value,%edi  		# rewind EDI
 04:00001227 00
                       	   141M 
@@ -6148,13 +6149,13 @@ Source: "t386.asm"
 04:00001246 66A5      	   176M 		movsl          # MOVE data from DS:ESI to ES:EDI
                       	   177M 	.endif
 04:00001248 6683F900  	   178M 	cmp $0,%ecx
-04:0000124C 0F85EF05  	   179M 	jne error           	# ECX must be 0
+04:0000124C 0F853D0B  	   179M 	jne error           	# ECX must be 0
 04:00001250 6681FEFFFF	   180M 	cmp $off_cmp,%esi
 04:00001255 0100
-04:00001257 0F85E405  	   181M 	jne error
+04:00001257 0F85320B  	   181M 	jne error
 04:0000125B 6681FFFFFF	   182M 	cmp $off_cmp,%edi
 04:00001260 0100
-04:00001262 0F85D905  	   183M 	jne error
+04:00001262 0F85270B  	   183M 	jne error
 04:00001266 66B9400000	   184M 	mov $items,%ecx      	# reset ECX
 04:0000126B 00
 04:0000126C 66BFFF0001	   185M 	mov $off_value,%edi  	# reset EDI
@@ -6177,15 +6178,15 @@ Source: "t386.asm"
 04:0000127A 66A7      	   200M 		cmpsl  # COMPARE moved data in ES:EDI with DS:ESI
                       	   201M 	.endif
 04:0000127C 6683F900  	   202M 	cmp $0,%ecx
-04:00001280 0F85BB05  	   203M 	jne error           # ECX must be 0
+04:00001280 0F85090B  	   203M 	jne error           # ECX must be 0
 04:00001284 6681FEFFFF	   204M 	cmp $off_cmp,%esi
 04:00001289 0100
-04:0000128B 0F85B005  	   205M 	jne error
+04:0000128B 0F85FE0A  	   205M 	jne error
 04:0000128F 6681FFFFFF	   206M 	cmp $off_cmp,%edi
 04:00001294 0100
-04:00001296 0F85A505  	   207M 	jne error
-                      	   248: 
-                      	   249: 	advTestSegReal
+04:00001296 0F85F30A  	   207M 	jne error
+                      	   249: 
+                      	   250: 	advTestSegReal
                       	     1M 	advTestBase
                       	     1M 	.set TEST_BASE1,TEST_BASE1+0x1000
                       	     2M 	.set TEST_BASE2,TEST_BASE2+0x1000
@@ -6195,8 +6196,8 @@ Source: "t386.asm"
 04:0000129E 8EDA      	     5M 	mov %dx,%ds
 04:000012A0 C7C200C4  	     6M 	mov $D2_SEG_REAL,%dx
 04:000012A4 8EC2      	     7M 	mov %dx,%es
-                      	   250: 
-                      	   251: .include "call_m.asm"
+                      	   251: 
+                      	   252: .include "call_m.asm"
 
 Source: "call_m.asm"
                       	     1: #
@@ -6361,17 +6362,17 @@ Source: "call_m.asm"
                       	   160: 
 
 Source: "t386.asm"
-                      	   252: #-------------------------------------------------------------------------------
-                      	   253: 	POST $0x05
+                      	   253: #-------------------------------------------------------------------------------
+                      	   254: 	POST $0x05
 04:000012A6 B005      	     1M 	movb $0x05,%al
 04:000012A8 BA9001    	     2M 	movw $POST_PORT,%dx
 04:000012AB EE        	     3M 	out %al,%dx
-                      	   254: #-------------------------------------------------------------------------------
-                      	   255: #
-                      	   256: #   Calls in real mode
-                      	   257: #
-04:000012AC BE0000    	   258: 	mov $0,%si
-                      	   259: 	testCallNear sp
+                      	   255: #-------------------------------------------------------------------------------
+                      	   256: #
+                      	   257: #   Calls in real mode
+                      	   258: #
+04:000012AC BE0000    	   259: 	mov $0,%si
+                      	   260: 	testCallNear sp
                       	     1M 
                       	     2M 	.ifc sp, sp
 04:000012AF 89E0      	     3M 		mov %sp,%ax
@@ -6379,47 +6380,47 @@ Source: "t386.asm"
 04:000012B1 F8        	     5M 		clc
 04:000012B2 66        	     6M 		data16
 04:000012B3 E80600    	     7M 		callw nearfn1651
-04:000012B6 0F838505  	     8M 		jnc error
+04:000012B6 0F83D30A  	     8M 		jnc error
 04:000012BA EB12      	     9M 		jmp rel3251
                       	    10M nearfn1651:
 04:000012BC 83E802    	    11M 		sub $2,%ax
 04:000012BF 39C4      	    12M 		cmp %ax,%sp
-04:000012C1 0F857A05  	    13M 		jne error
+04:000012C1 0F85C80A  	    13M 		jne error
 04:000012C5 83C002    	    14M 		add $2,%ax
 04:000012C8 F9        	    15M 		stc
 04:000012C9 66        	    16M 		data16
 04:000012CA C3        	    17M 		ret
-04:000012CB E97105    	    18M 		jmp error
+04:000012CB E9BF0A    	    18M 		jmp error
                       	    19M 
                       	    20M rel3251:
 04:000012CE F8        	    21M 		clc
 04:000012CF 66        	    22M 		data32
 04:000012D0 66E80600  	    23M 		calll nearfn3251
-04:000012D4 0F836705  	    24M 		jnc error
+04:000012D4 0F83B50A  	    24M 		jnc error
 04:000012D8 EB12      	    25M 		jmp rm1651
                       	    26M nearfn3251:
 04:000012DA 83E804    	    27M 		sub $4,%ax
 04:000012DD 39C4      	    28M 		cmp %ax,%sp
-04:000012DF 0F855C05  	    29M 		jne error
+04:000012DF 0F85AA0A  	    29M 		jne error
 04:000012E3 83C004    	    30M 		add $4,%ax
 04:000012E6 F9        	    31M 		stc
 04:000012E7 66        	    32M 		data32
 04:000012E8 C3        	    33M 		ret
-04:000012E9 E95305    	    34M 		jmp error
+04:000012E9 E9A10A    	    34M 		jmp error
                       	    35M 
                       	    36M rm1651:
 04:000012EC F8        	    37M 		clc
 04:000012ED BBBC12    	    38M 		mov $nearfn1651,%bx
 04:000012F0 66        	    39M 		data16
 04:000012F1 FFD3      	    40M 		call %bx
-04:000012F3 0F834805  	    41M 		jnc error
+04:000012F3 0F83960A  	    41M 		jnc error
                       	    42M rm3251:
 04:000012F7 F8        	    43M 		clc
 04:000012F8 66BBDA1200	    44M 		mov $nearfn3251,%ebx
 04:000012FD 00
 04:000012FE 66        	    45M 		data32
 04:000012FF 66FFD3    	    46M 		call %ebx
-04:00001302 0F833905  	    47M 		jnc error
+04:00001302 0F83870A  	    47M 		jnc error
                       	    48M 	.else
                       	    49M 		mov %sp,%eax
                       	    50M rel1651:
@@ -6467,40 +6468,40 @@ Source: "t386.asm"
                       	    92M 		call %ebx
                       	    93M 		jnc error
                       	    94M 	.endif
-                      	   260: 	testCallFar C_SEG_REAL
+                      	   261: 	testCallFar C_SEG_REAL
 04:00001306 89E0      	     1M 	mov %sp,%ax
                       	     2M 
 04:00001308 F8        	     3M 	clc
 04:00001309 66        	     4M 	data16
 04:0000130A 9A00001513	     5M 	callw $C_SEG_REAL,$farfn1652
-04:0000130F 0F832C05  	     6M 	jnc error
+04:0000130F 0F837A0A  	     6M 	jnc error
 04:00001313 EB13      	     7M 	jmp o3252
                       	     8M farfn1652:
 04:00001315 83E804    	     9M 	sub $4,%ax
 04:00001318 39C4      	    10M 	cmp %ax,%sp
-04:0000131A 0F852105  	    11M 	jne error
+04:0000131A 0F856F0A  	    11M 	jne error
 04:0000131E 83C004    	    12M 	add $4,%ax
 04:00001321 F9        	    13M 	stc
 04:00001322 66        	    14M 	data16
 04:00001323 66C3      	    15M 	retl
-04:00001325 E91705    	    16M 	jmp error
+04:00001325 E9650A    	    16M 	jmp error
                       	    17M 
                       	    18M o3252:
 04:00001328 F8        	    19M 	clc
 04:00001329 66        	    20M 	data32
 04:0000132A 669A000038	    21M 	calll $C_SEG_REAL,$farfn3252
 04:0000132F 130000
-04:00001332 0F830905  	    22M 	jnc error
+04:00001332 0F83570A  	    22M 	jnc error
 04:00001336 EB13      	    23M 	jmp m161652
                       	    24M farfn3252:
 04:00001338 83E808    	    25M 	sub $8,%ax
 04:0000133B 39C4      	    26M 	cmp %ax,%sp
-04:0000133D 0F85FE04  	    27M 	jne error
+04:0000133D 0F854C0A  	    27M 	jne error
 04:00001341 83C008    	    28M 	add $8,%ax
 04:00001344 F9        	    29M 	stc
 04:00001345 66        	    30M 	data32
 04:00001346 66C3      	    31M 	retl
-04:00001348 E9F404    	    32M 	jmp error
+04:00001348 E9420A    	    32M 	jmp error
                       	    33M 
                       	    34M m161652:
 04:0000134B F8        	    35M 	clc
@@ -6508,7 +6509,7 @@ Source: "t386.asm"
 04:00001350 C744020000	    37M 	movw $C_SEG_REAL,2(%si)
 04:00001355 66        	    38M 	data16
 04:00001356 66FF14    	    39M 	calll (%si)
-04:00001359 0F83E204  	    40M 	jnc error
+04:00001359 0F83300A  	    40M 	jnc error
                       	    41M m163252:
 04:0000135D F8        	    42M 	clc
 04:0000135E 66C7043813	    43M 	movl $farfn3252,(%si)
@@ -6516,10 +6517,10 @@ Source: "t386.asm"
 04:00001365 C744040000	    44M 	movw $C_SEG_REAL,4(%si)
 04:0000136A 66        	    45M 	data32
 04:0000136B 66FF14    	    46M 	calll (%si)
-04:0000136E 0F83CD04  	    47M 	jnc error
+04:0000136E 0F831B0A  	    47M 	jnc error
                       	    48M exit52:
-                      	   261: 
-                      	   262: 	advTestSegReal
+                      	   262: 
+                      	   263: 	advTestSegReal
                       	     1M 	advTestBase
                       	     1M 	.set TEST_BASE1,TEST_BASE1+0x1000
                       	     2M 	.set TEST_BASE2,TEST_BASE2+0x1000
@@ -6529,9 +6530,9 @@ Source: "t386.asm"
 04:00001376 8EDA      	     5M 	mov %dx,%ds
 04:00001378 C7C200C5  	     6M 	mov $D2_SEG_REAL,%dx
 04:0000137C 8EC2      	     7M 	mov %dx,%es
-                      	   263: 
                       	   264: 
-                      	   265: .include "load_ptr_m.asm"
+                      	   265: 
+                      	   266: .include "load_ptr_m.asm"
 
 Source: "load_ptr_m.asm"
                       	     1: #
@@ -6571,17 +6572,17 @@ Source: "load_ptr_m.asm"
                       	    35: 
 
 Source: "t386.asm"
-                      	   266: #-------------------------------------------------------------------------------
-                      	   267: 	POST $0x06
+                      	   267: #-------------------------------------------------------------------------------
+                      	   268: 	POST $0x06
 04:0000137E B006      	     1M 	movb $0x06,%al
 04:00001380 BA9001    	     2M 	movw $POST_PORT,%dx
 04:00001383 EE        	     3M 	out %al,%dx
-                      	   268: #-------------------------------------------------------------------------------
-                      	   269: #
-                      	   270: #   Load full pointer in real mode
-                      	   271: #
-04:00001384 BF0000    	   272: 	mov $0,%di
-                      	   273: 	testLoadPtr ss
+                      	   269: #-------------------------------------------------------------------------------
+                      	   270: #
+                      	   271: #   Load full pointer in real mode
+                      	   272: #
+04:00001384 BF0000    	   273: 	mov $0,%di
+                      	   274: 	testLoadPtr ss
 04:00001387 8CD1      	     1M 	mov %ss,%cx
 04:00001389 8CC2      	     2M 	mov %es,%dx
                       	     3M 
@@ -6591,9 +6592,9 @@ Source: "t386.asm"
 04:00001396 260FB21D  	     6M 	lss %es:(%di),%bx
 04:0000139A 8CD0      	     7M 	mov %ss,%ax
 04:0000139C 3DCDAB    	     8M 	cmp $0xabcd,%ax
-04:0000139F 0F859C04  	     9M 	jne error
+04:0000139F 0F85EA09  	     9M 	jne error
 04:000013A3 81FB3412  	    10M 	cmp $0x1234,%bx
-04:000013A7 0F859404  	    11M 	jne error
+04:000013A7 0F85E209  	    11M 	jne error
                       	    12M 
 04:000013AB 8EC2      	    13M 	mov %dx,%es
                       	    14M 
@@ -6604,14 +6605,14 @@ Source: "t386.asm"
 04:000013BB 66260FB21D	    17M 	lss %es:(%di),%ebx
 04:000013C0 8CD0      	    18M 	mov %ss,%ax
 04:000013C2 3DDEBC    	    19M 	cmp $0xbcde,%ax
-04:000013C5 0F857604  	    20M 	jne error
+04:000013C5 0F85C409  	    20M 	jne error
 04:000013C9 6681FB7856	    21M 	cmp $0x12345678,%ebx
 04:000013CE 3412
-04:000013D0 0F856B04  	    22M 	jne error
+04:000013D0 0F85B909  	    22M 	jne error
                       	    23M 
 04:000013D4 8EC2      	    24M 	mov %dx,%es
 04:000013D6 8ED1      	    25M 	mov %cx,%ss
-                      	   274: 	testLoadPtr ds
+                      	   275: 	testLoadPtr ds
 04:000013D8 8CD9      	     1M 	mov %ds,%cx
 04:000013DA 8CC2      	     2M 	mov %es,%dx
                       	     3M 
@@ -6621,9 +6622,9 @@ Source: "t386.asm"
 04:000013E7 26C51D    	     6M 	lds %es:(%di),%bx
 04:000013EA 8CD8      	     7M 	mov %ds,%ax
 04:000013EC 3DCDAB    	     8M 	cmp $0xabcd,%ax
-04:000013EF 0F854C04  	     9M 	jne error
+04:000013EF 0F859A09  	     9M 	jne error
 04:000013F3 81FB3412  	    10M 	cmp $0x1234,%bx
-04:000013F7 0F854404  	    11M 	jne error
+04:000013F7 0F859209  	    11M 	jne error
                       	    12M 
 04:000013FB 8EC2      	    13M 	mov %dx,%es
                       	    14M 
@@ -6634,14 +6635,14 @@ Source: "t386.asm"
 04:0000140B 6626C51D  	    17M 	lds %es:(%di),%ebx
 04:0000140F 8CD8      	    18M 	mov %ds,%ax
 04:00001411 3DDEBC    	    19M 	cmp $0xbcde,%ax
-04:00001414 0F852704  	    20M 	jne error
+04:00001414 0F857509  	    20M 	jne error
 04:00001418 6681FB7856	    21M 	cmp $0x12345678,%ebx
 04:0000141D 3412
-04:0000141F 0F851C04  	    22M 	jne error
+04:0000141F 0F856A09  	    22M 	jne error
                       	    23M 
 04:00001423 8EC2      	    24M 	mov %dx,%es
 04:00001425 8ED9      	    25M 	mov %cx,%ds
-                      	   275: 	testLoadPtr es
+                      	   276: 	testLoadPtr es
 04:00001427 8CC1      	     1M 	mov %es,%cx
 04:00001429 8CC2      	     2M 	mov %es,%dx
                       	     3M 
@@ -6651,9 +6652,9 @@ Source: "t386.asm"
 04:00001436 26C41D    	     6M 	les %es:(%di),%bx
 04:00001439 8CC0      	     7M 	mov %es,%ax
 04:0000143B 3DCDAB    	     8M 	cmp $0xabcd,%ax
-04:0000143E 0F85FD03  	     9M 	jne error
+04:0000143E 0F854B09  	     9M 	jne error
 04:00001442 81FB3412  	    10M 	cmp $0x1234,%bx
-04:00001446 0F85F503  	    11M 	jne error
+04:00001446 0F854309  	    11M 	jne error
                       	    12M 
 04:0000144A 8EC2      	    13M 	mov %dx,%es
                       	    14M 
@@ -6664,14 +6665,14 @@ Source: "t386.asm"
 04:0000145A 6626C41D  	    17M 	les %es:(%di),%ebx
 04:0000145E 8CC0      	    18M 	mov %es,%ax
 04:00001460 3DDEBC    	    19M 	cmp $0xbcde,%ax
-04:00001463 0F85D803  	    20M 	jne error
+04:00001463 0F852609  	    20M 	jne error
 04:00001467 6681FB7856	    21M 	cmp $0x12345678,%ebx
 04:0000146C 3412
-04:0000146E 0F85CD03  	    22M 	jne error
+04:0000146E 0F851B09  	    22M 	jne error
                       	    23M 
 04:00001472 8EC2      	    24M 	mov %dx,%es
 04:00001474 8EC1      	    25M 	mov %cx,%es
-                      	   276: 	testLoadPtr fs
+                      	   277: 	testLoadPtr fs
 04:00001476 8CE1      	     1M 	mov %fs,%cx
 04:00001478 8CC2      	     2M 	mov %es,%dx
                       	     3M 
@@ -6681,9 +6682,9 @@ Source: "t386.asm"
 04:00001485 260FB41D  	     6M 	lfs %es:(%di),%bx
 04:00001489 8CE0      	     7M 	mov %fs,%ax
 04:0000148B 3DCDAB    	     8M 	cmp $0xabcd,%ax
-04:0000148E 0F85AD03  	     9M 	jne error
+04:0000148E 0F85FB08  	     9M 	jne error
 04:00001492 81FB3412  	    10M 	cmp $0x1234,%bx
-04:00001496 0F85A503  	    11M 	jne error
+04:00001496 0F85F308  	    11M 	jne error
                       	    12M 
 04:0000149A 8EC2      	    13M 	mov %dx,%es
                       	    14M 
@@ -6694,14 +6695,14 @@ Source: "t386.asm"
 04:000014AA 66260FB41D	    17M 	lfs %es:(%di),%ebx
 04:000014AF 8CE0      	    18M 	mov %fs,%ax
 04:000014B1 3DDEBC    	    19M 	cmp $0xbcde,%ax
-04:000014B4 0F858703  	    20M 	jne error
+04:000014B4 0F85D508  	    20M 	jne error
 04:000014B8 6681FB7856	    21M 	cmp $0x12345678,%ebx
 04:000014BD 3412
-04:000014BF 0F857C03  	    22M 	jne error
+04:000014BF 0F85CA08  	    22M 	jne error
                       	    23M 
 04:000014C3 8EC2      	    24M 	mov %dx,%es
 04:000014C5 8EE1      	    25M 	mov %cx,%fs
-                      	   277: 	testLoadPtr gs
+                      	   278: 	testLoadPtr gs
 04:000014C7 8CE9      	     1M 	mov %gs,%cx
 04:000014C9 8CC2      	     2M 	mov %es,%dx
                       	     3M 
@@ -6711,9 +6712,9 @@ Source: "t386.asm"
 04:000014D6 260FB51D  	     6M 	lgs %es:(%di),%bx
 04:000014DA 8CE8      	     7M 	mov %gs,%ax
 04:000014DC 3DCDAB    	     8M 	cmp $0xabcd,%ax
-04:000014DF 0F855C03  	     9M 	jne error
+04:000014DF 0F85AA08  	     9M 	jne error
 04:000014E3 81FB3412  	    10M 	cmp $0x1234,%bx
-04:000014E7 0F855403  	    11M 	jne error
+04:000014E7 0F85A208  	    11M 	jne error
                       	    12M 
 04:000014EB 8EC2      	    13M 	mov %dx,%es
                       	    14M 
@@ -6724,15 +6725,15 @@ Source: "t386.asm"
 04:000014FB 66260FB51D	    17M 	lgs %es:(%di),%ebx
 04:00001500 8CE8      	    18M 	mov %gs,%ax
 04:00001502 3DDEBC    	    19M 	cmp $0xbcde,%ax
-04:00001505 0F853603  	    20M 	jne error
+04:00001505 0F858408  	    20M 	jne error
 04:00001509 6681FB7856	    21M 	cmp $0x12345678,%ebx
 04:0000150E 3412
-04:00001510 0F852B03  	    22M 	jne error
+04:00001510 0F857908  	    22M 	jne error
                       	    23M 
 04:00001514 8EC2      	    24M 	mov %dx,%es
 04:00001516 8EE9      	    25M 	mov %cx,%gs
-                      	   278: 
-                      	   279: 	advTestSegReal
+                      	   279: 
+                      	   280: 	advTestSegReal
                       	     1M 	advTestBase
                       	     1M 	.set TEST_BASE1,TEST_BASE1+0x1000
                       	     2M 	.set TEST_BASE2,TEST_BASE2+0x1000
@@ -6742,8 +6743,929 @@ Source: "t386.asm"
 04:0000151C 8EDA      	     5M 	mov %dx,%ds
 04:0000151E C7C200C6  	     6M 	mov $D2_SEG_REAL,%dx
 04:00001522 8EC2      	     7M 	mov %dx,%es
-                      	   280: 
-                      	   281: .include "lea_m.asm"
+                      	   281: 
+                      	   282: # ==============================================================================
+                      	   283: #	Protected mode tests
+                      	   284: # ==============================================================================
+                      	   285: 
+                      	   286: #-------------------------------------------------------------------------------
+                      	   287: 	POST $0x08
+04:00001524 B008      	     1M 	movb $0x08,%al
+04:00001526 BA9001    	     2M 	movw $POST_PORT,%dx
+04:00001529 EE        	     3M 	out %al,%dx
+                      	   288: #-------------------------------------------------------------------------------
+                      	   289: #
+                      	   290: #   GDT, LDT, PDT, and PT setup, enter protected mode
+                      	   291: #
+04:0000152A EB12      	   292: 	jmp initGDT
+                      	   293: 
+                      	   294: .set ESP_R0_PROT,0x0000FFFF
+                      	   295: .set ESP_R3_PROT,0x00007FFF
+                      	   296: 
+                      	   297: .include "protected_m.asm"
+
+Source: "protected_m.asm"
+                      	     1: #
+                      	     2: # Advances the base address of data segments used by tests, D1_SEG_PROT and
+                      	     3: # D2_SEG_PROT.
+                      	     4: #
+                      	     5: # Loads DS with D1_SEG_PROT and ES with D2_SEG_PROT.
+                      	     6: #
+                      	     7: .macro advTestSegProt
+                      	     8: 	advTestBase
+                      	     9: 	updLDTDescBase D1_SEG_PROT,TEST_BASE1
+                      	    10: 	updLDTDescBase D2_SEG_PROT,TEST_BASE2
+                      	    11: 	mov $D1_SEG_PROT,%dx
+                      	    12: 	mov %dx,%ds
+                      	    13: 	mov $D2_SEG_PROT,%dx
+                      	    14: 	mov %dx,%es
+                      	    15: .endm
+                      	    16: 
+                      	    17: 
+                      	    18: #
+                      	    19: #   Defines an interrupt gate in ROM, given a selector (%1) and an offset (%2)
+                      	    20: #
+                      	    21: .macro defIntGate arg1,arg2
+                      	    22: 	.2byte (\arg2 & 0xffff) # OFFSET 15-0
+                      	    23: 	.2byte \arg1 	# SELECTOR
+                      	    24: 	.2byte ACC_TYPE_GATE386_INT | ACC_PRESENT # acc byte
+                      	    25: 	.2byte (\arg2 >> 16) & 0xffff # OFFSET 31-16
+                      	    26: .endm
+                      	    27: 
+                      	    28: .set GDTSelDesc,0
+                      	    29: #
+                      	    30: #   Defines a GDT descriptor in ROM, given a name (%1), base (%2), limit (%3),
+                      	    31: #   acc byte (%4), and ext nibble (%5)
+                      	    32: #
+                      	    33: .macro defGDTDescROM arg1,arg2,arg3,arg4,arg5
+                      	    34: 	.ifnc \arg1, 0
+                      	    35: 	.set \arg1,GDTSelDesc
+                      	    36: 	.endif
+                      	    37: 	.2byte (\arg3 & 0x0000ffff) # LIMIT 15-0
+                      	    38: 	.2byte (\arg2 & 0x0000ffff) # BASE 15-0
+                      	    39: 	.2byte ((\arg2 & 0x00ff0000) >> 16) | \arg4 # BASE 23-16 | acc byte
+                      	    40: 	.2byte ((\arg3 & 0x000f0000) >> 16) | \arg5 | ((\arg2 & 0xff000000) >> 16) # LIMIT 19-16 | ext nibble | BASE 31-24
+                      	    41: 	.ifnc \arg1, 0
+                      	    42: 	.set GDTSelDesc,GDTSelDesc+8
+                      	    43: 	.endif
+                      	    44: .endm
+                      	    45: #
+                      	    46: #   Defines a GDT descriptor in RAM, given a name (%1), base (%2), limit (%3),
+                      	    47: #   acc byte (%4), and ext nibble (%5)
+                      	    48: #
+                      	    49: .macro defGDTDesc arg1,arg2=0,arg3=0,arg4=0,arg5=0
+                      	    50: 	.ifnc \arg1, 0
+                      	    51: 	.set \arg1,GDTSelDesc
+                      	    52: 	.endif
+                      	    53: 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+                      	    54: 	mov $\arg1,%eax
+                      	    55: 	mov $\arg2,%esi
+                      	    56: 	mov $\arg3,%edi
+                      	    57: 	mov $\arg4|\arg5,%dx
+                      	    58: 	initDescriptor
+                      	    59: 	.ifnc \arg1, 0
+                      	    60: 	.set GDTSelDesc,GDTSelDesc+8
+                      	    61: 	.endif
+                      	    62: .endm
+                      	    63: 
+                      	    64: #
+                      	    65: #   Defines a LDT descriptor, given a name (%1), base (%2), limit (%3), type (%4), and ext (%5)
+                      	    66: #
+                      	    67: .set LDTSelDesc,4
+                      	    68: .macro defLDTDesc arg1,arg2,arg3,arg4,arg5
+                      	    69: 	.set \arg1,LDTSelDesc
+                      	    70: 	lds (%cs:ptrLDTprot),%ebx  # this macro is used in prot mode to set up prot mode env.
+                      	    71: 	mov $\arg1,%eax
+                      	    72: 	mov $\arg2,%esi
+                      	    73: 	mov $\arg3,%edi
+                      	    74: 	mov $\arg4|\arg5,%dx
+                      	    75: 	initDescriptor
+                      	    76: 	.set LDTSelDesc,LDTSelDesc+8
+                      	    77: .endm
+                      	    78: 
+                      	    79: #
+                      	    80: #   Updates a LDT descriptor, given a name (%1), base (%2), limit (%3), type (%4), and ext (%5)
+                      	    81: #
+                      	    82: .macro updLDTDesc arg1,arg2,arg3,arg4,arg5
+                      	    83: 	pushad
+                      	    84: 	mov %ds,%ax
+                      	    85: 	push %ax
+                      	    86: 	lds (%cs:ptrLDTprot),%ebx  # this macro is used in prot mode to set up prot mode env.
+                      	    87: 	mov $\arg1,%eax
+                      	    88: 	mov $\arg2,%esi
+                      	    89: 	mov $\arg3,%edi
+                      	    90: 	mov $\arg4|\arg5,%dx
+                      	    91: 	call initDescriptorProt
+                      	    92: 	pop %ax
+                      	    93: 	mov %ax,%ds
+                      	    94: 	popad
+                      	    95: .endm
+                      	    96: 
+                      	    97: #
+                      	    98: # Updates the access byte of a descriptor in the LDT
+                      	    99: # %1 LDT selector
+                      	   100: # %2 access byte new value (ACC_* or'd equs)
+                      	   101: # Uses DS
+                      	   102: 
+                      	   103: .macro updLDTDescAcc arg1,arg2
+                      	   104: 	pushad
+                      	   105: 	pushf
+                      	   106: 	lds (%cs:ptrLDTprot),%ebx
+                      	   107: 	add $(\arg1) & 0xFFF8,%ebx
+                      	   108: 	movb $(\arg2)>>8,5(%ebx) # acc byte
+                      	   109: 	popf
+                      	   110: 	popad
+                      	   111: .endm
+                      	   112: 
+                      	   113: #
+                      	   114: # Updates the base of a descriptor in the LDT
+                      	   115: # %1 LDT selector
+                      	   116: # %2 new base
+                      	   117: # Uses DS,EBX,flags
+                      	   118: 
+                      	   119: .macro updLDTDescBase arg1,arg2
+                      	   120: 	lds (%cs:ptrLDTprot),%ebx
+                      	   121: 	add $(\arg1) & 0xFFF8,%ebx
+                      	   122: 	movw $(\arg2)&0xFFFF,2(%ebx)      # BASE 15-0
+                      	   123: 	movb $((\arg2)>>16)&0xFF,4(%ebx) 	# BASE 23-16
+                      	   124: 	movb $((\arg2)>>24)&0xFF,7(%ebx) 	# BASE 31-24
+                      	   125: .endm
+                      	   126: 
+                      	   127: #
+                      	   128: # Updates the values of a GDT's entry with a Call Gate
+                      	   129: # %1 GDT selector
+                      	   130: # %2 destination selector
+                      	   131: # %3 destination offset
+                      	   132: # %4 word count
+                      	   133: # %5 DPL
+                      	   134: #
+                      	   135: .macro updCallGate arg1,arg2,arg3,arg4,arg5
+                      	   136: 	lfs (%cs:ptrGDTprot),%ebx
+                      	   137: 	mov $\arg1,%eax
+                      	   138: 	mov $\arg2,%esi
+                      	   139: 	mov $\arg3,%edi
+                      	   140: 	mov $\arg4|\arg5,%dx
+                      	   141: 	call initCallGate
+                      	   142: .endm
+                      	   143: 
+                      	   144: 
+                      	   145: 
+                      	   146: 
+                      	   147: #
+                      	   148: # Loads SS:ESP with a pointer to the prot mode stack
+                      	   149: #
+                      	   150: .macro loadProtModeStack
+                      	   151: 	lss (%cs:ptrSSprot),%esp
+                      	   152: .endm
+                      	   153: 
+                      	   154: 
+                      	   155: #
+                      	   156: # Set a int gate on the IDT in protected mode
+                      	   157: #
+                      	   158: # %1: vector
+                      	   159: # %2: offset
+                      	   160: # %3: DPL, use ACC_DPL_* equs (optional)
+                      	   161: #
+                      	   162: # the stack must be initialized
+                      	   163: #
+                      	   164: .macro setProtModeIntGate arg1,arg2,arg3
+                      	   165: 	pushad
+                      	   166: 	pushf
+                      	   167: 	mov %ds,%ax  	# save ds
+                      	   168: 	push %ax
+                      	   169: 	mov $\arg1,%eax
+                      	   170: 	mov $\arg2,%edi
+                      	   171: 	.if \arg3 != -1
+                      	   172: 	mov $\arg3,%dx
+                      	   173: 	.else
+                      	   174: 	mov %cs,%dx
+                      	   175: 	and $7,%dx
+                      	   176: 	shl $13,%dx
+                      	   177: 	.endif
+                      	   178: 	cmp $ACC_DPL_0,%dx
+                      	   179: 	jne dpl3\@
+                      	   180: dpl0\@:
+                      	   181: 	mov $C_SEG_PROT32,%esi
+                      	   182: 	jmp cont\@
+                      	   183: dpl3\@:
+                      	   184: 	mov $CU_SEG_PROT32,%esi
+                      	   185: cont\@:
+                      	   186: 	mov %cs,%cx
+                      	   187: 	test $7,%cx
+                      	   188: 	jnz ring3\@
+                      	   189: ring0\@:
+                      	   190: 	lds (%cs:ptrIDTprot),%ebx
+                      	   191: 	jmp call\@
+                      	   192: ring3\@:
+                      	   193: 	lds (%cs:ptrIDTUprot),%ebx
+                      	   194: call\@:
+                      	   195: 	call initIntGateProt
+                      	   196: 	pop %ax
+                      	   197: 	mov %ax,%ds  # restore ds
+                      	   198: 	popf
+                      	   199: 	popad
+                      	   200: .endm
+                      	   201: 
+                      	   202: #
+                      	   203: # Tests a fault
+                      	   204: #
+                      	   205: # %1: vector
+                      	   206: # %2: expected error code
+                      	   207: # %3: fault causing instruction (can't be a call unless the call is the faulting instruction)
+                      	   208: #
+                      	   209: # the stack must be initialized
+                      	   210: #
+                      	   211: .macro protModeFaultTest arg1,arg2,arg3
+                      	   212: 	setProtModeIntGate \arg1, continue\@
+                      	   213: test\@:
+                      	   214: 	\arg3
+                      	   215: 	jmp error
+                      	   216: continue\@:
+                      	   217: 	protModeExcCheck \arg1, \arg2, test\@
+                      	   218: 	setProtModeIntGate \arg1, DefaultExcHandler, ACC_DPL_0
+                      	   219: .endm
+                      	   220: 
+                      	   221: # %1: vector
+                      	   222: # %2: expected error code
+                      	   223: # %3: the provilege level the test code will run in
+                      	   224: # %4: the expected value of pushed EIP (specify if %5 is a call, otherwise use -1)
+                      	   225: # %5: fault causing code (can be a call to procedure)
+                      	   226: #
+                      	   227: # The fault handler is executed in ring 0. The caller must reset the data segments.
+                      	   228: #
+                      	   229: .macro protModeFaultTestEx arg1,arg2,arg3,arg4,arg5
+                      	   230: 	setProtModeIntGate \arg1, continue\@, ACC_DPL_0
+                      	   231: test\@:
+                      	   232: 	\arg5
+                      	   233: 	jmp error
+                      	   234: continue\@:
+                      	   235: 	.if \arg3 = 0
+                      	   236: 		.set expectedCS,C_SEG_PROT32
+                      	   237: 	.else
+                      	   238: 		.set expectedCS,CU_SEG_PROT32|3
+                      	   239: 	.endif
+                      	   240: 	.if \arg4 = -1
+                      	   241: 		protModeExcCheck \arg1, \arg2, test\@, expectedCS
+                      	   242: 	.else
+                      	   243: 		protModeExcCheck \arg1, \arg2, \arg4, expectedCS
+                      	   244: 	.endif
+                      	   245: 	setProtModeIntGate \arg1, DefaultExcHandler, ACC_DPL_0
+                      	   246: .endm
+                      	   247: 
+                      	   248: #
+                      	   249: # Checks exception result and restores the previous handler
+                      	   250: #
+                      	   251: # %1: vector
+                      	   252: # %2: expected error code
+                      	   253: # %3: expected pushed value of EIP
+                      	   254: # %4: expected pushed value of CS (optional)
+                      	   255: #
+                      	   256: .macro protModeExcCheck arg1,arg2,arg3,arg4
+                      	   257: 	.if \arg1 == 8 || (\arg1 > 10 && \arg1 <= 14)
+                      	   258: 	.set exc_errcode,4
+                      	   259: 	cmpl $\arg2,(%ss:%esp)
+                      	   260: 	jne error
+                      	   261: 	.else
+                      	   262: 	.set exc_errcode,0
+                      	   263: 	.endif
+                      	   264: 	.if \arg4 != -1
+                      	   265: 		cmpl $\arg4,exc_errcode+4(%ss:esp)
+                      	   266: 		jne error
+                      	   267: 	.else
+                      	   268: 		mov %cs,%bx
+                      	   269: 		test $7,%bx
+                      	   270: 		jnz ring3\@
+                      	   271: 		ring0\@:
+                      	   272: 		cmpl $C_SEG_PROT32,exc_errcode+4(%ss:%esp) 
+                      	   273: 		jne error
+                      	   274: 		jmp continue\@
+                      	   275: 		ring3\@:
+                      	   276: 		cmpl $CU_SEG_PROT32|3,exc_errcode+4(%ss:%esp)
+                      	   277: 		jne error
+                      	   278: 		continue\@:
+                      	   279: 	.endif
+                      	   280: 	cmpl $\arg3,exc_errcode(%ss:%esp)
+                      	   281: 	jne error
+                      	   282: 	add $12+exc_errcode,%esp
+                      	   283: .endm
+                      	   284: 
+
+Source: "t386.asm"
+                      	   298: 
+                      	   299: 
+                      	   300: #;; support for ROM based GDT (currently unused)
+                      	   301: romGDT:
+                      	   302: romGDTEnd:
+                      	   303: romGDTaddr:
+04:0000152C FFFF      	   304: 	.2byte romGDTEnd - romGDT - 1 	# 16-bit limit
+04:0000152E 2C150000  	   305: 	.4byte romGDT  									# 32-bit base address
+                      	   306: #;;
+                      	   307: 
+                      	   308: ptrGDTreal: # pointer to the pmode GDT for real mode code
+04:00001532 00000000  	   309: 	.4byte 0         			# 32-bit offset
+04:00001536 5090      	   310: 	.2byte GDT_SEG_REAL  	# 16-bit segment selector
+                      	   311: ptrIDTreal: # pointer to the pmode IDT for real mode code
+04:00001538 00000000  	   312: 	.4byte 0
+04:0000153C 0090      	   313: 	.2byte IDT_SEG_REAL
+                      	   314: 
+                      	   315: initGDT:
+                      	   316: 	# the first descriptor in the GDT is always a dud (the null selector)
+                      	   317: 	defGDTDesc 0,0,0,0,0
+                      	     1M 	.ifnc 0, 0
+                      	     2M 	.set 0,GDTSelDesc
+                      	     3M 	.endif
+04:0000153E 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001543 15
+04:00001544 66B8000000	     5M 	mov $0,%eax
+04:00001549 00
+04:0000154A 66BE000000	     6M 	mov $0,%esi
+04:0000154F 00
+04:00001550 66BF000000	     7M 	mov $0,%edi
+04:00001555 00
+04:00001556 BA0000    	     8M 	mov $0|0,%dx
+                      	     9M 	initDescriptor
+04:00001559 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:0000155E 00
+04:0000155F 6601C3    	     2M 	add %eax,%ebx
+04:00001562 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001564 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001567 66C1EE10  	     5M 	shr $16,%esi
+04:0000156B 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:0000156D 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001570 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001573 66C1EF10  	     9M 	shr $16,%edi
+04:00001577 89F9      	    10M 	mov %di,%cx
+04:00001579 80E10F    	    11M 	and $0x0f,%cl
+04:0000157C 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:0000157F 80E2F0    	    13M 	and $0xf0,%dl
+04:00001582 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001585 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc 0, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   318: 	defGDTDesc C_SEG_PROT16,  0x000f0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_PRESENT
+                      	     1M 	.ifnc C_SEG_PROT16, 0
+                      	     2M 	.set C_SEG_PROT16,GDTSelDesc
+                      	     3M 	.endif
+04:00001588 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:0000158D 15
+04:0000158E 66B8000000	     5M 	mov $C_SEG_PROT16,%eax
+04:00001593 00
+04:00001594 66BE00000F	     6M 	mov $0x000f0000,%esi
+04:00001599 00
+04:0000159A 66BFFFFF00	     7M 	mov $0x0000ffff,%edi
+04:0000159F 00
+04:000015A0 BA009A    	     8M 	mov $ACC_TYPE_CODE_R|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:000015A3 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000015A8 00
+04:000015A9 6601C3    	     2M 	add %eax,%ebx
+04:000015AC 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000015AE 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:000015B1 66C1EE10  	     5M 	shr $16,%esi
+04:000015B5 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:000015B7 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:000015BA 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:000015BD 66C1EF10  	     9M 	shr $16,%edi
+04:000015C1 89F9      	    10M 	mov %di,%cx
+04:000015C3 80E10F    	    11M 	and $0x0f,%cl
+04:000015C6 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000015C9 80E2F0    	    13M 	and $0xf0,%dl
+04:000015CC 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000015CF 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc C_SEG_PROT16, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   319: 	defGDTDesc C_SEG_PROT32,  0x000f0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_PRESENT,EXT_32BIT
+                      	     1M 	.ifnc C_SEG_PROT32, 0
+                      	     2M 	.set C_SEG_PROT32,GDTSelDesc
+                      	     3M 	.endif
+04:000015D2 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:000015D7 15
+04:000015D8 66B8080000	     5M 	mov $C_SEG_PROT32,%eax
+04:000015DD 00
+04:000015DE 66BE00000F	     6M 	mov $0x000f0000,%esi
+04:000015E3 00
+04:000015E4 66BFFFFF00	     7M 	mov $0x0000ffff,%edi
+04:000015E9 00
+04:000015EA BA409A    	     8M 	mov $ACC_TYPE_CODE_R|ACC_PRESENT|EXT_32BIT,%dx
+                      	     9M 	initDescriptor
+04:000015ED 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000015F2 00
+04:000015F3 6601C3    	     2M 	add %eax,%ebx
+04:000015F6 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000015F8 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:000015FB 66C1EE10  	     5M 	shr $16,%esi
+04:000015FF 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001601 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001604 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001607 66C1EF10  	     9M 	shr $16,%edi
+04:0000160B 89F9      	    10M 	mov %di,%cx
+04:0000160D 80E10F    	    11M 	and $0x0f,%cl
+04:00001610 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001613 80E2F0    	    13M 	and $0xf0,%dl
+04:00001616 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001619 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc C_SEG_PROT32, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   320: 	defGDTDesc CU_SEG_PROT32, 0x000f0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_PRESENT|ACC_DPL_3,EXT_32BIT
+                      	     1M 	.ifnc CU_SEG_PROT32, 0
+                      	     2M 	.set CU_SEG_PROT32,GDTSelDesc
+                      	     3M 	.endif
+04:0000161C 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001621 15
+04:00001622 66B8100000	     5M 	mov $CU_SEG_PROT32,%eax
+04:00001627 00
+04:00001628 66BE00000F	     6M 	mov $0x000f0000,%esi
+04:0000162D 00
+04:0000162E 66BFFFFF00	     7M 	mov $0x0000ffff,%edi
+04:00001633 00
+04:00001634 BA40FA    	     8M 	mov $ACC_TYPE_CODE_R|ACC_PRESENT|ACC_DPL_3|EXT_32BIT,%dx
+                      	     9M 	initDescriptor
+04:00001637 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:0000163C 00
+04:0000163D 6601C3    	     2M 	add %eax,%ebx
+04:00001640 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001642 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001645 66C1EE10  	     5M 	shr $16,%esi
+04:00001649 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:0000164B 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:0000164E 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001651 66C1EF10  	     9M 	shr $16,%edi
+04:00001655 89F9      	    10M 	mov %di,%cx
+04:00001657 80E10F    	    11M 	and $0x0f,%cl
+04:0000165A 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:0000165D 80E2F0    	    13M 	and $0xf0,%dl
+04:00001660 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001663 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc CU_SEG_PROT32, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   321: 	defGDTDesc CC_SEG_PROT32, 0x000f0000,0x0000ffff,ACC_TYPE_CODE_R|ACC_TYPE_CONFORMING|ACC_PRESENT|EXT_32BIT
+                      	     1M 	.ifnc CC_SEG_PROT32, 0
+                      	     2M 	.set CC_SEG_PROT32,GDTSelDesc
+                      	     3M 	.endif
+04:00001666 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:0000166B 15
+04:0000166C 66B8180000	     5M 	mov $CC_SEG_PROT32,%eax
+04:00001671 00
+04:00001672 66BE00000F	     6M 	mov $0x000f0000,%esi
+04:00001677 00
+04:00001678 66BFFFFF00	     7M 	mov $0x0000ffff,%edi
+04:0000167D 00
+04:0000167E BA409E    	     8M 	mov $ACC_TYPE_CODE_R|ACC_TYPE_CONFORMING|ACC_PRESENT|EXT_32BIT|0,%dx
+                      	     9M 	initDescriptor
+04:00001681 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:00001686 00
+04:00001687 6601C3    	     2M 	add %eax,%ebx
+04:0000168A 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:0000168C 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:0000168F 66C1EE10  	     5M 	shr $16,%esi
+04:00001693 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001695 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001698 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:0000169B 66C1EF10  	     9M 	shr $16,%edi
+04:0000169F 89F9      	    10M 	mov %di,%cx
+04:000016A1 80E10F    	    11M 	and $0x0f,%cl
+04:000016A4 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000016A7 80E2F0    	    13M 	and $0xf0,%dl
+04:000016AA 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000016AD 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc CC_SEG_PROT32, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   322: 	defGDTDesc IDT_SEG_PROT,  0x00000400,0x000000ff,ACC_TYPE_DATA_W|ACC_PRESENT
+                      	     1M 	.ifnc IDT_SEG_PROT, 0
+                      	     2M 	.set IDT_SEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:000016B0 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:000016B5 15
+04:000016B6 66B8200000	     5M 	mov $IDT_SEG_PROT,%eax
+04:000016BB 00
+04:000016BC 66BE000400	     6M 	mov $0x00000400,%esi
+04:000016C1 00
+04:000016C2 66BFFF0000	     7M 	mov $0x000000ff,%edi
+04:000016C7 00
+04:000016C8 BA0092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:000016CB 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000016D0 00
+04:000016D1 6601C3    	     2M 	add %eax,%ebx
+04:000016D4 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000016D6 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:000016D9 66C1EE10  	     5M 	shr $16,%esi
+04:000016DD 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:000016DF 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:000016E2 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:000016E5 66C1EF10  	     9M 	shr $16,%edi
+04:000016E9 89F9      	    10M 	mov %di,%cx
+04:000016EB 80E10F    	    11M 	and $0x0f,%cl
+04:000016EE 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000016F1 80E2F0    	    13M 	and $0xf0,%dl
+04:000016F4 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000016F7 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc IDT_SEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   323: 	defGDTDesc IDTU_SEG_PROT, 0x00000400,0x000000ff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3
+                      	     1M 	.ifnc IDTU_SEG_PROT, 0
+                      	     2M 	.set IDTU_SEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:000016FA 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:000016FF 15
+04:00001700 66B8280000	     5M 	mov $IDTU_SEG_PROT,%eax
+04:00001705 00
+04:00001706 66BE000400	     6M 	mov $0x00000400,%esi
+04:0000170B 00
+04:0000170C 66BFFF0000	     7M 	mov $0x000000ff,%edi
+04:00001711 00
+04:00001712 BA00F2    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3|0,%dx
+                      	     9M 	initDescriptor
+04:00001715 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:0000171A 00
+04:0000171B 6601C3    	     2M 	add %eax,%ebx
+04:0000171E 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001720 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001723 66C1EE10  	     5M 	shr $16,%esi
+04:00001727 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001729 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:0000172C 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:0000172F 66C1EF10  	     9M 	shr $16,%edi
+04:00001733 89F9      	    10M 	mov %di,%cx
+04:00001735 80E10F    	    11M 	and $0x0f,%cl
+04:00001738 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:0000173B 80E2F0    	    13M 	and $0xf0,%dl
+04:0000173E 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001741 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc IDTU_SEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   324: 	defGDTDesc GDT_DSEG_PROT, 0x00000500,0x000002ff,ACC_TYPE_DATA_W|ACC_PRESENT
+                      	     1M 	.ifnc GDT_DSEG_PROT, 0
+                      	     2M 	.set GDT_DSEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:00001744 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001749 15
+04:0000174A 66B8300000	     5M 	mov $GDT_DSEG_PROT,%eax
+04:0000174F 00
+04:00001750 66BE000500	     6M 	mov $0x00000500,%esi
+04:00001755 00
+04:00001756 66BFFF0200	     7M 	mov $0x000002ff,%edi
+04:0000175B 00
+04:0000175C BA0092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:0000175F 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:00001764 00
+04:00001765 6601C3    	     2M 	add %eax,%ebx
+04:00001768 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:0000176A 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:0000176D 66C1EE10  	     5M 	shr $16,%esi
+04:00001771 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001773 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001776 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001779 66C1EF10  	     9M 	shr $16,%edi
+04:0000177D 89F9      	    10M 	mov %di,%cx
+04:0000177F 80E10F    	    11M 	and $0x0f,%cl
+04:00001782 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001785 80E2F0    	    13M 	and $0xf0,%dl
+04:00001788 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:0000178B 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc GDT_DSEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   325: 	defGDTDesc GDTU_DSEG_PROT,0x00000500,0x000002ff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3
+                      	     1M 	.ifnc GDTU_DSEG_PROT, 0
+                      	     2M 	.set GDTU_DSEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:0000178E 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001793 15
+04:00001794 66B8380000	     5M 	mov $GDTU_DSEG_PROT,%eax
+04:00001799 00
+04:0000179A 66BE000500	     6M 	mov $0x00000500,%esi
+04:0000179F 00
+04:000017A0 66BFFF0200	     7M 	mov $0x000002ff,%edi
+04:000017A5 00
+04:000017A6 BA00F2    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3|0,%dx
+                      	     9M 	initDescriptor
+04:000017A9 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000017AE 00
+04:000017AF 6601C3    	     2M 	add %eax,%ebx
+04:000017B2 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000017B4 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:000017B7 66C1EE10  	     5M 	shr $16,%esi
+04:000017BB 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:000017BD 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:000017C0 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:000017C3 66C1EF10  	     9M 	shr $16,%edi
+04:000017C7 89F9      	    10M 	mov %di,%cx
+04:000017C9 80E10F    	    11M 	and $0x0f,%cl
+04:000017CC 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000017CF 80E2F0    	    13M 	and $0xf0,%dl
+04:000017D2 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000017D5 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc GDTU_DSEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   326: 	defGDTDesc LDT_SEG_PROT,  0x00000800,0x000007ff,ACC_TYPE_LDT|ACC_PRESENT
+                      	     1M 	.ifnc LDT_SEG_PROT, 0
+                      	     2M 	.set LDT_SEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:000017D8 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:000017DD 15
+04:000017DE 66B8400000	     5M 	mov $LDT_SEG_PROT,%eax
+04:000017E3 00
+04:000017E4 66BE000800	     6M 	mov $0x00000800,%esi
+04:000017E9 00
+04:000017EA 66BFFF0700	     7M 	mov $0x000007ff,%edi
+04:000017EF 00
+04:000017F0 BA0082    	     8M 	mov $ACC_TYPE_LDT|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:000017F3 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000017F8 00
+04:000017F9 6601C3    	     2M 	add %eax,%ebx
+04:000017FC 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000017FE 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001801 66C1EE10  	     5M 	shr $16,%esi
+04:00001805 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001807 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:0000180A 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:0000180D 66C1EF10  	     9M 	shr $16,%edi
+04:00001811 89F9      	    10M 	mov %di,%cx
+04:00001813 80E10F    	    11M 	and $0x0f,%cl
+04:00001816 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001819 80E2F0    	    13M 	and $0xf0,%dl
+04:0000181C 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:0000181F 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc LDT_SEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   327: 	defGDTDesc LDT_DSEG_PROT, 0x00000800,0x000007ff,ACC_TYPE_DATA_W|ACC_PRESENT
+                      	     1M 	.ifnc LDT_DSEG_PROT, 0
+                      	     2M 	.set LDT_DSEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:00001822 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001827 15
+04:00001828 66B8480000	     5M 	mov $LDT_DSEG_PROT,%eax
+04:0000182D 00
+04:0000182E 66BE000800	     6M 	mov $0x00000800,%esi
+04:00001833 00
+04:00001834 66BFFF0700	     7M 	mov $0x000007ff,%edi
+04:00001839 00
+04:0000183A BA0092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:0000183D 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:00001842 00
+04:00001843 6601C3    	     2M 	add %eax,%ebx
+04:00001846 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001848 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:0000184B 66C1EE10  	     5M 	shr $16,%esi
+04:0000184F 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001851 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001854 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001857 66C1EF10  	     9M 	shr $16,%edi
+04:0000185B 89F9      	    10M 	mov %di,%cx
+04:0000185D 80E10F    	    11M 	and $0x0f,%cl
+04:00001860 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001863 80E2F0    	    13M 	and $0xf0,%dl
+04:00001866 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001869 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc LDT_DSEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   328: 	defGDTDesc PG_SEG_PROT,   0x00001000,0x00002fff,ACC_TYPE_DATA_W|ACC_PRESENT
+                      	     1M 	.ifnc PG_SEG_PROT, 0
+                      	     2M 	.set PG_SEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:0000186C 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001871 15
+04:00001872 66B8500000	     5M 	mov $PG_SEG_PROT,%eax
+04:00001877 00
+04:00001878 66BE001000	     6M 	mov $0x00001000,%esi
+04:0000187D 00
+04:0000187E 66BFFF2F00	     7M 	mov $0x00002fff,%edi
+04:00001883 00
+04:00001884 BA0092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:00001887 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:0000188C 00
+04:0000188D 6601C3    	     2M 	add %eax,%ebx
+04:00001890 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001892 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001895 66C1EE10  	     5M 	shr $16,%esi
+04:00001899 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:0000189B 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:0000189E 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:000018A1 66C1EF10  	     9M 	shr $16,%edi
+04:000018A5 89F9      	    10M 	mov %di,%cx
+04:000018A7 80E10F    	    11M 	and $0x0f,%cl
+04:000018AA 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000018AD 80E2F0    	    13M 	and $0xf0,%dl
+04:000018B0 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000018B3 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc PG_SEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   329: 	defGDTDesc S_SEG_PROT32,  0x00010000,0x0008ffff,ACC_TYPE_DATA_W|ACC_PRESENT,EXT_32BIT
+                      	     1M 	.ifnc S_SEG_PROT32, 0
+                      	     2M 	.set S_SEG_PROT32,GDTSelDesc
+                      	     3M 	.endif
+04:000018B6 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:000018BB 15
+04:000018BC 66B8580000	     5M 	mov $S_SEG_PROT32,%eax
+04:000018C1 00
+04:000018C2 66BE000001	     6M 	mov $0x00010000,%esi
+04:000018C7 00
+04:000018C8 66BFFFFF08	     7M 	mov $0x0008ffff,%edi
+04:000018CD 00
+04:000018CE BA4092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|EXT_32BIT,%dx
+                      	     9M 	initDescriptor
+04:000018D1 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000018D6 00
+04:000018D7 6601C3    	     2M 	add %eax,%ebx
+04:000018DA 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000018DC 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:000018DF 66C1EE10  	     5M 	shr $16,%esi
+04:000018E3 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:000018E5 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:000018E8 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:000018EB 66C1EF10  	     9M 	shr $16,%edi
+04:000018EF 89F9      	    10M 	mov %di,%cx
+04:000018F1 80E10F    	    11M 	and $0x0f,%cl
+04:000018F4 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000018F7 80E2F0    	    13M 	and $0xf0,%dl
+04:000018FA 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000018FD 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc S_SEG_PROT32, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   330: 	defGDTDesc SU_SEG_PROT32, 0x00010000,0x0008ffff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3,EXT_32BIT
+                      	     1M 	.ifnc SU_SEG_PROT32, 0
+                      	     2M 	.set SU_SEG_PROT32,GDTSelDesc
+                      	     3M 	.endif
+04:00001900 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001905 15
+04:00001906 66B8600000	     5M 	mov $SU_SEG_PROT32,%eax
+04:0000190B 00
+04:0000190C 66BE000001	     6M 	mov $0x00010000,%esi
+04:00001911 00
+04:00001912 66BFFFFF08	     7M 	mov $0x0008ffff,%edi
+04:00001917 00
+04:00001918 BA40F2    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3|EXT_32BIT,%dx
+                      	     9M 	initDescriptor
+04:0000191B 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:00001920 00
+04:00001921 6601C3    	     2M 	add %eax,%ebx
+04:00001924 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001926 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001929 66C1EE10  	     5M 	shr $16,%esi
+04:0000192D 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:0000192F 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001932 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001935 66C1EF10  	     9M 	shr $16,%edi
+04:00001939 89F9      	    10M 	mov %di,%cx
+04:0000193B 80E10F    	    11M 	and $0x0f,%cl
+04:0000193E 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001941 80E2F0    	    13M 	and $0xf0,%dl
+04:00001944 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001947 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc SU_SEG_PROT32, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   331: 	defGDTDesc TSS_PROT,      0x00004000,0x00000fff,ACC_TYPE_TSS|ACC_PRESENT|ACC_DPL_3
+                      	     1M 	.ifnc TSS_PROT, 0
+                      	     2M 	.set TSS_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:0000194A 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:0000194F 15
+04:00001950 66B8680000	     5M 	mov $TSS_PROT,%eax
+04:00001955 00
+04:00001956 66BE004000	     6M 	mov $0x00004000,%esi
+04:0000195B 00
+04:0000195C 66BFFF0F00	     7M 	mov $0x00000fff,%edi
+04:00001961 00
+04:00001962 BA00E9    	     8M 	mov $ACC_TYPE_TSS|ACC_PRESENT|ACC_DPL_3|0,%dx
+                      	     9M 	initDescriptor
+04:00001965 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:0000196A 00
+04:0000196B 6601C3    	     2M 	add %eax,%ebx
+04:0000196E 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001970 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001973 66C1EE10  	     5M 	shr $16,%esi
+04:00001977 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001979 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:0000197C 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:0000197F 66C1EF10  	     9M 	shr $16,%edi
+04:00001983 89F9      	    10M 	mov %di,%cx
+04:00001985 80E10F    	    11M 	and $0x0f,%cl
+04:00001988 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:0000198B 80E2F0    	    13M 	and $0xf0,%dl
+04:0000198E 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001991 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc TSS_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   332: 	defGDTDesc TSS_DSEG_PROT, 0x00004000,0x00000fff,ACC_TYPE_DATA_W|ACC_PRESENT
+                      	     1M 	.ifnc TSS_DSEG_PROT, 0
+                      	     2M 	.set TSS_DSEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:00001994 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001999 15
+04:0000199A 66B8700000	     5M 	mov $TSS_DSEG_PROT,%eax
+04:0000199F 00
+04:000019A0 66BE004000	     6M 	mov $0x00004000,%esi
+04:000019A5 00
+04:000019A6 66BFFF0F00	     7M 	mov $0x00000fff,%edi
+04:000019AB 00
+04:000019AC BA0092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:000019AF 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000019B4 00
+04:000019B5 6601C3    	     2M 	add %eax,%ebx
+04:000019B8 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:000019BA 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:000019BD 66C1EE10  	     5M 	shr $16,%esi
+04:000019C1 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:000019C3 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:000019C6 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:000019C9 66C1EF10  	     9M 	shr $16,%edi
+04:000019CD 89F9      	    10M 	mov %di,%cx
+04:000019CF 80E10F    	    11M 	and $0x0f,%cl
+04:000019D2 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:000019D5 80E2F0    	    13M 	and $0xf0,%dl
+04:000019D8 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:000019DB 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc TSS_DSEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   333: 	defGDTDesc FLAT_SEG_PROT, 0x00000000,0xffffffff,ACC_TYPE_DATA_W|ACC_PRESENT
+                      	     1M 	.ifnc FLAT_SEG_PROT, 0
+                      	     2M 	.set FLAT_SEG_PROT,GDTSelDesc
+                      	     3M 	.endif
+04:000019DE 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:000019E3 15
+04:000019E4 66B8780000	     5M 	mov $FLAT_SEG_PROT,%eax
+04:000019E9 00
+04:000019EA 66BE000000	     6M 	mov $0x00000000,%esi
+04:000019EF 00
+04:000019F0 66BFFFFFFF	     7M 	mov $0xffffffff,%edi
+04:000019F5 FF
+04:000019F6 BA0092    	     8M 	mov $ACC_TYPE_DATA_W|ACC_PRESENT|0,%dx
+                      	     9M 	initDescriptor
+04:000019F9 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:000019FE 00
+04:000019FF 6601C3    	     2M 	add %eax,%ebx
+04:00001A02 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001A04 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001A07 66C1EE10  	     5M 	shr $16,%esi
+04:00001A0B 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001A0D 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001A10 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001A13 66C1EF10  	     9M 	shr $16,%edi
+04:00001A17 89F9      	    10M 	mov %di,%cx
+04:00001A19 80E10F    	    11M 	and $0x0f,%cl
+04:00001A1C 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001A1F 80E2F0    	    13M 	and $0xf0,%dl
+04:00001A22 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001A25 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc FLAT_SEG_PROT, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   334: 	defGDTDesc RING0_GATE # placeholder for a call gate used to switch to ring 0
+                      	     1M 	.ifnc RING0_GATE, 0
+                      	     2M 	.set RING0_GATE,GDTSelDesc
+                      	     3M 	.endif
+04:00001A28 662EC51E32	     4M 	lds %cs:ptrGDTreal - TEST_CODE,%ebx # this macro is used in real mode to set up prot mode env.
+04:00001A2D 15
+04:00001A2E 66B8800000	     5M 	mov $RING0_GATE,%eax
+04:00001A33 00
+04:00001A34 66BE000000	     6M 	mov $0,%esi
+04:00001A39 00
+04:00001A3A 66BF000000	     7M 	mov $0,%edi
+04:00001A3F 00
+04:00001A40 BA0000    	     8M 	mov $0|0,%dx
+                      	     9M 	initDescriptor
+04:00001A43 6625F8FF00	     1M 	and $0xFFF8,%eax
+04:00001A48 00
+04:00001A49 6601C3    	     2M 	add %eax,%ebx
+04:00001A4C 893B      	     3M 	movw %di,(%ebx)						# LIMIT 15-0
+04:00001A4E 897302    	     4M 	movw %si,2(%ebx)					# BASE 15-0
+04:00001A51 66C1EE10  	     5M 	shr $16,%esi
+04:00001A55 89F0      	     6M 	mov %si,%ax								# AX := BASE 31-16
+04:00001A57 884304    	     7M 	movb %al,4(%ebx)					# BASE 23-16
+04:00001A5A 887305    	     8M 	movb %dh,5(%ebx)					# acc byte
+04:00001A5D 66C1EF10  	     9M 	shr $16,%edi
+04:00001A61 89F9      	    10M 	mov %di,%cx
+04:00001A63 80E10F    	    11M 	and $0x0f,%cl
+04:00001A66 884B06    	    12M 	movb %cl,6(%ebx)					# LIMIT 19-16
+04:00001A69 80E2F0    	    13M 	and $0xf0,%dl
+04:00001A6C 085306    	    14M 	orb %dl,6(%ebx)						# ext nybble
+04:00001A6F 886307    	    15M 	movb %ah,7(%ebx)					# BASE 31-24
+                      	    10M 	.ifnc RING0_GATE, 0
+                      	    11M 	.set GDTSelDesc,GDTSelDesc+8
+                      	    12M 	.endif
+                      	   335: 
+                      	   336: .include "lea_m.asm"
 
 Source: "lea_m.asm"
                       	     1: #
@@ -6776,520 +7698,542 @@ Source: "lea_m.asm"
                       	    28: 
 
 Source: "t386.asm"
-                      	   282: #.include "lea_p.asm"
-                      	   283: postD:
-                      	   284: 
-                      	   285: #-------------------------------------------------------------------------------
-                      	   286: 	POST $0x0D
-04:00001524 B00D      	     1M 	movb $0x0D,%al
-04:00001526 BA9001    	     2M 	movw $POST_PORT,%dx
-04:00001529 EE        	     3M 	out %al,%dx
-                      	   287: #-------------------------------------------------------------------------------
-                      	   288: #
-                      	   289: #   16-bit addressing modes (LEA)
-                      	   290: #
-04:0000152A B80100    	   291: 	mov $1,%ax
-04:0000152D BB0200    	   292: 	mov $2,%bx
-04:00001530 B90400    	   293: 	mov $4,%cx
-04:00001533 BA0800    	   294: 	mov $8,%dx
-04:00001536 BE1000    	   295: 	mov $0x10,%si
-04:00001539 BF2000    	   296: 	mov $0x20,%di
-                      	   297: 	testLEA16 0x4000, $0x4000
-04:0000153C 50        	     1M 	push %ax
-04:0000153D 8D060040  	     2M 	lea 0x4000,%ax
-04:00001541 3D0040    	     3M 	cmp $0x4000,%ax
-04:00001544 0F85F702  	     4M 	jne error
-04:00001548 58        	     5M 	pop %ax
-                      	   298: 	testLEA16 (%bx), $0x0002
-04:00001549 50        	     1M 	push %ax
-04:0000154A 8D07      	     2M 	lea (%bx),%ax
-04:0000154C 83F802    	     3M 	cmp $0x0002,%ax
-04:0000154F 0F85EC02  	     4M 	jne error
-04:00001553 58        	     5M 	pop %ax
-                      	   299: 	testLEA16 (%si), $0x0010
-04:00001554 50        	     1M 	push %ax
-04:00001555 8D04      	     2M 	lea (%si),%ax
-04:00001557 83F810    	     3M 	cmp $0x0010,%ax
-04:0000155A 0F85E102  	     4M 	jne error
-04:0000155E 58        	     5M 	pop %ax
-                      	   300: 	testLEA16 (%di), $0x0020
-04:0000155F 50        	     1M 	push %ax
-04:00001560 8D05      	     2M 	lea (%di),%ax
-04:00001562 83F820    	     3M 	cmp $0x0020,%ax
-04:00001565 0F85D602  	     4M 	jne error
-04:00001569 58        	     5M 	pop %ax
-                      	   301: 	testLEA16 0x40(%bx), $0x0042
-04:0000156A 50        	     1M 	push %ax
-04:0000156B 8D4740    	     2M 	lea 0x40(%bx),%ax
-04:0000156E 83F842    	     3M 	cmp $0x0042,%ax
-04:00001571 0F85CA02  	     4M 	jne error
-04:00001575 58        	     5M 	pop %ax
-                      	   302: 	testLEA16 0x40(%si), $0x0050
-04:00001576 50        	     1M 	push %ax
-04:00001577 8D4440    	     2M 	lea 0x40(%si),%ax
-04:0000157A 83F850    	     3M 	cmp $0x0050,%ax
-04:0000157D 0F85BE02  	     4M 	jne error
-04:00001581 58        	     5M 	pop %ax
-                      	   303: 	testLEA16 0x40(%di), $0x0060
-04:00001582 50        	     1M 	push %ax
-04:00001583 8D4540    	     2M 	lea 0x40(%di),%ax
-04:00001586 83F860    	     3M 	cmp $0x0060,%ax
-04:00001589 0F85B202  	     4M 	jne error
-04:0000158D 58        	     5M 	pop %ax
-                      	   304: 	testLEA16 0x4000(%bx), $0x4002
-04:0000158E 50        	     1M 	push %ax
-04:0000158F 8D870040  	     2M 	lea 0x4000(%bx),%ax
-04:00001593 3D0240    	     3M 	cmp $0x4002,%ax
-04:00001596 0F85A502  	     4M 	jne error
-04:0000159A 58        	     5M 	pop %ax
-                      	   305: 	testLEA16 0x4000(%si), $0x4010
-04:0000159B 50        	     1M 	push %ax
-04:0000159C 8D840040  	     2M 	lea 0x4000(%si),%ax
-04:000015A0 3D1040    	     3M 	cmp $0x4010,%ax
-04:000015A3 0F859802  	     4M 	jne error
-04:000015A7 58        	     5M 	pop %ax
-                      	   306: 	testLEA16 (%bx,%si), $0x0012
-04:000015A8 50        	     1M 	push %ax
-04:000015A9 8D00      	     2M 	lea (%bx,%si),%ax
-04:000015AB 83F812    	     3M 	cmp $0x0012,%ax
-04:000015AE 0F858D02  	     4M 	jne error
-04:000015B2 58        	     5M 	pop %ax
-                      	   307: 	testLEA16 (%bx,%di), $0x0022
-04:000015B3 50        	     1M 	push %ax
-04:000015B4 8D01      	     2M 	lea (%bx,%di),%ax
-04:000015B6 83F822    	     3M 	cmp $0x0022,%ax
-04:000015B9 0F858202  	     4M 	jne error
-04:000015BD 58        	     5M 	pop %ax
-                      	   308: 	testLEA16 0x40(%bx,%si), $0x0052
-04:000015BE 50        	     1M 	push %ax
-04:000015BF 8D4040    	     2M 	lea 0x40(%bx,%si),%ax
-04:000015C2 83F852    	     3M 	cmp $0x0052,%ax
-04:000015C5 0F857602  	     4M 	jne error
-04:000015C9 58        	     5M 	pop %ax
-                      	   309: 	testLEA16 0x40(%bx,%di), $0x0062
-04:000015CA 50        	     1M 	push %ax
-04:000015CB 8D4140    	     2M 	lea 0x40(%bx,%di),%ax
-04:000015CE 83F862    	     3M 	cmp $0x0062,%ax
-04:000015D1 0F856A02  	     4M 	jne error
-04:000015D5 58        	     5M 	pop %ax
-                      	   310: 	testLEA16 0x4000(%bx,%si), $0x4012
-04:000015D6 50        	     1M 	push %ax
-04:000015D7 8D800040  	     2M 	lea 0x4000(%bx,%si),%ax
-04:000015DB 3D1240    	     3M 	cmp $0x4012,%ax
-04:000015DE 0F855D02  	     4M 	jne error
-04:000015E2 58        	     5M 	pop %ax
-                      	   311: 	testLEA16 0x4000(%bx,%di), $0x4022
-04:000015E3 50        	     1M 	push %ax
-04:000015E4 8D810040  	     2M 	lea 0x4000(%bx,%di),%ax
-04:000015E8 3D2240    	     3M 	cmp $0x4022,%ax
-04:000015EB 0F855002  	     4M 	jne error
-04:000015EF 58        	     5M 	pop %ax
-                      	   312: 
-                      	   313: 
-                      	   314: #-------------------------------------------------------------------------------
-                      	   315: 	POST $0xE0
-04:000015F0 B0E0      	     1M 	movb $0xE0,%al
-04:000015F2 BA9001    	     2M 	movw $POST_PORT,%dx
-04:000015F5 EE        	     3M 	out %al,%dx
-                      	   316: #-------------------------------------------------------------------------------
-                      	   317: 
-                      	   318: .shifts386FlagsTest:
-                      	   319: 
-                      	   320: 	# SHR al,cl - SHR ax,cl
-                      	   321: 	# undefined flags:
-                      	   322: 	#  CF when cl>7 (byte) or cl>15 (word):
-                      	   323: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=MSB(operand)
-                      	   324: 	#    if word operand and cl=16 then CF=MSB(operand)
-                      	   325: 	#  OF when cl>1: set according to result   *** rf386 calc's overflow cl>1
-                      	   326: 	#  AF when cl>0: always 1
-                      	   327: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
-                      	   328: 
-                      	   329: 	testShiftBFlags shrb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
-04:000015F6 B80000    	     1M 	mov $0,%ax
-04:000015F9 50        	     2M 	push %ax
-04:000015FA 9D        	     3M 	popf
-04:000015FB B4FF      	     4M 	mov $0xff,%ah
-04:000015FD B081      	     5M 	mov $0x81,%al
-04:000015FF B101      	     6M 	mov $1,%cl
-04:00001601 D2E8      	     7M 	shrb %cl,%al
-04:00001603 9C        	     8M 	pushf
-04:00001604 58        	     9M 	pop %ax
-04:00001605 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001608 3D1108    	    11M 	cmp $(PS_CF|PS_AF|PS_OF),%ax
-04:0000160B 0F853002  	    12M 	jne error
-                      	   330: 	testShiftBFlags shrb, $0x82, $2, $0, $(PS_CF|PS_AF|PS_OF)
-04:0000160F B80000    	     1M 	mov $0,%ax
-04:00001612 50        	     2M 	push %ax
-04:00001613 9D        	     3M 	popf
-04:00001614 B4FF      	     4M 	mov $0xff,%ah
-04:00001616 B082      	     5M 	mov $0x82,%al
-04:00001618 B102      	     6M 	mov $2,%cl
-04:0000161A D2E8      	     7M 	shrb %cl,%al
-04:0000161C 9C        	     8M 	pushf
-04:0000161D 58        	     9M 	pop %ax
-04:0000161E 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001621 3D1108    	    11M 	cmp $(PS_CF|PS_AF|PS_OF),%ax
-04:00001624 0F851702  	    12M 	jne error
-                      	   331: 	testShiftBFlags shrb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-04:00001628 B80000    	     1M 	mov $0,%ax
-04:0000162B 50        	     2M 	push %ax
-04:0000162C 9D        	     3M 	popf
-04:0000162D B4FF      	     4M 	mov $0xff,%ah
-04:0000162F B080      	     5M 	mov $0x80,%al
-04:00001631 B108      	     6M 	mov $8,%cl
-04:00001633 D2E8      	     7M 	shrb %cl,%al
-04:00001635 9C        	     8M 	pushf
-04:00001636 58        	     9M 	pop %ax
-04:00001637 25D508    	    10M 	and $PS_ARITH,%ax
-04:0000163A 3D5508    	    11M 	cmp $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF),%ax
-04:0000163D 0F85FE01  	    12M 	jne error
-                      	   332: 	testShiftBFlags shrb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_ZF)
-04:00001641 B80100    	     1M 	mov $PS_CF,%ax
-04:00001644 50        	     2M 	push %ax
-04:00001645 9D        	     3M 	popf
-04:00001646 B4FF      	     4M 	mov $0xff,%ah
-04:00001648 B000      	     5M 	mov $0x00,%al
-04:0000164A B108      	     6M 	mov $8,%cl
-04:0000164C D2E8      	     7M 	shrb %cl,%al
-04:0000164E 9C        	     8M 	pushf
-04:0000164F 58        	     9M 	pop %ax
-04:00001650 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001653 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
-04:00001656 0F85E501  	    12M 	jne error
-                      	   333: 	testShiftBFlags shrb, $0x80,   $16, $0,     $(PS_PF|PS_ZF|PS_OF)
-04:0000165A B80000    	     1M 	mov $0,%ax
-04:0000165D 50        	     2M 	push %ax
-04:0000165E 9D        	     3M 	popf
-04:0000165F B4FF      	     4M 	mov $0xff,%ah
-04:00001661 B080      	     5M 	mov $0x80,%al
-04:00001663 B110      	     6M 	mov $16,%cl
-04:00001665 D2E8      	     7M 	shrb %cl,%al
-04:00001667 9C        	     8M 	pushf
-04:00001668 58        	     9M 	pop %ax
-04:00001669 25D508    	    10M 	and $PS_ARITH,%ax
-04:0000166C 3D4408    	    11M 	cmp $(PS_PF|PS_ZF|PS_OF),%ax
-04:0000166F 0F85CC01  	    12M 	jne error
-                      	   334: 	testShiftBFlags shrb, $0x00,   $16, $PS_CF, $(PS_PF|PS_ZF)
-04:00001673 B80100    	     1M 	mov $PS_CF,%ax
-04:00001676 50        	     2M 	push %ax
-04:00001677 9D        	     3M 	popf
-04:00001678 B4FF      	     4M 	mov $0xff,%ah
-04:0000167A B000      	     5M 	mov $0x00,%al
-04:0000167C B110      	     6M 	mov $16,%cl
-04:0000167E D2E8      	     7M 	shrb %cl,%al
-04:00001680 9C        	     8M 	pushf
-04:00001681 58        	     9M 	pop %ax
-04:00001682 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001685 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
-04:00001688 0F85B301  	    12M 	jne error
-                      	   335: 	testShiftBFlags shrb, $0x80,   $24, $0,     $(PS_PF|PS_ZF|PS_OF)
-04:0000168C B80000    	     1M 	mov $0,%ax
-04:0000168F 50        	     2M 	push %ax
-04:00001690 9D        	     3M 	popf
-04:00001691 B4FF      	     4M 	mov $0xff,%ah
-04:00001693 B080      	     5M 	mov $0x80,%al
-04:00001695 B118      	     6M 	mov $24,%cl
-04:00001697 D2E8      	     7M 	shrb %cl,%al
-04:00001699 9C        	     8M 	pushf
-04:0000169A 58        	     9M 	pop %ax
-04:0000169B 25D508    	    10M 	and $PS_ARITH,%ax
-04:0000169E 3D4408    	    11M 	cmp $(PS_PF|PS_ZF|PS_OF),%ax
-04:000016A1 0F859A01  	    12M 	jne error
-                      	   336: 	testShiftBFlags shrb, $0x00,   $24, $PS_CF, $(PS_PF|PS_ZF)
-04:000016A5 B80100    	     1M 	mov $PS_CF,%ax
-04:000016A8 50        	     2M 	push %ax
-04:000016A9 9D        	     3M 	popf
-04:000016AA B4FF      	     4M 	mov $0xff,%ah
-04:000016AC B000      	     5M 	mov $0x00,%al
-04:000016AE B118      	     6M 	mov $24,%cl
-04:000016B0 D2E8      	     7M 	shrb %cl,%al
-04:000016B2 9C        	     8M 	pushf
-04:000016B3 58        	     9M 	pop %ax
-04:000016B4 25D508    	    10M 	and $PS_ARITH,%ax
-04:000016B7 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
-04:000016BA 0F858101  	    12M 	jne error
-                      	   337: 	testShiftBFlags shrb, $0x80,   $32, $0,     $PS_SF
-04:000016BE B80000    	     1M 	mov $0,%ax
-04:000016C1 50        	     2M 	push %ax
-04:000016C2 9D        	     3M 	popf
-04:000016C3 B4FF      	     4M 	mov $0xff,%ah
-04:000016C5 B080      	     5M 	mov $0x80,%al
-04:000016C7 B120      	     6M 	mov $32,%cl
-04:000016C9 D2E8      	     7M 	shrb %cl,%al
-04:000016CB 9C        	     8M 	pushf
-04:000016CC 58        	     9M 	pop %ax
-04:000016CD 25D508    	    10M 	and $PS_ARITH,%ax
-04:000016D0 3D8000    	    11M 	cmp $PS_SF,%ax
-04:000016D3 0F856801  	    12M 	jne error
-                      	   338: 	testShiftWFlags shrw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
-04:000016D7 B80000    	     1M 	mov $0,%ax
-04:000016DA 50        	     2M 	push %ax
-04:000016DB 9D        	     3M 	popf
-04:000016DC B80080    	     4M 	mov $0x8000,%ax
-04:000016DF B110      	     5M 	mov $16,%cl
-04:000016E1 D3E8      	     6M 	shrw %cl,%ax
-04:000016E3 9C        	     7M 	pushf
-04:000016E4 58        	     8M 	pop %ax
-04:000016E5 25D508    	     9M 	and $PS_ARITH,%ax
-04:000016E8 3D5508    	    10M 	cmp $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF),%ax
-04:000016EB 0F855001  	    11M 	jne error
-                      	   339: 	testShiftWFlags shrw, $0x0000, $16, $PS_CF, $(PS_PF|PS_ZF)
-04:000016EF B80100    	     1M 	mov $PS_CF,%ax
-04:000016F2 50        	     2M 	push %ax
-04:000016F3 9D        	     3M 	popf
-04:000016F4 B80000    	     4M 	mov $0x0000,%ax
-04:000016F7 B110      	     5M 	mov $16,%cl
-04:000016F9 D3E8      	     6M 	shrw %cl,%ax
-04:000016FB 9C        	     7M 	pushf
-04:000016FC 58        	     8M 	pop %ax
-04:000016FD 25D508    	     9M 	and $PS_ARITH,%ax
-04:00001700 83F844    	    10M 	cmp $(PS_PF|PS_ZF),%ax
-04:00001703 0F853801  	    11M 	jne error
-                      	   340: 	testShiftWFlags shrw, $0x8000, $32, $0,     $PS_SF|PS_PF
-04:00001707 B80000    	     1M 	mov $0,%ax
-04:0000170A 50        	     2M 	push %ax
-04:0000170B 9D        	     3M 	popf
-04:0000170C B80080    	     4M 	mov $0x8000,%ax
-04:0000170F B120      	     5M 	mov $32,%cl
-04:00001711 D3E8      	     6M 	shrw %cl,%ax
-04:00001713 9C        	     7M 	pushf
-04:00001714 58        	     8M 	pop %ax
-04:00001715 25D508    	     9M 	and $PS_ARITH,%ax
-04:00001718 3D8400    	    10M 	cmp $PS_SF|PS_PF,%ax
-04:0000171B 0F852001  	    11M 	jne error
-                      	   341: 
-                      	   342: 	# SHL al,cl - SHL ax,cl
-                      	   343: 	# undefined flags:
-                      	   344: 	#  CF when cl>7 (byte) or cl>15 (word):
-                      	   345: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=LSB(operand)
-                      	   346: 	#    if word operand and cl=16 then CF=LSB(operand)
-                      	   347: 	#  OF when cl>1: set according to result
-                      	   348: 	#  AF when cl>0: always 1
-                      	   349: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
-                      	   350: 
-                      	   351: 	testShiftBFlags shlb, $0x81, $1,  $0,     $(PS_CF|PS_OF)
-04:0000171F B80000    	     1M 	mov $0,%ax
-04:00001722 50        	     2M 	push %ax
-04:00001723 9D        	     3M 	popf
-04:00001724 B4FF      	     4M 	mov $0xff,%ah
-04:00001726 B081      	     5M 	mov $0x81,%al
-04:00001728 B101      	     6M 	mov $1,%cl
-04:0000172A D2E0      	     7M 	shlb %cl,%al
-04:0000172C 9C        	     8M 	pushf
-04:0000172D 58        	     9M 	pop %ax
-04:0000172E 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001731 3D0108    	    11M 	cmp $(PS_CF|PS_OF),%ax
-04:00001734 0F850701  	    12M 	jne error
-                      	   352: 	testShiftBFlags shlb, $0x41, $2,  $0,     $(PS_CF|PS_OF)
-04:00001738 B80000    	     1M 	mov $0,%ax
-04:0000173B 50        	     2M 	push %ax
-04:0000173C 9D        	     3M 	popf
-04:0000173D B4FF      	     4M 	mov $0xff,%ah
-04:0000173F B041      	     5M 	mov $0x41,%al
-04:00001741 B102      	     6M 	mov $2,%cl
-04:00001743 D2E0      	     7M 	shlb %cl,%al
-04:00001745 9C        	     8M 	pushf
-04:00001746 58        	     9M 	pop %ax
-04:00001747 25D508    	    10M 	and $PS_ARITH,%ax
-04:0000174A 3D0108    	    11M 	cmp $(PS_CF|PS_OF),%ax
-04:0000174D 0F85EE00  	    12M 	jne error
-                      	   353: 	testShiftBFlags shlb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
-04:00001751 B80000    	     1M 	mov $0,%ax
-04:00001754 50        	     2M 	push %ax
-04:00001755 9D        	     3M 	popf
-04:00001756 B4FF      	     4M 	mov $0xff,%ah
-04:00001758 B001      	     5M 	mov $0x01,%al
-04:0000175A B108      	     6M 	mov $8,%cl
-04:0000175C D2E0      	     7M 	shlb %cl,%al
-04:0000175E 9C        	     8M 	pushf
-04:0000175F 58        	     9M 	pop %ax
-04:00001760 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001763 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
-04:00001766 0F85D500  	    12M 	jne error
-                      	   354: 	testShiftBFlags shlb, $0x00, $8,  $PS_CF, $(PS_PF|PS_ZF)
-04:0000176A B80100    	     1M 	mov $PS_CF,%ax
-04:0000176D 50        	     2M 	push %ax
-04:0000176E 9D        	     3M 	popf
-04:0000176F B4FF      	     4M 	mov $0xff,%ah
-04:00001771 B000      	     5M 	mov $0x00,%al
-04:00001773 B108      	     6M 	mov $8,%cl
-04:00001775 D2E0      	     7M 	shlb %cl,%al
-04:00001777 9C        	     8M 	pushf
-04:00001778 58        	     9M 	pop %ax
-04:00001779 25D508    	    10M 	and $PS_ARITH,%ax
-04:0000177C 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
-04:0000177F 0F85BC00  	    12M 	jne error
-                      	   355: 	testShiftBFlags shlb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
-04:00001783 B80000    	     1M 	mov $0,%ax
-04:00001786 50        	     2M 	push %ax
-04:00001787 9D        	     3M 	popf
-04:00001788 B4FF      	     4M 	mov $0xff,%ah
-04:0000178A B001      	     5M 	mov $0x01,%al
-04:0000178C B110      	     6M 	mov $16,%cl
-04:0000178E D2E0      	     7M 	shlb %cl,%al
-04:00001790 9C        	     8M 	pushf
-04:00001791 58        	     9M 	pop %ax
-04:00001792 25D508    	    10M 	and $PS_ARITH,%ax
-04:00001795 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
-04:00001798 0F85A300  	    12M 	jne error
-                      	   356: 	testShiftBFlags shlb, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
-04:0000179C B80100    	     1M 	mov $PS_CF,%ax
-04:0000179F 50        	     2M 	push %ax
-04:000017A0 9D        	     3M 	popf
-04:000017A1 B4FF      	     4M 	mov $0xff,%ah
-04:000017A3 B000      	     5M 	mov $0x00,%al
-04:000017A5 B110      	     6M 	mov $16,%cl
-04:000017A7 D2E0      	     7M 	shlb %cl,%al
-04:000017A9 9C        	     8M 	pushf
-04:000017AA 58        	     9M 	pop %ax
-04:000017AB 25D508    	    10M 	and $PS_ARITH,%ax
-04:000017AE 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
-04:000017B1 0F858A00  	    12M 	jne error
-                      	   357: 	testShiftBFlags shlb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
-04:000017B5 B80000    	     1M 	mov $0,%ax
-04:000017B8 50        	     2M 	push %ax
-04:000017B9 9D        	     3M 	popf
-04:000017BA B4FF      	     4M 	mov $0xff,%ah
-04:000017BC B001      	     5M 	mov $0x01,%al
-04:000017BE B118      	     6M 	mov $24,%cl
-04:000017C0 D2E0      	     7M 	shlb %cl,%al
-04:000017C2 9C        	     8M 	pushf
-04:000017C3 58        	     9M 	pop %ax
-04:000017C4 25D508    	    10M 	and $PS_ARITH,%ax
-04:000017C7 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
-04:000017CA 7573      	    12M 	jne error
-                      	   358: 	testShiftBFlags shlb, $0x00, $24, $PS_CF, $(PS_PF|PS_ZF)
-04:000017CC B80100    	     1M 	mov $PS_CF,%ax
-04:000017CF 50        	     2M 	push %ax
-04:000017D0 9D        	     3M 	popf
-04:000017D1 B4FF      	     4M 	mov $0xff,%ah
-04:000017D3 B000      	     5M 	mov $0x00,%al
-04:000017D5 B118      	     6M 	mov $24,%cl
-04:000017D7 D2E0      	     7M 	shlb %cl,%al
-04:000017D9 9C        	     8M 	pushf
-04:000017DA 58        	     9M 	pop %ax
-04:000017DB 25D508    	    10M 	and $PS_ARITH,%ax
-04:000017DE 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
-04:000017E1 755C      	    12M 	jne error
-                      	   359: 	testShiftBFlags shlb, $0x01, $32, $0,     $0
-04:000017E3 B80000    	     1M 	mov $0,%ax
-04:000017E6 50        	     2M 	push %ax
-04:000017E7 9D        	     3M 	popf
-04:000017E8 B4FF      	     4M 	mov $0xff,%ah
-04:000017EA B001      	     5M 	mov $0x01,%al
-04:000017EC B120      	     6M 	mov $32,%cl
-04:000017EE D2E0      	     7M 	shlb %cl,%al
-04:000017F0 9C        	     8M 	pushf
-04:000017F1 58        	     9M 	pop %ax
-04:000017F2 25D508    	    10M 	and $PS_ARITH,%ax
-04:000017F5 83F800    	    11M 	cmp $0,%ax
-04:000017F8 7545      	    12M 	jne error
-                      	   360: 	testShiftWFlags shlw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
-04:000017FA B80000    	     1M 	mov $0,%ax
-04:000017FD 50        	     2M 	push %ax
-04:000017FE 9D        	     3M 	popf
-04:000017FF B80100    	     4M 	mov $0x01,%ax
-04:00001802 B110      	     5M 	mov $16,%cl
-04:00001804 D3E0      	     6M 	shlw %cl,%ax
-04:00001806 9C        	     7M 	pushf
-04:00001807 58        	     8M 	pop %ax
-04:00001808 25D508    	     9M 	and $PS_ARITH,%ax
-04:0000180B 3D4508    	    10M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
-04:0000180E 752F      	    11M 	jne error
-                      	   361: 	testShiftWFlags shlw, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
-04:00001810 B80100    	     1M 	mov $PS_CF,%ax
-04:00001813 50        	     2M 	push %ax
-04:00001814 9D        	     3M 	popf
-04:00001815 B80000    	     4M 	mov $0x00,%ax
-04:00001818 B110      	     5M 	mov $16,%cl
-04:0000181A D3E0      	     6M 	shlw %cl,%ax
-04:0000181C 9C        	     7M 	pushf
-04:0000181D 58        	     8M 	pop %ax
-04:0000181E 25D508    	     9M 	and $PS_ARITH,%ax
-04:00001821 83F844    	    10M 	cmp $(PS_PF|PS_ZF),%ax
-04:00001824 7519      	    11M 	jne error
-                      	   362: 	testShiftWFlags shlw, $0x01, $32, $0,     $0
-04:00001826 B80000    	     1M 	mov $0,%ax
-04:00001829 50        	     2M 	push %ax
-04:0000182A 9D        	     3M 	popf
-04:0000182B B80100    	     4M 	mov $0x01,%ax
-04:0000182E B120      	     5M 	mov $32,%cl
-04:00001830 D3E0      	     6M 	shlw %cl,%ax
-04:00001832 9C        	     7M 	pushf
-04:00001833 58        	     8M 	pop %ax
-04:00001834 25D508    	     9M 	and $PS_ARITH,%ax
-04:00001837 83F800    	    10M 	cmp $0,%ax
-04:0000183A 7503      	    11M 	jne error
-                      	   363: 
-04:0000183C E9FEFF    	   364: 	jmp _bootrom
-                      	   365: 
-                      	   366: #	pushl $10
-                      	   367: #	call _Fibonacci
+                      	   337: #.include "lea_p.asm"
+                      	   338: postD:
+                      	   339: 
+                      	   340: #-------------------------------------------------------------------------------
+                      	   341: 	POST $0x0D
+04:00001A72 B00D      	     1M 	movb $0x0D,%al
+04:00001A74 BA9001    	     2M 	movw $POST_PORT,%dx
+04:00001A77 EE        	     3M 	out %al,%dx
+                      	   342: #-------------------------------------------------------------------------------
+                      	   343: #
+                      	   344: #   16-bit addressing modes (LEA)
+                      	   345: #
+04:00001A78 B80100    	   346: 	mov $1,%ax
+04:00001A7B BB0200    	   347: 	mov $2,%bx
+04:00001A7E B90400    	   348: 	mov $4,%cx
+04:00001A81 BA0800    	   349: 	mov $8,%dx
+04:00001A84 BE1000    	   350: 	mov $0x10,%si
+04:00001A87 BF2000    	   351: 	mov $0x20,%di
+                      	   352: 	testLEA16 0x4000, $0x4000
+04:00001A8A 50        	     1M 	push %ax
+04:00001A8B 8D060040  	     2M 	lea 0x4000,%ax
+04:00001A8F 3D0040    	     3M 	cmp $0x4000,%ax
+04:00001A92 0F85F702  	     4M 	jne error
+04:00001A96 58        	     5M 	pop %ax
+                      	   353: 	testLEA16 (%bx), $0x0002
+04:00001A97 50        	     1M 	push %ax
+04:00001A98 8D07      	     2M 	lea (%bx),%ax
+04:00001A9A 83F802    	     3M 	cmp $0x0002,%ax
+04:00001A9D 0F85EC02  	     4M 	jne error
+04:00001AA1 58        	     5M 	pop %ax
+                      	   354: 	testLEA16 (%si), $0x0010
+04:00001AA2 50        	     1M 	push %ax
+04:00001AA3 8D04      	     2M 	lea (%si),%ax
+04:00001AA5 83F810    	     3M 	cmp $0x0010,%ax
+04:00001AA8 0F85E102  	     4M 	jne error
+04:00001AAC 58        	     5M 	pop %ax
+                      	   355: 	testLEA16 (%di), $0x0020
+04:00001AAD 50        	     1M 	push %ax
+04:00001AAE 8D05      	     2M 	lea (%di),%ax
+04:00001AB0 83F820    	     3M 	cmp $0x0020,%ax
+04:00001AB3 0F85D602  	     4M 	jne error
+04:00001AB7 58        	     5M 	pop %ax
+                      	   356: 	testLEA16 0x40(%bx), $0x0042
+04:00001AB8 50        	     1M 	push %ax
+04:00001AB9 8D4740    	     2M 	lea 0x40(%bx),%ax
+04:00001ABC 83F842    	     3M 	cmp $0x0042,%ax
+04:00001ABF 0F85CA02  	     4M 	jne error
+04:00001AC3 58        	     5M 	pop %ax
+                      	   357: 	testLEA16 0x40(%si), $0x0050
+04:00001AC4 50        	     1M 	push %ax
+04:00001AC5 8D4440    	     2M 	lea 0x40(%si),%ax
+04:00001AC8 83F850    	     3M 	cmp $0x0050,%ax
+04:00001ACB 0F85BE02  	     4M 	jne error
+04:00001ACF 58        	     5M 	pop %ax
+                      	   358: 	testLEA16 0x40(%di), $0x0060
+04:00001AD0 50        	     1M 	push %ax
+04:00001AD1 8D4540    	     2M 	lea 0x40(%di),%ax
+04:00001AD4 83F860    	     3M 	cmp $0x0060,%ax
+04:00001AD7 0F85B202  	     4M 	jne error
+04:00001ADB 58        	     5M 	pop %ax
+                      	   359: 	testLEA16 0x4000(%bx), $0x4002
+04:00001ADC 50        	     1M 	push %ax
+04:00001ADD 8D870040  	     2M 	lea 0x4000(%bx),%ax
+04:00001AE1 3D0240    	     3M 	cmp $0x4002,%ax
+04:00001AE4 0F85A502  	     4M 	jne error
+04:00001AE8 58        	     5M 	pop %ax
+                      	   360: 	testLEA16 0x4000(%si), $0x4010
+04:00001AE9 50        	     1M 	push %ax
+04:00001AEA 8D840040  	     2M 	lea 0x4000(%si),%ax
+04:00001AEE 3D1040    	     3M 	cmp $0x4010,%ax
+04:00001AF1 0F859802  	     4M 	jne error
+04:00001AF5 58        	     5M 	pop %ax
+                      	   361: 	testLEA16 (%bx,%si), $0x0012
+04:00001AF6 50        	     1M 	push %ax
+04:00001AF7 8D00      	     2M 	lea (%bx,%si),%ax
+04:00001AF9 83F812    	     3M 	cmp $0x0012,%ax
+04:00001AFC 0F858D02  	     4M 	jne error
+04:00001B00 58        	     5M 	pop %ax
+                      	   362: 	testLEA16 (%bx,%di), $0x0022
+04:00001B01 50        	     1M 	push %ax
+04:00001B02 8D01      	     2M 	lea (%bx,%di),%ax
+04:00001B04 83F822    	     3M 	cmp $0x0022,%ax
+04:00001B07 0F858202  	     4M 	jne error
+04:00001B0B 58        	     5M 	pop %ax
+                      	   363: 	testLEA16 0x40(%bx,%si), $0x0052
+04:00001B0C 50        	     1M 	push %ax
+04:00001B0D 8D4040    	     2M 	lea 0x40(%bx,%si),%ax
+04:00001B10 83F852    	     3M 	cmp $0x0052,%ax
+04:00001B13 0F857602  	     4M 	jne error
+04:00001B17 58        	     5M 	pop %ax
+                      	   364: 	testLEA16 0x40(%bx,%di), $0x0062
+04:00001B18 50        	     1M 	push %ax
+04:00001B19 8D4140    	     2M 	lea 0x40(%bx,%di),%ax
+04:00001B1C 83F862    	     3M 	cmp $0x0062,%ax
+04:00001B1F 0F856A02  	     4M 	jne error
+04:00001B23 58        	     5M 	pop %ax
+                      	   365: 	testLEA16 0x4000(%bx,%si), $0x4012
+04:00001B24 50        	     1M 	push %ax
+04:00001B25 8D800040  	     2M 	lea 0x4000(%bx,%si),%ax
+04:00001B29 3D1240    	     3M 	cmp $0x4012,%ax
+04:00001B2C 0F855D02  	     4M 	jne error
+04:00001B30 58        	     5M 	pop %ax
+                      	   366: 	testLEA16 0x4000(%bx,%di), $0x4022
+04:00001B31 50        	     1M 	push %ax
+04:00001B32 8D810040  	     2M 	lea 0x4000(%bx,%di),%ax
+04:00001B36 3D2240    	     3M 	cmp $0x4022,%ax
+04:00001B39 0F855002  	     4M 	jne error
+04:00001B3D 58        	     5M 	pop %ax
+                      	   367: 
                       	   368: 
-                      	   369: #
-                      	   370: # Default exception handler and error routine
-                      	   371: #
-                      	   372: DefaultExcHandler:
-                      	   373: error:
-                      	   374: # CLI and HLT are privileged instructions, don't use them in ring3
-04:0000183F 8CC8      	   375: 	mov %cs,%ax
-                      	   376: 
-                      	   377: # when in real mode, the jnz will be decoded together with test as
-                      	   378: # "test eax,0xfe750007" (66A9070075FE)
-04:00001841 A90700    	   379: 	test $7,%ax     # 66 A9 07 00
-04:00001844 75FE      	   380: .ring3: jnz .ring3 # 75 FE
-04:00001846 FA        	   381: 	cli
-04:00001847 F4        	   382: 	hlt
-04:00001848 EBF5      	   383: 	jmp error
-                      	   384: 
-                      	   385: 
-                      	   386: .rept 16
-                      	   387: 	nop
-                      	   388: .endr
-04:0000184A 90        	     1R 	nop
-04:0000184B 90        	     1R 	nop
-04:0000184C 90        	     1R 	nop
-04:0000184D 90        	     1R 	nop
-04:0000184E 90        	     1R 	nop
-04:0000184F 90        	     1R 	nop
-04:00001850 90        	     1R 	nop
-04:00001851 90        	     1R 	nop
-04:00001852 90        	     1R 	nop
-04:00001853 90        	     1R 	nop
-04:00001854 90        	     1R 	nop
-04:00001855 90        	     1R 	nop
-04:00001856 90        	     1R 	nop
-04:00001857 90        	     1R 	nop
-04:00001858 90        	     1R 	nop
-04:00001859 90        	     1R 	nop
-                      	   389: 	
-                      	   390: #	.type	_start,@function
-                      	   391: #	.size	_start,$-_start
-                      	   392: 
-                      	   393: #.include "Fibonacci.asm"
-                      	   394: #.include "serial.asm"
-                      	   395: #.include "xmodem.asm"
-                      	   396: #.include "bootrom.asm"
-                      	   397: 
-                      	   398: .global _disable_int
-                      	   399: .global _restore_int
-                      	   400: .extern _start_data
-                      	   401: .extern _start_rodata
-                      	   402: .extern _start_bss
-                      	   403: 
+                      	   369: #-------------------------------------------------------------------------------
+                      	   370: 	POST $0xE0
+04:00001B3E B0E0      	     1M 	movb $0xE0,%al
+04:00001B40 BA9001    	     2M 	movw $POST_PORT,%dx
+04:00001B43 EE        	     3M 	out %al,%dx
+                      	   371: #-------------------------------------------------------------------------------
+                      	   372: 
+                      	   373: .shifts386FlagsTest:
+                      	   374: 
+                      	   375: 	# SHR al,cl - SHR ax,cl
+                      	   376: 	# undefined flags:
+                      	   377: 	#  CF when cl>7 (byte) or cl>15 (word):
+                      	   378: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=MSB(operand)
+                      	   379: 	#    if word operand and cl=16 then CF=MSB(operand)
+                      	   380: 	#  OF when cl>1: set according to result   *** rf386 calc's overflow cl>1
+                      	   381: 	#  AF when cl>0: always 1
+                      	   382: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
+                      	   383: 
+                      	   384: 	testShiftBFlags shrb, $0x81, $1, $0, $(PS_CF|PS_AF|PS_OF)
+04:00001B44 B80000    	     1M 	mov $0,%ax
+04:00001B47 50        	     2M 	push %ax
+04:00001B48 9D        	     3M 	popf
+04:00001B49 B4FF      	     4M 	mov $0xff,%ah
+04:00001B4B B081      	     5M 	mov $0x81,%al
+04:00001B4D B101      	     6M 	mov $1,%cl
+04:00001B4F D2E8      	     7M 	shrb %cl,%al
+04:00001B51 9C        	     8M 	pushf
+04:00001B52 58        	     9M 	pop %ax
+04:00001B53 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001B56 3D1108    	    11M 	cmp $(PS_CF|PS_AF|PS_OF),%ax
+04:00001B59 0F853002  	    12M 	jne error
+                      	   385: 	testShiftBFlags shrb, $0x82, $2, $0, $(PS_CF|PS_AF|PS_OF)
+04:00001B5D B80000    	     1M 	mov $0,%ax
+04:00001B60 50        	     2M 	push %ax
+04:00001B61 9D        	     3M 	popf
+04:00001B62 B4FF      	     4M 	mov $0xff,%ah
+04:00001B64 B082      	     5M 	mov $0x82,%al
+04:00001B66 B102      	     6M 	mov $2,%cl
+04:00001B68 D2E8      	     7M 	shrb %cl,%al
+04:00001B6A 9C        	     8M 	pushf
+04:00001B6B 58        	     9M 	pop %ax
+04:00001B6C 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001B6F 3D1108    	    11M 	cmp $(PS_CF|PS_AF|PS_OF),%ax
+04:00001B72 0F851702  	    12M 	jne error
+                      	   386: 	testShiftBFlags shrb, $0x80, $8, $0, $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+04:00001B76 B80000    	     1M 	mov $0,%ax
+04:00001B79 50        	     2M 	push %ax
+04:00001B7A 9D        	     3M 	popf
+04:00001B7B B4FF      	     4M 	mov $0xff,%ah
+04:00001B7D B080      	     5M 	mov $0x80,%al
+04:00001B7F B108      	     6M 	mov $8,%cl
+04:00001B81 D2E8      	     7M 	shrb %cl,%al
+04:00001B83 9C        	     8M 	pushf
+04:00001B84 58        	     9M 	pop %ax
+04:00001B85 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001B88 3D5508    	    11M 	cmp $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF),%ax
+04:00001B8B 0F85FE01  	    12M 	jne error
+                      	   387: 	testShiftBFlags shrb, $0x00,   $8,  $PS_CF, $(PS_PF|PS_ZF)
+04:00001B8F B80100    	     1M 	mov $PS_CF,%ax
+04:00001B92 50        	     2M 	push %ax
+04:00001B93 9D        	     3M 	popf
+04:00001B94 B4FF      	     4M 	mov $0xff,%ah
+04:00001B96 B000      	     5M 	mov $0x00,%al
+04:00001B98 B108      	     6M 	mov $8,%cl
+04:00001B9A D2E8      	     7M 	shrb %cl,%al
+04:00001B9C 9C        	     8M 	pushf
+04:00001B9D 58        	     9M 	pop %ax
+04:00001B9E 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001BA1 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001BA4 0F85E501  	    12M 	jne error
+                      	   388: 	testShiftBFlags shrb, $0x80,   $16, $0,     $(PS_PF|PS_ZF|PS_OF)
+04:00001BA8 B80000    	     1M 	mov $0,%ax
+04:00001BAB 50        	     2M 	push %ax
+04:00001BAC 9D        	     3M 	popf
+04:00001BAD B4FF      	     4M 	mov $0xff,%ah
+04:00001BAF B080      	     5M 	mov $0x80,%al
+04:00001BB1 B110      	     6M 	mov $16,%cl
+04:00001BB3 D2E8      	     7M 	shrb %cl,%al
+04:00001BB5 9C        	     8M 	pushf
+04:00001BB6 58        	     9M 	pop %ax
+04:00001BB7 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001BBA 3D4408    	    11M 	cmp $(PS_PF|PS_ZF|PS_OF),%ax
+04:00001BBD 0F85CC01  	    12M 	jne error
+                      	   389: 	testShiftBFlags shrb, $0x00,   $16, $PS_CF, $(PS_PF|PS_ZF)
+04:00001BC1 B80100    	     1M 	mov $PS_CF,%ax
+04:00001BC4 50        	     2M 	push %ax
+04:00001BC5 9D        	     3M 	popf
+04:00001BC6 B4FF      	     4M 	mov $0xff,%ah
+04:00001BC8 B000      	     5M 	mov $0x00,%al
+04:00001BCA B110      	     6M 	mov $16,%cl
+04:00001BCC D2E8      	     7M 	shrb %cl,%al
+04:00001BCE 9C        	     8M 	pushf
+04:00001BCF 58        	     9M 	pop %ax
+04:00001BD0 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001BD3 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001BD6 0F85B301  	    12M 	jne error
+                      	   390: 	testShiftBFlags shrb, $0x80,   $24, $0,     $(PS_PF|PS_ZF|PS_OF)
+04:00001BDA B80000    	     1M 	mov $0,%ax
+04:00001BDD 50        	     2M 	push %ax
+04:00001BDE 9D        	     3M 	popf
+04:00001BDF B4FF      	     4M 	mov $0xff,%ah
+04:00001BE1 B080      	     5M 	mov $0x80,%al
+04:00001BE3 B118      	     6M 	mov $24,%cl
+04:00001BE5 D2E8      	     7M 	shrb %cl,%al
+04:00001BE7 9C        	     8M 	pushf
+04:00001BE8 58        	     9M 	pop %ax
+04:00001BE9 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001BEC 3D4408    	    11M 	cmp $(PS_PF|PS_ZF|PS_OF),%ax
+04:00001BEF 0F859A01  	    12M 	jne error
+                      	   391: 	testShiftBFlags shrb, $0x00,   $24, $PS_CF, $(PS_PF|PS_ZF)
+04:00001BF3 B80100    	     1M 	mov $PS_CF,%ax
+04:00001BF6 50        	     2M 	push %ax
+04:00001BF7 9D        	     3M 	popf
+04:00001BF8 B4FF      	     4M 	mov $0xff,%ah
+04:00001BFA B000      	     5M 	mov $0x00,%al
+04:00001BFC B118      	     6M 	mov $24,%cl
+04:00001BFE D2E8      	     7M 	shrb %cl,%al
+04:00001C00 9C        	     8M 	pushf
+04:00001C01 58        	     9M 	pop %ax
+04:00001C02 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001C05 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001C08 0F858101  	    12M 	jne error
+                      	   392: 	testShiftBFlags shrb, $0x80,   $32, $0,     $PS_SF
+04:00001C0C B80000    	     1M 	mov $0,%ax
+04:00001C0F 50        	     2M 	push %ax
+04:00001C10 9D        	     3M 	popf
+04:00001C11 B4FF      	     4M 	mov $0xff,%ah
+04:00001C13 B080      	     5M 	mov $0x80,%al
+04:00001C15 B120      	     6M 	mov $32,%cl
+04:00001C17 D2E8      	     7M 	shrb %cl,%al
+04:00001C19 9C        	     8M 	pushf
+04:00001C1A 58        	     9M 	pop %ax
+04:00001C1B 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001C1E 3D8000    	    11M 	cmp $PS_SF,%ax
+04:00001C21 0F856801  	    12M 	jne error
+                      	   393: 	testShiftWFlags shrw, $0x8000, $16, $0,     $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF)
+04:00001C25 B80000    	     1M 	mov $0,%ax
+04:00001C28 50        	     2M 	push %ax
+04:00001C29 9D        	     3M 	popf
+04:00001C2A B80080    	     4M 	mov $0x8000,%ax
+04:00001C2D B110      	     5M 	mov $16,%cl
+04:00001C2F D3E8      	     6M 	shrw %cl,%ax
+04:00001C31 9C        	     7M 	pushf
+04:00001C32 58        	     8M 	pop %ax
+04:00001C33 25D508    	     9M 	and $PS_ARITH,%ax
+04:00001C36 3D5508    	    10M 	cmp $(PS_CF|PS_PF|PS_AF|PS_ZF|PS_OF),%ax
+04:00001C39 0F855001  	    11M 	jne error
+                      	   394: 	testShiftWFlags shrw, $0x0000, $16, $PS_CF, $(PS_PF|PS_ZF)
+04:00001C3D B80100    	     1M 	mov $PS_CF,%ax
+04:00001C40 50        	     2M 	push %ax
+04:00001C41 9D        	     3M 	popf
+04:00001C42 B80000    	     4M 	mov $0x0000,%ax
+04:00001C45 B110      	     5M 	mov $16,%cl
+04:00001C47 D3E8      	     6M 	shrw %cl,%ax
+04:00001C49 9C        	     7M 	pushf
+04:00001C4A 58        	     8M 	pop %ax
+04:00001C4B 25D508    	     9M 	and $PS_ARITH,%ax
+04:00001C4E 83F844    	    10M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001C51 0F853801  	    11M 	jne error
+                      	   395: 	testShiftWFlags shrw, $0x8000, $32, $0,     $PS_SF|PS_PF
+04:00001C55 B80000    	     1M 	mov $0,%ax
+04:00001C58 50        	     2M 	push %ax
+04:00001C59 9D        	     3M 	popf
+04:00001C5A B80080    	     4M 	mov $0x8000,%ax
+04:00001C5D B120      	     5M 	mov $32,%cl
+04:00001C5F D3E8      	     6M 	shrw %cl,%ax
+04:00001C61 9C        	     7M 	pushf
+04:00001C62 58        	     8M 	pop %ax
+04:00001C63 25D508    	     9M 	and $PS_ARITH,%ax
+04:00001C66 3D8400    	    10M 	cmp $PS_SF|PS_PF,%ax
+04:00001C69 0F852001  	    11M 	jne error
+                      	   396: 
+                      	   397: 	# SHL al,cl - SHL ax,cl
+                      	   398: 	# undefined flags:
+                      	   399: 	#  CF when cl>7 (byte) or cl>15 (word):
+                      	   400: 	#    if byte operand and cl=8 or cl=16 or cl=24 then CF=LSB(operand)
+                      	   401: 	#    if word operand and cl=16 then CF=LSB(operand)
+                      	   402: 	#  OF when cl>1: set according to result
+                      	   403: 	#  AF when cl>0: always 1
+                      	   404: 	# shift count is modulo 32 so if cl=32 then result is equal to cl=0
+                      	   405: 
+                      	   406: 	testShiftBFlags shlb, $0x81, $1,  $0,     $(PS_CF|PS_OF)
+04:00001C6D B80000    	     1M 	mov $0,%ax
+04:00001C70 50        	     2M 	push %ax
+04:00001C71 9D        	     3M 	popf
+04:00001C72 B4FF      	     4M 	mov $0xff,%ah
+04:00001C74 B081      	     5M 	mov $0x81,%al
+04:00001C76 B101      	     6M 	mov $1,%cl
+04:00001C78 D2E0      	     7M 	shlb %cl,%al
+04:00001C7A 9C        	     8M 	pushf
+04:00001C7B 58        	     9M 	pop %ax
+04:00001C7C 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001C7F 3D0108    	    11M 	cmp $(PS_CF|PS_OF),%ax
+04:00001C82 0F850701  	    12M 	jne error
+                      	   407: 	testShiftBFlags shlb, $0x41, $2,  $0,     $(PS_CF|PS_OF)
+04:00001C86 B80000    	     1M 	mov $0,%ax
+04:00001C89 50        	     2M 	push %ax
+04:00001C8A 9D        	     3M 	popf
+04:00001C8B B4FF      	     4M 	mov $0xff,%ah
+04:00001C8D B041      	     5M 	mov $0x41,%al
+04:00001C8F B102      	     6M 	mov $2,%cl
+04:00001C91 D2E0      	     7M 	shlb %cl,%al
+04:00001C93 9C        	     8M 	pushf
+04:00001C94 58        	     9M 	pop %ax
+04:00001C95 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001C98 3D0108    	    11M 	cmp $(PS_CF|PS_OF),%ax
+04:00001C9B 0F85EE00  	    12M 	jne error
+                      	   408: 	testShiftBFlags shlb, $0x01, $8,  $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00001C9F B80000    	     1M 	mov $0,%ax
+04:00001CA2 50        	     2M 	push %ax
+04:00001CA3 9D        	     3M 	popf
+04:00001CA4 B4FF      	     4M 	mov $0xff,%ah
+04:00001CA6 B001      	     5M 	mov $0x01,%al
+04:00001CA8 B108      	     6M 	mov $8,%cl
+04:00001CAA D2E0      	     7M 	shlb %cl,%al
+04:00001CAC 9C        	     8M 	pushf
+04:00001CAD 58        	     9M 	pop %ax
+04:00001CAE 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001CB1 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:00001CB4 0F85D500  	    12M 	jne error
+                      	   409: 	testShiftBFlags shlb, $0x00, $8,  $PS_CF, $(PS_PF|PS_ZF)
+04:00001CB8 B80100    	     1M 	mov $PS_CF,%ax
+04:00001CBB 50        	     2M 	push %ax
+04:00001CBC 9D        	     3M 	popf
+04:00001CBD B4FF      	     4M 	mov $0xff,%ah
+04:00001CBF B000      	     5M 	mov $0x00,%al
+04:00001CC1 B108      	     6M 	mov $8,%cl
+04:00001CC3 D2E0      	     7M 	shlb %cl,%al
+04:00001CC5 9C        	     8M 	pushf
+04:00001CC6 58        	     9M 	pop %ax
+04:00001CC7 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001CCA 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001CCD 0F85BC00  	    12M 	jne error
+                      	   410: 	testShiftBFlags shlb, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00001CD1 B80000    	     1M 	mov $0,%ax
+04:00001CD4 50        	     2M 	push %ax
+04:00001CD5 9D        	     3M 	popf
+04:00001CD6 B4FF      	     4M 	mov $0xff,%ah
+04:00001CD8 B001      	     5M 	mov $0x01,%al
+04:00001CDA B110      	     6M 	mov $16,%cl
+04:00001CDC D2E0      	     7M 	shlb %cl,%al
+04:00001CDE 9C        	     8M 	pushf
+04:00001CDF 58        	     9M 	pop %ax
+04:00001CE0 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001CE3 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:00001CE6 0F85A300  	    12M 	jne error
+                      	   411: 	testShiftBFlags shlb, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
+04:00001CEA B80100    	     1M 	mov $PS_CF,%ax
+04:00001CED 50        	     2M 	push %ax
+04:00001CEE 9D        	     3M 	popf
+04:00001CEF B4FF      	     4M 	mov $0xff,%ah
+04:00001CF1 B000      	     5M 	mov $0x00,%al
+04:00001CF3 B110      	     6M 	mov $16,%cl
+04:00001CF5 D2E0      	     7M 	shlb %cl,%al
+04:00001CF7 9C        	     8M 	pushf
+04:00001CF8 58        	     9M 	pop %ax
+04:00001CF9 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001CFC 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001CFF 0F858A00  	    12M 	jne error
+                      	   412: 	testShiftBFlags shlb, $0x01, $24, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00001D03 B80000    	     1M 	mov $0,%ax
+04:00001D06 50        	     2M 	push %ax
+04:00001D07 9D        	     3M 	popf
+04:00001D08 B4FF      	     4M 	mov $0xff,%ah
+04:00001D0A B001      	     5M 	mov $0x01,%al
+04:00001D0C B118      	     6M 	mov $24,%cl
+04:00001D0E D2E0      	     7M 	shlb %cl,%al
+04:00001D10 9C        	     8M 	pushf
+04:00001D11 58        	     9M 	pop %ax
+04:00001D12 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001D15 3D4508    	    11M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:00001D18 7573      	    12M 	jne error
+                      	   413: 	testShiftBFlags shlb, $0x00, $24, $PS_CF, $(PS_PF|PS_ZF)
+04:00001D1A B80100    	     1M 	mov $PS_CF,%ax
+04:00001D1D 50        	     2M 	push %ax
+04:00001D1E 9D        	     3M 	popf
+04:00001D1F B4FF      	     4M 	mov $0xff,%ah
+04:00001D21 B000      	     5M 	mov $0x00,%al
+04:00001D23 B118      	     6M 	mov $24,%cl
+04:00001D25 D2E0      	     7M 	shlb %cl,%al
+04:00001D27 9C        	     8M 	pushf
+04:00001D28 58        	     9M 	pop %ax
+04:00001D29 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001D2C 83F844    	    11M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001D2F 755C      	    12M 	jne error
+                      	   414: 	testShiftBFlags shlb, $0x01, $32, $0,     $0
+04:00001D31 B80000    	     1M 	mov $0,%ax
+04:00001D34 50        	     2M 	push %ax
+04:00001D35 9D        	     3M 	popf
+04:00001D36 B4FF      	     4M 	mov $0xff,%ah
+04:00001D38 B001      	     5M 	mov $0x01,%al
+04:00001D3A B120      	     6M 	mov $32,%cl
+04:00001D3C D2E0      	     7M 	shlb %cl,%al
+04:00001D3E 9C        	     8M 	pushf
+04:00001D3F 58        	     9M 	pop %ax
+04:00001D40 25D508    	    10M 	and $PS_ARITH,%ax
+04:00001D43 83F800    	    11M 	cmp $0,%ax
+04:00001D46 7545      	    12M 	jne error
+                      	   415: 	testShiftWFlags shlw, $0x01, $16, $0,     $(PS_CF|PS_PF|PS_ZF|PS_OF)
+04:00001D48 B80000    	     1M 	mov $0,%ax
+04:00001D4B 50        	     2M 	push %ax
+04:00001D4C 9D        	     3M 	popf
+04:00001D4D B80100    	     4M 	mov $0x01,%ax
+04:00001D50 B110      	     5M 	mov $16,%cl
+04:00001D52 D3E0      	     6M 	shlw %cl,%ax
+04:00001D54 9C        	     7M 	pushf
+04:00001D55 58        	     8M 	pop %ax
+04:00001D56 25D508    	     9M 	and $PS_ARITH,%ax
+04:00001D59 3D4508    	    10M 	cmp $(PS_CF|PS_PF|PS_ZF|PS_OF),%ax
+04:00001D5C 752F      	    11M 	jne error
+                      	   416: 	testShiftWFlags shlw, $0x00, $16, $PS_CF, $(PS_PF|PS_ZF)
+04:00001D5E B80100    	     1M 	mov $PS_CF,%ax
+04:00001D61 50        	     2M 	push %ax
+04:00001D62 9D        	     3M 	popf
+04:00001D63 B80000    	     4M 	mov $0x00,%ax
+04:00001D66 B110      	     5M 	mov $16,%cl
+04:00001D68 D3E0      	     6M 	shlw %cl,%ax
+04:00001D6A 9C        	     7M 	pushf
+04:00001D6B 58        	     8M 	pop %ax
+04:00001D6C 25D508    	     9M 	and $PS_ARITH,%ax
+04:00001D6F 83F844    	    10M 	cmp $(PS_PF|PS_ZF),%ax
+04:00001D72 7519      	    11M 	jne error
+                      	   417: 	testShiftWFlags shlw, $0x01, $32, $0,     $0
+04:00001D74 B80000    	     1M 	mov $0,%ax
+04:00001D77 50        	     2M 	push %ax
+04:00001D78 9D        	     3M 	popf
+04:00001D79 B80100    	     4M 	mov $0x01,%ax
+04:00001D7C B120      	     5M 	mov $32,%cl
+04:00001D7E D3E0      	     6M 	shlw %cl,%ax
+04:00001D80 9C        	     7M 	pushf
+04:00001D81 58        	     8M 	pop %ax
+04:00001D82 25D508    	     9M 	and $PS_ARITH,%ax
+04:00001D85 83F800    	    10M 	cmp $0,%ax
+04:00001D88 7503      	    11M 	jne error
+                      	   418: 
+04:00001D8A E9FEFF    	   419: 	jmp _bootrom
+                      	   420: 
+                      	   421: #	pushl $10
+                      	   422: #	call _Fibonacci
+                      	   423: 
+                      	   424: #
+                      	   425: # Default exception handler and error routine
+                      	   426: #
+                      	   427: DefaultExcHandler:
+                      	   428: error:
+                      	   429: # CLI and HLT are privileged instructions, don't use them in ring3
+04:00001D8D 8CC8      	   430: 	mov %cs,%ax
+                      	   431: 
+                      	   432: # when in real mode, the jnz will be decoded together with test as
+                      	   433: # "test eax,0xfe750007" (66A9070075FE)
+04:00001D8F A90700    	   434: 	test $7,%ax     # 66 A9 07 00
+04:00001D92 75FE      	   435: .ring3: jnz .ring3 # 75 FE
+04:00001D94 FA        	   436: 	cli
+04:00001D95 F4        	   437: 	hlt
+04:00001D96 EBF5      	   438: 	jmp error
+                      	   439: 
+                      	   440: 
+                      	   441: .rept 16
+                      	   442: 	nop
+                      	   443: .endr
+04:00001D98 90        	     1R 	nop
+04:00001D99 90        	     1R 	nop
+04:00001D9A 90        	     1R 	nop
+04:00001D9B 90        	     1R 	nop
+04:00001D9C 90        	     1R 	nop
+04:00001D9D 90        	     1R 	nop
+04:00001D9E 90        	     1R 	nop
+04:00001D9F 90        	     1R 	nop
+04:00001DA0 90        	     1R 	nop
+04:00001DA1 90        	     1R 	nop
+04:00001DA2 90        	     1R 	nop
+04:00001DA3 90        	     1R 	nop
+04:00001DA4 90        	     1R 	nop
+04:00001DA5 90        	     1R 	nop
+04:00001DA6 90        	     1R 	nop
+04:00001DA7 90        	     1R 	nop
+                      	   444: 	
+                      	   445: #	.type	_start,@function
+                      	   446: #	.size	_start,$-_start
+                      	   447: 
+                      	   448: #.include "Fibonacci.asm"
+                      	   449: #.include "serial.asm"
+                      	   450: #.include "xmodem.asm"
+                      	   451: #.include "bootrom.asm"
+                      	   452: 
+                      	   453: .global _disable_int
+                      	   454: .global _restore_int
+                      	   455: .extern _start_data
+                      	   456: .extern _start_rodata
+                      	   457: .extern _start_bss
+                      	   458: 
 
 
 Symbols by name:
-.ring3                          04:00001844
-.shifts386FlagsTest             04:000015F6
+.ring3                          04:00001D92
+.shifts386FlagsTest             04:00001B44
+ACC_DPL_3                        S:00006000
+ACC_PRESENT                      S:00008000
+ACC_TYPE_CODE_R                  S:00001A00
+ACC_TYPE_CONFORMING              S:00000400
+ACC_TYPE_DATA_W                  S:00001200
+ACC_TYPE_LDT                     S:00000200
+ACC_TYPE_TSS                     S:00000900
+CC_SEG_PROT32                    S:00000018
+CU_SEG_PROT32                    S:00000010
+C_SEG_PROT16                     S:00000000
+C_SEG_PROT32                     S:00000008
 C_SEG_REAL                       S:00000000
 D1_SEG_REAL                      S:0FFFC400
 D2_SEG_REAL                      S:0FFFC600
-DefaultExcHandler               04:0000183F
+DefaultExcHandler               04:00001D8D
 ESP_REAL                         S:00007FFC
+EXT_32BIT                        S:00000040
 EXT_NONE                         S:00000000
 EX_UD                            S:00000006
+FLAT_SEG_PROT                    S:00000078
+GDTSelDesc                       S:00000088
+GDTU_DSEG_PROT                   S:00000038
+GDT_DSEG_PROT                    S:00000030
+GDT_SEG_REAL                     S:00009050
+IDTU_SEG_PROT                    S:00000028
+IDT_SEG_PROT                     S:00000020
 IDT_SEG_REAL                     S:00009000
+LDT_DSEG_PROT                    S:00000048
+LDT_SEG_PROT                     S:00000040
+PG_SEG_PROT                      S:00000050
 POST_PORT                        S:00000190
 PS_AF                            S:00000010
 PS_ARITH                         S:000008D5
@@ -7298,10 +8242,16 @@ PS_OF                            S:00000800
 PS_PF                            S:00000004
 PS_SF                            S:00000080
 PS_ZF                            S:00000040
+RING0_GATE                       S:00000080
+SU_SEG_PROT32                    S:00000060
+S_SEG_PROT32                     S:00000058
 S_SEG_REAL                       S:0000C000
 TEST_BASE                        S:FFFC0000
 TEST_BASE1                       S:FFFC4000
 TEST_BASE2                       S:FFFC6000
+TEST_CODE                        S:FFFF0000
+TSS_DSEG_PROT                    S:00000070
+TSS_PROT                         S:00000068
 _Fibonacci                      external EXP
 _bootrom                        external EXP
 _disable_int                    external EXP
@@ -7321,7 +8271,7 @@ err110                          04:000000C7
 err111                          04:00000209
 err210                          04:0000013C
 err211                          04:00000394
-error                           04:0000183F
+error                           04:00001D8D
 exit10                          04:0000014B
 exit11                          04:000003A9
 exit52                          04:00001372
@@ -7329,6 +8279,7 @@ farfn1652                       04:00001315
 farfn3252                       04:00001338
 header                          04:00000002
 idt_addr                        03:00000000
+initGDT                         04:0000153E
 items                            S:00000040
 ja10                            04:000000EE
 ja11                            04:00000242
@@ -7406,13 +8357,18 @@ o3252                           04:00001328
 off_cmp                          S:0001FFFF
 off_mask                         S:0000FFFF
 off_value                        S:000100FF
-postD                           04:00001524
+postD                           04:00001A72
+ptrGDTreal                      04:00001532
+ptrIDTreal                      04:00001538
 realmd_mask                      S:0000FFFF
 rel1651                         04:000012B1
 rel3251                         04:000012CE
 rm1651                          04:000012EC
 rm3251                          04:000012F7
 rodata_seg                       S:0FFFA000
+romGDT                          04:0000152C
+romGDTEnd                       04:0000152C
+romGDTaddr                      04:0000152C
 start_rodata                     S:FFFA0000
 test25                          04:00000548
 test28                          04:000005BF
@@ -7426,25 +8382,45 @@ FFFA0000 start_rodata
 FFFC0000 TEST_BASE
 FFFC4000 TEST_BASE1
 FFFC6000 TEST_BASE2
+FFFF0000 TEST_CODE
 FFFFFFFF val_mask
-00000000 EXT_NONE
-00000000 C_SEG_REAL
 00000000 _start
-00000000 b
 00000000 idt_addr
-00000001 PS_CF
+00000000 C_SEG_PROT16
+00000000 C_SEG_REAL
+00000000 b
+00000000 EXT_NONE
 00000001 w
+00000001 PS_CF
 00000002 header
 00000002 d
-00000004 PS_PF
 00000004 val_size
+00000004 PS_PF
 00000006 EX_UD
+00000008 C_SEG_PROT32
+00000010 CU_SEG_PROT32
 00000010 PS_AF
+00000018 CC_SEG_PROT32
+00000020 IDT_SEG_PROT
+00000028 IDTU_SEG_PROT
+00000030 GDT_DSEG_PROT
+00000038 GDTU_DSEG_PROT
 00000040 items
+00000040 EXT_32BIT
 00000040 PS_ZF
+00000040 LDT_SEG_PROT
+00000048 LDT_DSEG_PROT
+00000050 PG_SEG_PROT
+00000058 S_SEG_PROT32
 0000005B _start1
+00000060 SU_SEG_PROT32
+00000068 TSS_PROT
+00000070 TSS_DSEG_PROT
 00000076 aloop7
+00000078 FLAT_SEG_PROT
+00000080 RING0_GATE
 00000080 PS_SF
+00000088 GDTSelDesc
 000000A6 jz10
 000000AE jp10
 000000B6 js10
@@ -7467,8 +8443,8 @@ FFFFFFFF val_mask
 000000FA jnpok10
 000000FC jnsok10
 000000FE jaok10
-00000100 jo10
 00000100 bytes
+00000100 jo10
 0000010D jnl10
 00000112 jnle10
 00000117 jl10
@@ -7491,6 +8467,7 @@ FFFFFFFF val_mask
 0000017B jna11
 00000186 next111
 00000190 POST_PORT
+00000200 ACC_TYPE_LDT
 00000209 err111
 0000020A jcok11
 0000020E jzok11
@@ -7521,12 +8498,15 @@ FFFFFFFF val_mask
 000003A1 jlok11
 000003A5 jleok11
 000003A9 exit11
+00000400 ACC_TYPE_CONFORMING
 00000548 test25
 0000054D continue25
 000005BF test28
 000005C6 continue28
 00000800 PS_OF
 000008D5 PS_ARITH
+00000900 ACC_TYPE_TSS
+00001200 ACC_TYPE_DATA_W
 000012B1 rel1651
 000012BC nearfn1651
 000012CE rel3251
@@ -7539,16 +8519,26 @@ FFFFFFFF val_mask
 0000134B m161652
 0000135D m163252
 00001372 exit52
-00001524 postD
-000015F6 .shifts386FlagsTest
-0000183F DefaultExcHandler
-0000183F error
-00001844 .ring3
+0000152C romGDT
+0000152C romGDTaddr
+0000152C romGDTEnd
+00001532 ptrGDTreal
+00001538 ptrIDTreal
+0000153E initGDT
+00001A00 ACC_TYPE_CODE_R
+00001A72 postD
+00001B44 .shifts386FlagsTest
+00001D8D error
+00001D8D DefaultExcHandler
+00001D92 .ring3
+00006000 ACC_DPL_3
 00007FFC ESP_REAL
+00008000 ACC_PRESENT
 00009000 IDT_SEG_REAL
+00009050 GDT_SEG_REAL
 0000C000 S_SEG_REAL
-0000FFFF realmd_mask
 0000FFFF off_mask
+0000FFFF realmd_mask
 000100FF off_value
 0001FFFF off_cmp
 0FFFA000 rodata_seg
