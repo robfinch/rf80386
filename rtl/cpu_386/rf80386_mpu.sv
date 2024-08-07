@@ -17,6 +17,9 @@ fta_cmd_response128_t [1:0] ftadm_resp;
 fta_cmd_request128_t ftatm_req;
 fta_cmd_response128_t ftatm_resp;
 fta_cmd_response128_t fta_resp1;
+fta_cmd_request128_t fta_mmu_req;
+fta_cmd_response128_t fta_mmu_sresp;
+fta_cmd_response128_t fta_mmu_resp;
 
 wire invce = 1'b0;
 wire [31:0] snoop_adr = 32'h0;
@@ -111,6 +114,44 @@ icctrl1
 	.snoop_cid(snoop_cid)
 );
 
+mmu #(.CID(4)) ummu (
+	.rst(rst),
+	.clk(clk),
+	.paging_en(1'b1),
+	.tlb_pmt_base(64'h0),
+	.ic_miss_adr({8'h00,ic_miss_adr}),
+	.ic_miss_asid(ip_asid),
+	.vadr_ir(1'b0),
+	.vadr_v(1'b0),
+	.vadr_asid(16'h0),
+	.tlb_entry0(),
+	.tlb_pc_entry(),
+	.padr(),
+	.tlb0_v(),
+	.pc_padr(pcsip),
+	.pc_padr_v(pc_padr_v),
+	.commit0_id(8'h0),
+	.commit0_idv(1'b0),
+	.commit1_id(8'h0),
+	.commit1_idv(1'b0),
+	.commit2_id(8'h0),
+	.commit2_idv(1'b0),
+	.commit3_id(8'h0),
+	.commit3_idv(1'b0),
+	.ftas_req(fta_req),
+	.ftas_resp(fta_mmu_sresp),
+	.ftam_req(fta_mmu_req),
+	.ftam_resp(fta_mmu_resp),
+	.fault_o(),
+	.faultq_o(),
+	.pe_fault_o(),
+	.tlb_wr(),
+	.tlb_way(),
+	.tlb_entryno(),
+	.tlb_entry()
+);
+
+/*
 tlb3way utlb (
 	.rst(rst),
 	.clk(clk),
@@ -163,6 +204,7 @@ tlb3way utlb (
 	.agen0_v(),
 	.agen1_v()
 );
+*/
 
 rf80386 #(.CORENO(CORENO), .CID(1)) ucpu1
 (
@@ -189,8 +231,10 @@ begin
 	ftaim_resp = {$bits(fta_cmd_response128_t){1'd0}};
 	ftadm_resp[0] = {$bits(fta_cmd_response128_t){1'd0}};
 	ftadm_resp[1] = {$bits(fta_cmd_response128_t){1'd0}};
+	fta_mmu_resp = {$bits(fta_cmd_response128_t){1'd0}};
 
 	// Setup to retry.
+	fta_mmu_resp.rty = 1'b1;
 	ftatm_resp.rty = 1'b1;
 	ftaim_resp.rty = 1'b1;
 	ftadm_resp[0].rty = 1'b1;
@@ -199,7 +243,11 @@ begin
 	ftadm_resp[1].tid = ftadm_req[1].tid;
 		
 	// Cancel retry if bus aquired.
-	if (ftatm_req.cyc) begin
+	if (fta_mmu_req.cyc) begin
+		fta_mmu_resp.rty = 1'b0;
+		fta_mmu_resp.tid = 'd0;
+	end
+	else if (ftatm_req.cyc) begin
 		ftatm_resp.rty = 1'b0;
 		ftatm_resp.tid = 'd0;
 	end
@@ -222,13 +270,16 @@ begin
 	3'd1:	ftadm_resp[0] = fta_resp1;
 //	3'd2:	ftadm_resp[1] <= fta_resp1;
 	3'd3:	ftatm_resp = fta_resp1;
+	3'd4:	fta_mmu_resp = fta_resp1;
 	default:	;	// response was not for us
 	endcase
 	
 end
 
 always_comb	//ff @(posedge clk)
-	if (ftatm_req.cyc)
+	if (fta_mmu_req.cyc)
+		fta_req <= fta_mmu_req;
+	else if (ftatm_req.cyc)
 		fta_req <= ftatm_req;
 	else if (ftaim_req.cyc)
 		fta_req <= ftaim_req;
@@ -264,6 +315,6 @@ begin
 end
 
 assign resp_ch[0] = fta_resp;
-assign resp_ch[1] = 'd0;//ptable_resp;
+assign resp_ch[1] = fta_mmu_sresp;//ptable_resp;
 
 endmodule
