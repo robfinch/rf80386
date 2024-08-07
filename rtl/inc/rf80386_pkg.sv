@@ -313,6 +313,9 @@ package rf80386_pkg;
 `define LSL		8'h03
 `define CLTS	8'h06
 
+`define MOV_R2CR	8'h20
+`define MOV_CR2R	8'h22
+
 `define LSS		8'hB2
 `define LFS		8'hB4
 `define LGS		8'hB5
