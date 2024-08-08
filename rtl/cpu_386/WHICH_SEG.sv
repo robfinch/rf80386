@@ -68,37 +68,123 @@ always_comb
 				`MOV_AL2M: seg_reg <= ds_base;
 				`MOV_AX2M: seg_reg <= ds_base;
 				default:
-					if (fetch_modrm | fetch_modrm2)
-						case(modrm)
-						5'b00_000:	seg_reg <= ds_base;
-						5'b00_001:	seg_reg <= ds_base;
-						5'b00_010:	seg_reg <= ss_base;
-						5'b00_011:	seg_reg <= ss_base;
-						5'b00_100:	seg_reg <= ds_base;
-						5'b00_101:	seg_reg <= ds_base;
-						5'b00_110:	seg_reg <= ds_base;
-						5'b00_111:	seg_reg <= ds_base;
-					
-						5'b01_000:	seg_reg <= ds_base;
-						5'b01_001:	seg_reg <= ds_base;
-						5'b01_010:	seg_reg <= ss_base;
-						5'b01_011:	seg_reg <= ss_base;
-						5'b01_100:	seg_reg <= ds_base;
-						5'b01_101:	seg_reg <= ds_base;
-						5'b01_110:	seg_reg <= ss_base;
-						5'b01_111:	seg_reg <= ds_base;
-					
-						5'b10_000:	seg_reg <= ds_base;
-						5'b10_001:	seg_reg <= ds_base;
-						5'b10_010:	seg_reg <= ss_base;
-						5'b10_011:	seg_reg <= ss_base;
-						5'b10_100:	seg_reg <= ds_base;
-						5'b10_101:	seg_reg <= ds_base;
-						5'b10_110:	seg_reg <= ss_base;
-						5'b10_111:	seg_reg <= ds_base;
-					
-						default:	seg_reg <= ds_base;
-						endcase
+					if (fetch_modrm | fetch_modrm2) begin
+						if (realMode)
+							case({AddrSize==8'd32,modrm})
+							6'b00_000:	seg_reg <= ds_base;
+							6'b00_001:	seg_reg <= ds_base;
+							6'b00_010:	seg_reg <= ss_base;
+							6'b00_011:	seg_reg <= ss_base;
+							6'b00_100:	seg_reg <= ds_base;
+							6'b00_101:	seg_reg <= ds_base;
+							6'b00_110:	seg_reg <= ds_base;
+							6'b00_111:	seg_reg <= ds_base;
+						
+							6'b01_000:	seg_reg <= ds_base;
+							6'b01_001:	seg_reg <= ds_base;
+							6'b01_010:	seg_reg <= ss_base;
+							6'b01_011:	seg_reg <= ss_base;
+							6'b01_100:	seg_reg <= ds_base;
+							6'b01_101:	seg_reg <= ds_base;
+							6'b01_110:	seg_reg <= ss_base;
+							6'b01_111:	seg_reg <= ds_base;
+						
+							6'b10_000:	seg_reg <= ds_base;
+							6'b10_001:	seg_reg <= ds_base;
+							6'b10_010:	seg_reg <= ss_base;
+							6'b10_011:	seg_reg <= ss_base;
+							6'b10_100:	seg_reg <= ds_base;
+							6'b10_101:	seg_reg <= ds_base;
+							6'b10_110:	seg_reg <= ss_base;
+							6'b10_111:	seg_reg <= ds_base;
+						
+							6'b100_000:	seg_reg <= ds_base;
+							6'b100_001:	seg_reg <= ds_base;
+							6'b100_010:	seg_reg <= ds_base;
+							6'b100_011:	seg_reg <= ds_base;
+							6'b100_100:	seg_reg <= ds_base;
+							6'b100_101:	seg_reg <= ds_base;
+							6'b100_110:	seg_reg <= ds_base;
+							6'b100_111:	seg_reg <= ds_base;
+						
+							6'b101_000:	seg_reg <= ds_base;
+							6'b101_001:	seg_reg <= ds_base;
+							6'b101_010:	seg_reg <= ds_base;
+							6'b101_011:	seg_reg <= ds_base;
+							6'b101_100:	seg_reg <= ds_base;
+							6'b101_101:	seg_reg <= ss_base;
+							6'b101_110:	seg_reg <= ds_base;
+							6'b101_111:	seg_reg <= ds_base;
+						
+							6'b110_000:	seg_reg <= ds_base;
+							6'b110_001:	seg_reg <= ds_base;
+							6'b110_010:	seg_reg <= ss_base;
+							6'b110_011:	seg_reg <= ss_base;
+							6'b110_100:	seg_reg <= ds_base;
+							6'b110_101:	seg_reg <= ds_base;
+							6'b110_110:	seg_reg <= ss_base;
+							6'b110_111:	seg_reg <= ds_base;
+							default:	seg_reg <= ds_base;
+							endcase
+						else
+							case({AddrSize==8'd32,modrm})
+							6'b00_000:	seg_reg <= ds_base;
+							6'b00_001:	seg_reg <= ds_base;
+							6'b00_010:	seg_reg <= ds_base;
+							6'b00_011:	seg_reg <= ds_base;
+							6'b00_100:	seg_reg <= ds_base;
+							6'b00_101:	seg_reg <= ds_base;
+							6'b00_110:	seg_reg <= ds_base;
+							6'b00_111:	seg_reg <= ds_base;
+						
+							6'b01_000:	seg_reg <= ds_base;
+							6'b01_001:	seg_reg <= ds_base;
+							6'b01_010:	seg_reg <= ss_base;
+							6'b01_011:	seg_reg <= ss_base;
+							6'b01_100:	seg_reg <= ds_base;
+							6'b01_101:	seg_reg <= ds_base;
+							6'b01_110:	seg_reg <= ss_base;
+							6'b01_111:	seg_reg <= ds_base;
+						
+							6'b10_000:	seg_reg <= ds_base;
+							6'b10_001:	seg_reg <= ds_base;
+							6'b10_010:	seg_reg <= ss_base;
+							6'b10_011:	seg_reg <= ss_base;
+							6'b10_100:	seg_reg <= ds_base;
+							6'b10_101:	seg_reg <= ds_base;
+							6'b10_110:	seg_reg <= ss_base;
+							6'b10_111:	seg_reg <= ds_base;
+						
+							6'b100_000:	seg_reg <= ds_base;
+							6'b100_001:	seg_reg <= ds_base;
+							6'b100_010:	seg_reg <= ds_base;
+							6'b100_011:	seg_reg <= ds_base;
+							6'b100_100:	seg_reg <= ds_base;
+							6'b100_101:	seg_reg <= ds_base;
+							6'b100_110:	seg_reg <= ds_base;
+							6'b100_111:	seg_reg <= ds_base;
+						
+							6'b101_000:	seg_reg <= ds_base;
+							6'b101_001:	seg_reg <= ds_base;
+							6'b101_010:	seg_reg <= ds_base;
+							6'b101_011:	seg_reg <= ds_base;
+							6'b101_100:	seg_reg <= ds_base;
+							6'b101_101:	seg_reg <= ss_base;
+							6'b101_110:	seg_reg <= ds_base;
+							6'b101_111:	seg_reg <= ds_base;
+
+							6'b110_000:	seg_reg <= ds_base;
+							6'b110_001:	seg_reg <= ds_base;
+							6'b110_010:	seg_reg <= ds_base;
+							6'b110_011:	seg_reg <= ds_base;
+							6'b110_100:	seg_reg <= ds_base;
+							6'b110_101:	seg_reg <= ss_base;
+							6'b110_110:	seg_reg <= ds_base;
+							6'b110_111:	seg_reg <= ds_base;
+						
+							default:	seg_reg <= ds_base;
+							endcase
+					end
 					else
 						seg_reg <= ds_base;
 				endcase

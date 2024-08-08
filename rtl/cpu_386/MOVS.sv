@@ -38,12 +38,12 @@
 
 rf80386_pkg::MOVS:
 `include "check_for_ints.sv"
+	else if ((repz|repnz) & cxz)
+		tGoto(rf80386_pkg::IFETCH);
 	else if (w && (AddrSize==8'd32 ? esi > 32'hFFFFFFFC : esi[15:0]==16'hFFFF)) begin
 		ir <= `NOP;
 		tGoInt(8'd13);
 	end
-	else if ((repz|repnz) & cxz)
-		tGoto(rf80386_pkg::IFETCH);
 	else begin
 		ad <= dssi;
 		if (w)
@@ -55,19 +55,29 @@ rf80386_pkg::MOVS:
 rf80386_pkg::MOVS1:
 	begin
 		tGoto(rf80386_pkg::MOVS2);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (w) begin
+				if (OperandSize32) begin
+					tUesi(df ? esi - 4'd4 : esi + 4'd4);
+				end
+				else begin
+					tUesi(df ? esi - 4'd2 : esi + 4'd2);
+				end
+			end
+			else begin
+				tUesi(df ? esi - 4'd1 : esi + 4'd1);
+			end
+		end
 		if (w) begin
 			if (OperandSize32) begin
 				a[31:0] <= dat[31:0];
-				tUesi(df ? esi - 4'd4 : esi + 4'd4);
 			end
 			else begin
 				a[15:0] <= dat[15:0];
-				tUesi(df ? esi - 4'd2 : esi + 4'd2);
 			end
 		end
 		else begin
 			a[7:0] <= dat;
-			tUesi(df ? esi - 4'd1 : esi + 4'd1);
 		end
 	end
 rf80386_pkg::MOVS2:
@@ -85,11 +95,13 @@ rf80386_pkg::MOVS2:
 	end
 rf80386_pkg::MOVS3:
 	begin
-		if (w)
-			tUedi(df ? (OperandSize32 ? edi - 4'd4 : edi - 4'd2): 
-									(OperandSize32 ? edi + 4'd4 : edi + 4'd2));
-		else
-			tUedi(df ? edi - 4'd1 : edi + 4'd1);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (w)
+				tUedi(df ? (OperandSize32 ? edi - 4'd4 : edi - 4'd2): 
+										(OperandSize32 ? edi + 4'd4 : edi + 4'd2));
+			else
+				tUedi(df ? edi - 4'd1 : edi + 4'd1);
+		end
 		tGoto(rf80386_pkg::MOVS4);
 	end
 rf80386_pkg::MOVS4:

@@ -65,9 +65,9 @@
 #   Defines a LDT descriptor, given a name (%1), base (%2), limit (%3), type (%4), and ext (%5)
 #
 .set LDTSelDesc,4
-.macro defLDTDesc arg1,arg2,arg3,arg4,arg5
+.macro defLDTDesc arg1,arg2,arg3,arg4,arg5=0
 	.set \arg1,LDTSelDesc
-	lds (%cs:ptrLDTprot),%ebx  # this macro is used in prot mode to set up prot mode env.
+	lds %cs:ptrLDTprot,%ebx  # this macro is used in prot mode to set up prot mode env.
 	mov $\arg1,%eax
 	mov $\arg2,%esi
 	mov $\arg3,%edi
@@ -83,7 +83,7 @@
 	pushad
 	mov %ds,%ax
 	push %ax
-	lds (%cs:ptrLDTprot),%ebx  # this macro is used in prot mode to set up prot mode env.
+	lds %cs:ptrLDTprot,%ebx  # this macro is used in prot mode to set up prot mode env.
 	mov $\arg1,%eax
 	mov $\arg2,%esi
 	mov $\arg3,%edi
@@ -103,7 +103,7 @@
 .macro updLDTDescAcc arg1,arg2
 	pushad
 	pushf
-	lds (%cs:ptrLDTprot),%ebx
+	lds %cs:ptrLDTprot,%ebx
 	add $(\arg1) & 0xFFF8,%ebx
 	movb $(\arg2)>>8,5(%ebx) # acc byte
 	popf
@@ -117,7 +117,7 @@
 # Uses DS,EBX,flags
 
 .macro updLDTDescBase arg1,arg2
-	lds (%cs:ptrLDTprot),%ebx
+	lds %cs:ptrLDTprot,%ebx
 	add $(\arg1) & 0xFFF8,%ebx
 	movw $(\arg2)&0xFFFF,2(%ebx)      # BASE 15-0
 	movb $((\arg2)>>16)&0xFF,4(%ebx) 	# BASE 23-16
@@ -133,7 +133,7 @@
 # %5 DPL
 #
 .macro updCallGate arg1,arg2,arg3,arg4,arg5
-	lfs (%cs:ptrGDTprot),%ebx
+	lfs %cs:ptrGDTprot,%ebx
 	mov $\arg1,%eax
 	mov $\arg2,%esi
 	mov $\arg3,%edi
@@ -148,7 +148,7 @@
 # Loads SS:ESP with a pointer to the prot mode stack
 #
 .macro loadProtModeStack
-	lss (%cs:ptrSSprot),%esp
+	lss %cs:ptrSSprot,%esp
 .endm
 
 

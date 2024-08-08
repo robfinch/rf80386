@@ -48,25 +48,31 @@ rf80386_pkg::CMPSW:
 
 rf80386_pkg::CMPSW1:
 	begin
-		if (df) begin
-			if (OperandSize32) begin
-				a <= dat[31:0];
-				tUesi(esi - 4'd4);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (df) begin
+				if (OperandSize32)
+					tUesi(esi - 4'd4);
+				else
+					tUesi(esi - 4'd2);
 			end
 			else begin
-				tUesi(esi - 4'd2);
-				a <= {{16{dat[15]}},dat[15:0]};
+				if (OperandSize32)
+					tUesi(esi + 4'd4);
+				else
+					tUesi(esi + 4'd2);
 			end
 		end
-		else begin
-			if (OperandSize32) begin
+		if (df) begin
+			if (OperandSize32)
 				a <= dat[31:0];
-				tUesi(esi + 4'd4);
-			end
-			else begin
-				tUesi(esi + 4'd2);
+			else
 				a <= {{16{dat[15]}},dat[15:0]};
-			end
+		end
+		else begin
+			if (OperandSize32)
+				a <= dat[31:0];
+			else
+				a <= {{16{dat[15]}},dat[15:0]};
 		end
 		tGoto(rf80386_pkg::CMPSW2);
 	end
@@ -83,25 +89,31 @@ rf80386_pkg::CMPSW2:
 
 rf80386_pkg::CMPSW3:
 	begin
-		if (df) begin
-			if (OperandSize32) begin
-				b <= dat[31:0];
-				tUedi(edi - 4'd4);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (df) begin
+				if (OperandSize32)
+					tUedi(edi - 4'd4);
+				else
+					tUedi(edi - 4'd2);
 			end
 			else begin
-				tUedi(edi - 4'd2);
-				b <= {{16{dat[15]}},dat[15:0]};
+				if (OperandSize32)
+					tUedi(edi + 4'd4);
+				else
+					tUedi(edi + 4'd2);
 			end
 		end
-		else begin
-			if (OperandSize32) begin
+		if (df) begin
+			if (OperandSize32)
 				b <= dat[31:0];
-				tUedi(edi + 4'd4);
-			end
-			else begin
-				tUedi(edi + 4'd2);
+			else
 				b <= {{16{dat[15]}},dat[15:0]};
-			end
+		end
+		else begin
+			if (OperandSize32)
+				b <= dat[31:0];
+			else
+				b <= {{16{dat[15]}},dat[15:0]};
 		end
 		tGoto(rf80386_pkg::CMPSW4);
 	end
@@ -112,7 +124,7 @@ rf80386_pkg::CMPSW4:
 		zf <= reszw;
 		sf <= resnw;
 		af <= carry   (1'b1,a[3],b[3],alu_o[3]);
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			cf <= carry   (1'b1,a[31],b[31],alu_o[31]);
 			vf <= overflow(1'b1,a[31],b[31],alu_o[31]);
 		end

@@ -144,6 +144,11 @@ rf80386_pkg::IFETCH:
 			else
 				StkAddrSize = 8'd16;
 		end
+		if (ir==`XCHG_MEM && mod==2'b11) begin
+			wrregs <= 1'b1;
+			rrr <= TTT;
+			res <= b;
+		end
 
     if (pe_nmi & checkForInts) begin
       rst_nmi <= 1'b1;

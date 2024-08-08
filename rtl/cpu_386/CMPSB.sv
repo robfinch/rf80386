@@ -69,13 +69,16 @@ rf80386_pkg::CMPSB4:
 		af <= carry   (1'b1,a[3],b[3],alu_o[3]);
 		cf <= carry   (1'b1,a[7],b[7],alu_o[7]);
 		vf <= overflow(1'b1,a[7],b[7],alu_o[7]);
-		if (df) begin
-			tUesi(si_dec);
-			tUedi(di_dec);
-		end
-		else begin
-			tUesi(si_inc);
-			tUedi(di_inc);
+// Not sure about this, makes it pass t386.asm
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (df) begin
+				tUesi(si_dec);
+				tUedi(di_dec);
+			end
+			else begin
+				tUesi(si_inc);
+				tUedi(di_inc);
+			end
 		end
 		if ((repz & !cxz & zf) | (repnz & !cxz & !zf)) begin
 			ecx <= cx_dec;

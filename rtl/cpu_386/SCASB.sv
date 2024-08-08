@@ -49,10 +49,12 @@ rf80386_pkg::SCASB1:
 		tGoto(rf80386_pkg::SCASB2);
 		a <= al;
 		b <= dat[7:0];
-		if (df)
-			tUedi(di_dec);
-		else
-			tUedi(di_inc);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (df)
+				tUedi(di_dec);
+			else
+				tUedi(di_inc);
+		end
 	end
 rf80386_pkg::SCASB2:
 	begin

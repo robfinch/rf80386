@@ -114,7 +114,7 @@ rf80386_pkg::DECODE:
 	`ADD_AXI16,`ADC_AXI16,`SUB_AXI16,`SBB_AXI16,`AND_AXI16,`OR_AXI16,`XOR_AXI16,`CMP_AXI16,`TEST_AXI16:
 		begin
 			w <= 1'b1;
-			a <= ax;
+			a <= OperandSize32 ? eax : ax;
 			rrr <= 3'd0;
 			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF)
 				tGoInt(8'h0d);

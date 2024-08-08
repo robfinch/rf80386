@@ -38,12 +38,21 @@
 .set EXT_32BIT,0x0040 # size bit
 .set EXT_PAGE,0x0080 # granularity bit
 
-#PTE_FRAME     equ 0xfffff000
-#PTE_DIRTY     equ 0x00000040 ; page has been modified
+# i386 paging
+#PTE_FRAME,0xffffe000
+#PTE_DIRTY,0x00000040 		# page has been modified
 #PTE_ACCESSED  equ 0x00000020 ; page has been accessed
 #PTE_USER      equ 0x00000004 ; set for user level (CPL 3), clear for supervisor level (CPL 0-2)
 #PTE_WRITE     equ 0x00000002 ; set for read/write, clear for read-only (affects CPL 3 only)
 #PTE_PRESENT   equ 0x00000001 ; set for present page, clear for not-present page
+
+# Bigfoot paging
+.set PTE_FRAME,0xffffe000
+.set PTE_DIRTY,0x00000080 		# page has been modified
+.set PTE_ACCESSED,0x00000040 	# page has been accessed
+.set PTE_USER,0x00000010 			# set for user level (CPL 3), clear for supervisor level (CPL 0-2)
+.set PTE_WRITE,0x00000004 		# set for read/write, clear for read-only (affects CPL 3 only)
+.set PTE_PRESENT,0x00000001 	# set for present page, clear for not-present page
 
 #PTE_PRESENT_BIT   equ 0000001b
 #PTE_WRITE_BIT     equ 0000010b

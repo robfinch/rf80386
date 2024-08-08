@@ -75,7 +75,7 @@
 #  FFFA0000-FFFAFFFF read only data
 #  FFFC0000-FFFCFFFF stack
 #  FFF01000-FFF01FFF page directory
-#  FFF94000-FFF94FFF TSS
+#  FFF94000-FFF95FFF TSS
 #  20000-9FFFF tests
 #
 
@@ -111,7 +111,7 @@ idt_addr:
 #
 #   Real mode segments
 #
-.set C_SEG_REAL,0x0000
+.set C_SEG_REAL,0xF000
 .set S_SEG_REAL,0xC000
 .set IDT_SEG_REAL,0x9000
 .set IDT_SEG_PROT,0x9040
@@ -158,7 +158,7 @@ _start1:
 	POST $0x00
 #-------------------------------------------------------------------------------
 #
-#   Real mode initialisation
+#   Real mode initialization
 #
 	mov $rodata_seg & realmd_mask,%ax
 	mov %ax,%ds
@@ -325,7 +325,7 @@ initGDT:
 	defGDTDesc GDTU_DSEG_PROT,0xFFF90500,0x000002ff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3
 	defGDTDesc LDT_SEG_PROT,  0xFFF90800,0x000007ff,ACC_TYPE_LDT|ACC_PRESENT
 	defGDTDesc LDT_DSEG_PROT, 0xFFF90800,0x000007ff,ACC_TYPE_DATA_W|ACC_PRESENT
-	defGDTDesc PG_SEG_PROT,   0xfff80000,0x00002fff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defGDTDesc PG_SEG_PROT,   0xfff80000,0x0002ffff,ACC_TYPE_DATA_W|ACC_PRESENT
 	defGDTDesc S_SEG_PROT32,  0xfffc0000,0x0008ffff,ACC_TYPE_DATA_W|ACC_PRESENT,EXT_32BIT
 	defGDTDesc SU_SEG_PROT32, 0xfffc0000,0x0008ffff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3,EXT_32BIT
 	defGDTDesc TSS_PROT,      0xfff94000,0x00000fff,ACC_TYPE_TSS|ACC_PRESENT|ACC_DPL_3
@@ -353,46 +353,139 @@ ptrLDTprot: # pointer to the LDT for pmode
 ptrPDprot: # pointer to the Page Directory for pmode
 	.4byte 0
 	.2byte PG_SEG_PROT
-ptrPT0prot: ; pointer to Page Table 0
+ptrPT0prot: # pointer to Page Table 0
 	.4byte 0x1000
 	.2byte PG_SEG_PROT
-ptrPT1prot: ; pointer to Page Table 1
+ptrPT1prot: # pointer to Page Table 1
 	.4byte 0x2000
 	.2byte PG_SEG_PROT
-ptrSSprot: ; pointer to the stack for pmode
+ptrSSprot: # pointer to the stack for pmode
 	.4byte ESP_R0_PROT
 	.2byte S_SEG_PROT32
-ptrTSSprot: ; pointer to the task state segment
+ptrTSSprot: # pointer to the task state segment
 	.4byte 0
 	.2byte TSS_DSEG_PROT
-addrProtIDT: ; address of pmode IDT to be used with lidt
+addrProtIDT: # address of pmode IDT to be used with lidt
 	.2byte 0xFF              						# 16-bit limit
-	.4byte (IDT_SEG_REAL << 4)|0xffff0000 	# 32-bit base address
+	.4byte 0xffff0000|(IDT_SEG_REAL << 4) 	# 32-bit base address
 addrGDT: # address of GDT to be used with lgdt
 	.2byte GDT_SEG_LIMIT
-	.4byte (GDT_SEG_REAL << 4)|0xffff0000
+	.4byte 0xffff0000|(GDT_SEG_REAL << 4)
 
-; Initializes an interrupt gate in system memory in real mode
+# Initializes an interrupt gate in system memory in real mode
 initIntGateReal:
-	pushad
+	pushal
 	initIntGate
-	popad
+	popal
 	ret
 
 initIDT:
-	lds %cs:ptrIDTreal,%ebx
+	lds %cs:ptrIDTreal-TEST_CODE,%ebx
 	mov $C_SEG_PROT32,%esi
-	mov $DefaultExcHandler,%edi
+	mov $DefaultExcHandler-TEST_CODE,%edi
 	mov $ACC_DPL_0,%dx
 .set vector,00
-.rep 0x15
+.rept 0x15
 	mov $vector,%eax
 	call initIntGateReal
 .set vector,vector+1
 .endr
 
-#	jmp initPaging
+	jmp initPaging
 
+initPaging:
+#
+# pages:
+#  FFF90000-FFF90FFF   1  1000h   4K IDTs, GDT and LDT
+#  FFF80000-FFF81FFF   1  2000h   8K page directory
+#  FFF82000-FFF83FFF   1  2000h   8K page table 0
+#  FFF84000-FFF85FFF   1  2000h   8K page table 1
+#  FFF94000-FFF95FFF   1  2000h   8K task switch segments
+#  FFFC0000-FFFCFFFF  8  10000h   64K stack
+#  FFFF0000-FFFFFFFF  8  10000h   64K tests
+#  FFF86000-FFF87FFF   1  2000h   8K used for page faults (PTE 9Fh)
+#
+.set PAGE_DIR_ADDR,0x2000
+.set PAGE_TBL0_ADDR,PAGE_DIR_ADDR+0x2000
+.set PAGE_TBL1_ADDR,PAGE_DIR_ADDR+0x4000
+
+#   Now we want to build a page table. We need two pages of
+#   8K-aligned physical memory.  We use a hard-coded address, segment 0x8000,
+#   corresponding to physical address 0xFFF80000.
+#
+	mov $PAGE_DIR_ADDR,%esi
+	mov %esi,%eax
+	shr $4,%eax
+	or $0x8000,%ax
+	mov %ax,%es
+#
+#   Build a page table at ES:EDI (8000:0000) with only 64 valid PTEs at end,
+#   because we're not going to access any memory outside the last 512kB.
+#
+# The .if is to avoid a long loop during simulation.
+.if 0
+	cld
+	xor %edi,%edi
+	mov $1919,%ecx		# ECX == number of dwords to write = ((1024-64)*8)/4-1
+	xor %eax,%eax    	# fill PTEs with 0
+	rep
+	stosl
+.endif
+	mov $7680,%edi		# index of last 64 PTEs
+	mov $127,%ecx			# ECX = (64 * 8) / 4 - 1
+	mov $0xfff80000,%edx
+.ipt1:
+	mov $PTE_PRESENT | PTE_USER | PTE_WRITE,%eax
+	add %edx,%eax			# add in the address
+	stosl
+	# Bits 32 to 63 can all be zero. The high order page number is not used
+	# because the test system uses only a 32-bit physical address.
+	xor %eax,%eax			# page table hi order page number
+	stosl
+	add $0x2000,%edx	# increment address to next page
+	loop .ipt1
+
+switchToProtMode:
+	cli 							# make sure interrupts are off now, since we've not initialized the IDT yet
+	data32
+	lidt %cs:addrProtIDT-TEST_CODE
+	data32
+	lgdt %cs:addrGDT-TEST_CODE
+	mov %esi,%cr3
+	mov %cr0,%eax
+	or $CR0_MSW_PE | CR0_PG,%eax
+	mov %eax,%cr0
+	jmp $C_SEG_PROT32,$toProt32 	# jump to flush the prefetch queue
+toProt32:
+	.code32
+	jmp initLDT
+
+.include "protected_p.asm"
+
+initLDT:
+	defLDTDesc D_SEG_PROT16,   TEST_BASE, 0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defLDTDesc D_SEG_PROT32,   TEST_BASE, 0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT,EXT_32BIT
+	defLDTDesc DU_SEG_PROT,    TEST_BASE, 0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_3
+	defLDTDesc D1_SEG_PROT,    TEST_BASE1,0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defLDTDesc D2_SEG_PROT,    TEST_BASE2,0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT
+	defLDTDesc DC_SEG_PROT32,  TEST_BASE1,0x000fffff,ACC_TYPE_CODE_R|ACC_PRESENT,EXT_32BIT
+	defLDTDesc RO_SEG_PROT,    TEST_BASE, 0x000fffff,ACC_TYPE_DATA_R|ACC_PRESENT
+	defLDTDesc ROU_SEG_PROT,   TEST_BASE, 0x000fffff,ACC_TYPE_DATA_R|ACC_PRESENT|ACC_DPL_3
+	defLDTDesc DTEST_SEG_PROT, TEST_BASE, 0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT,EXT_32BIT
+	defLDTDesc DPL1_SEG_PROT,  TEST_BASE, 0x000fffff,ACC_TYPE_DATA_W|ACC_PRESENT|ACC_DPL_1
+	defLDTDesc NP_SEG_PROT,    TEST_BASE, 0x000fffff,ACC_TYPE_DATA_W
+	defLDTDesc SYS_SEG_PROT,   TEST_BASE, 0x000fffff,ACC_PRESENT
+
+	mov  $LDT_SEG_PROT,%ax
+	lldt %ax
+	mov $TSS_PROT,%ax
+	ltr %ax
+	jmp protTests
+
+#.include "tss_p.asm"
+#.include "protected_rings_p.asm"
+
+protTests:
 
 .include "lea_m.asm"
 #.include "lea_p.asm"

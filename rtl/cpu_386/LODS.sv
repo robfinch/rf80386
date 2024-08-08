@@ -48,40 +48,64 @@ rf80386_pkg::LODS:
 	end
 rf80386_pkg::LODS_NACK:
 begin
-	if (df) begin
-		if (w) begin
-			if (OperandSize32) begin
-				tUesi(esi - 4'd4);
-				b[31:0] <= dat;
+	if ((repz|repnz) ? !cxz : 1'b1) begin
+		if (df) begin
+			if (w) begin
+				if (OperandSize32) begin
+					tUesi(esi - 4'd4);
+				end
+				else begin
+					tUesi(esi - 4'd2);
+				end
 			end
 			else begin
-				b[15:0] <= {{16{dat[15]}},dat[15:0]};
-				tUesi(esi - 4'd2);
+				tUesi(esi - 2'd1);
 			end
 		end
 		else begin
-			tUesi(esi - 2'd1);
-			b[ 7:0] <= dat[7:0];
-			b[31:8] <= {24{dat[7]}};
+			tUesi(si_inc);
+			if (w) begin
+				if (OperandSize32) begin
+					tUesi(esi + 4'd4);
+				end
+				else begin
+					tUesi(esi + 4'd2);
+				end
+			end
+			else begin
+				tUesi(esi + 2'd1);
+			end
 		end
 	end
 	else begin
-		tUesi(si_inc);
-		if (w) begin
-			if (OperandSize32) begin
-				tUesi(esi + 4'd4);
-				b[31:0] <= dat[31:0];
+		if (df) begin
+			if (w) begin
+				if (OperandSize32) begin
+					b[31:0] <= dat;
+				end
+				else begin
+					b[15:0] <= {{16{dat[15]}},dat[15:0]};
+				end
 			end
 			else begin
-				tUesi(esi + 4'd2);
-				b[15:0] <= dat[15:0];
-				b[31:16] <= {16{dat[15]}};
+				b[ 7:0] <= dat[7:0];
+				b[31:8] <= {24{dat[7]}};
 			end
 		end
 		else begin
-			tUesi(esi + 2'd1);
-			b[ 7:0] <= dat;
-			b[15:8] <= {8{dat[7]}};
+			if (w) begin
+				if (OperandSize32) begin
+					b[31:0] <= dat[31:0];
+				end
+				else begin
+					b[15:0] <= dat[15:0];
+					b[31:16] <= {16{dat[15]}};
+				end
+			end
+			else begin
+				b[ 7:0] <= dat;
+				b[15:8] <= {8{dat[7]}};
+			end
 		end
 	end
 	tGoto(rf80386_pkg::EXECUTE);

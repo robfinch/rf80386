@@ -474,8 +474,6 @@ rf80386_pkg::EXECUTE:
 				w <= 1'b0;
 				rrr <= 3'd0;
 				res <= a[7:0];
-				if ( df) esi <= si_dec;
-				if (!df) esi <= si_inc;
 			end
 		`LODSW:
 			begin
@@ -484,14 +482,6 @@ rf80386_pkg::EXECUTE:
 				w <= 1'b1;
 				rrr <= 3'd0;
 				res <= a;
-				if (OperandSize32) begin
-					if ( df) esi <= esi - 16'd4;
-					if (!df) esi <= esi + 16'd4;
-				end
-				else begin
-					if ( df) esi <= esi - 16'd2;
-					if (!df) esi <= esi + 16'd2;
-				end
 			end
 
 		8'hD0,8'hD1,8'hD2,8'hD3,`SHI8,`SHI16:
@@ -685,7 +675,7 @@ rf80386_pkg::EXECUTE:
 						sf <= resnw;
 						zf <= reszw;
 					end
-				3'b010:	begin esp <= sp_dec; tGoto(rf80386_pkg::CALL_IN); end
+				3'b010:	begin tGoto(rf80386_pkg::CALL_IN); end
 				// These two should not be reachable here, as they would
 				// be trapped by the EACALC.
 				3'b011:	tGoto(rf80386_pkg::CALL_FIN);	// CALL FAR indirect

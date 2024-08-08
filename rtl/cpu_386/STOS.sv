@@ -38,12 +38,12 @@
 
 rf80386_pkg::STOS:
 `include "check_for_ints.sv"
-	else if (w && (di==16'hFFFF)) begin
+	else if (repdone)
+		tGoto(rf80386_pkg::IFETCH);
+	else if (w && (AddrSize==8'd32 ? edi==32'hFFFFFFFF : di==16'hFFFF)) begin
 		ir <= `NOP;
 		tGoInt(8'd13);
 	end
-	else if (repdone)
-		tGoto(rf80386_pkg::IFETCH);
 	else begin
 		ad <= esdi;
 		dat <= eax;
@@ -63,24 +63,26 @@ rf80386_pkg::STOS1:
 		end
 		else
 			tGoto(rf80386_pkg::IFETCH);
-		if (w) begin
-			if (OperandSize32) begin
-				if (df)
-					tUedi(edi - 2'd4);
-				else
-				 	tUedi(edi + 2'd4);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (w) begin
+				if (OperandSize32) begin
+					if (df)
+						tUedi(edi - 4'd4);
+					else
+					 	tUedi(edi + 4'd4);
+				end
+				else begin
+					if (df)
+						tUedi(edi - 2'd2);
+					else
+					 	tUedi(edi + 2'd2);
+				end
 			end
 			else begin
 				if (df)
-					tUedi(edi - 2'd2);
+					tUedi(edi - 2'd1);
 				else
-				 	tUedi(edi + 2'd2);
+				 	tUedi(edi + 2'd1);
 			end
-		end
-		else begin
-			if (df)
-				tUedi(edi - 2'd1);
-			else
-			 	tUedi(edi + 2'd1);
 		end
 	end

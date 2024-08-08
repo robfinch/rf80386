@@ -10,7 +10,7 @@
 		mov %\arg1,%ax
 rel16\@:
 		clc
-		data16
+#		data16
 		callw nearfn16\@
 		jnc error
 		jmp rel32\@
@@ -20,14 +20,14 @@ nearfn16\@:
 		jne error
 		add $2,%ax
 		stc
-		data16
+#		data16
 		ret
 		jmp error
 
 rel32\@:
 		clc
 		data32
-		calll nearfn32\@
+		call nearfn32\@
 		jnc error
 		jmp rm16\@
 nearfn32\@:
@@ -43,20 +43,19 @@ nearfn32\@:
 rm16\@:
 		clc
 		mov $nearfn16\@,%bx
-		data16
+#		data16
 		call %bx
 		jnc error
 rm32\@:
 		clc
-		mov $nearfn32\@,%ebx
-		data32
+		mov $nearfn32\@-TEST_CODE,%ebx
 		call %ebx
 		jnc error
 	.else
 		mov %\arg1,%eax
 rel16\@:
 		clc
-		data16
+#		data16
 		callw nearfn16\@
 		jnc error
 		jmp rel32\@
@@ -66,13 +65,13 @@ nearfn16\@:
 		jne error
 		add $2,%eax
 		stc
-		data16
+#		data16
 		ret
 		jmp error
 
 rel32\@:
 		clc
-		data32
+#		data32
 		calll nearfn32\@
 		jnc error
 		jmp rm16\@
@@ -89,13 +88,13 @@ nearfn32\@:
 rm16\@:
 		clc
 		mov $nearfn16\@,%bx
-		data16
+#		data16
 		call %bx
 		jnc error
 rm32\@:
 		clc
-		mov $nearfn32\@,%ebx
-		data32
+		mov $nearfn32\@-TEST_CODE,%ebx
+#		data32
 		call %ebx
 		jnc error
 	.endif
@@ -111,7 +110,7 @@ rm32\@:
 	mov %sp,%ax
 
 	clc
-	data16
+#	data16
 	callw $\arg1,$farfn16\@
 	jnc error
 	jmp o32\@
@@ -121,13 +120,12 @@ farfn16\@:
 	jne error
 	add $4,%ax
 	stc
-	data16
+#	data16
 	retl
 	jmp error
 
 o32\@:
 	clc
-	data32
 	calll $\arg1,$farfn32\@
 	jnc error
 	jmp m1616\@
@@ -137,7 +135,6 @@ farfn32\@:
 	jne error
 	add $8,%ax
 	stc
-	data32
 	retl
 	jmp error
 
@@ -145,14 +142,14 @@ m1616\@:
 	clc
 	movw $farfn16\@,(%si)
 	movw $\arg1,2(%si)
-	data16
+#	data16
 	calll (%si)
 	jnc error
 m1632\@:
 	clc
-	movl $farfn32\@,(%si)
+	movl $farfn32\@-TEST_CODE,(%si)
 	movw $\arg1,4(%si)
-	data32
+#	data32
 	calll (%si)
 	jnc error
 exit\@:

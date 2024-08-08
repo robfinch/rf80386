@@ -195,7 +195,7 @@ parameter IRQ_FIFO_DEPTH = 32;
 `define ALU_I82R8	8'h82
 `define ALU_I82R16 8'h83
 `define TEST        8'b1000010?
-`define XCHG_MEM	8'h86
+`define XCHG_MEM	8'b1000011?
 `define MOV_RR8		8'h88
 `define MOV_RR16	8'h89
 `define MOV_MR8		8'h8A

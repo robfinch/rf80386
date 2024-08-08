@@ -216,7 +216,7 @@ rf80386_pkg::STORE2:
 		ftam_req.we <= HIGH;
 		ftam_req.vadr <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
 		ftam_req.padr <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
-		ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
+		ftam_req.data1 <= {128'd0,dat} >> {5'd16-ad[3:0],3'd0};
 		adr_o <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
 		rty_wait <= 5'd0;
 		tGoto(rf80386_pkg::STORE2_ACK);
@@ -463,7 +463,7 @@ rf80386_pkg::STORE_IO2:
 		ftam_req.we <= HIGH;
 		ftam_req.vadr <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
 		ftam_req.padr <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
-		ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
+		ftam_req.data1 <= {128'd0,dat} >> {5'd16-ad[3:0],3'd0};
 		adr_o <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
 		rty_wait <= 5'd0;
 		tGoto(rf80386_pkg::STORE_IO2_ACK);
@@ -485,7 +485,7 @@ rf80386_pkg::STORE_IO2_ACK:
 				ftam_req.we <= HIGH;
 				ftam_req.vadr <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
 				ftam_req.padr <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
-				ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
+				ftam_req.data1 <= {128'd0,dat} >> {5'd16-ad[3:0],3'd0};
 				adr_o <= {ad[$bits(ad)-1:6]+2'd1,6'd0};
 			end
 		end

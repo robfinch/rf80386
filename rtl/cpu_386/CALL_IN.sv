@@ -37,25 +37,42 @@
 
 rf80386_pkg::CALL_IN:
 	begin
-		if (StkAddrSize==8'd32) begin
-			if (OperandSize32)
+		if (OperandSize32) begin
+			if (realMode | v86) begin
+				esp[15:0] <= esp - 4'd4;
+			end
+			else begin
 				esp <= esp - 4'd4;
-			else
-				esp <= esp - 4'd2;
+			end
 		end
 		else begin
-			if (OperandSize32)
-				esp[15:0] <= esp - 4'd4;
-			else
+			if (realMode | v86) begin
 				esp[15:0] <= esp - 4'd2;
+			end
+			else begin
+				esp <= esp - 4'd2;
+			end
 		end
+		/*
+		if (StkAddrSize==8'd32) begin
+			esp <= esp - 4'd4;
+		end
+		else begin
+			if (realMode | v86) begin
+				esp[15:0] <= esp - 4'd2;
+			end
+			else begin
+				esp[15:0] <= esp - 4'd4;
+			end
+		end
+		*/
 		tGoto(rf80386_pkg::CALL_IN1);
 	end
 rf80386_pkg::CALL_IN1:
 	begin
 		ad <= sssp;
 		dat <= eip;
-		sel <= OperandSize32 ? 16'h000F: 16'h0003;
+		sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALL_IN2);
 	end
 rf80386_pkg::CALL_IN2:
@@ -82,10 +99,10 @@ rf80386_pkg::CALL_IN2:
 rf80386_pkg::CALL_IN3:
 	begin
 		ad <= ea;
-		if (OperandSize32)
-			sel <= 16'h000F;
-		else
+		if (realMode | v86)
 			sel <= 16'h0003;
+		else
+			sel <= 16'h000F;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::CALL_IN4);
 	end
 rf80386_pkg::CALL_IN4:
@@ -93,14 +110,11 @@ rf80386_pkg::CALL_IN4:
 		if (OperandSize32)
 			b[31:0] <= dat[31:0];
 		else
-			b[15:0] <= dat[15:0];
+			b <= dat[15:0];
 		tGoto(rf80386_pkg::CALL_IN5);
 	end
 rf80386_pkg::CALL_IN5:
 	begin
-		if (OperandSize32)
-			eip <= b;
-		else
-			eip <= b[15:0];
+		eip <= b;
 		tGoto(rf80386_pkg::IFETCH);
 	end

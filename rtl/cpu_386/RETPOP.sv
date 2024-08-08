@@ -42,17 +42,23 @@
 rf80386_pkg::RETPOP:
 	begin
 		ad <= sssp;
-		sel <= AddrSize==8'd32 ? 16'h000F : 16'h0003;
+		sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETPOP_NACK);
 	end
 rf80386_pkg::RETPOP_NACK:
 	begin
-		if (AddrSize==8'd32) begin
-			esp <= esp + 4'd4;
+		if (OperandSize32) begin
+			if (realMode|v86)
+				esp[15:0] <= esp + 4'd4;
+			else
+				esp <= esp + 4'd4;
 			eip <= dat[31:0];
 		end
 		else begin
-			esp <= esp + 4'd2;
+			if (realMode|v86)
+				esp[15:0] <= esp + 4'd2;
+			else
+				esp <= esp + 4'd2;
 			eip <= dat[15:0];
 		end
 		tGoto(rf80386_pkg::RETPOP1);

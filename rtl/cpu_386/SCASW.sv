@@ -37,7 +37,7 @@
 
 rf80386_pkg::SCASW:
 `include "check_for_ints.sv"
-	else if (w && (di==16'hFFFF) && !df) begin
+	else if (w && (AddrSize==8'd32 ? edi==32'hFFFFFFFF : di==16'hFFFF) && !df) begin
 		ir <= `NOP;
 		tGoInt(8'd13);
 	end
@@ -51,19 +51,27 @@ rf80386_pkg::SCASW:
 rf80386_pkg::SCASW1:
 	begin
 		tGoto(rf80386_pkg::SCASW2);
-		a <= ax;
-		b <= {16'h0,dat[15:0]};
-		if (df)
-			tUedi(OperandSize32 ? edi - 4'd4 : edi - 4'd2);
-		else
-			tUedi(OperandSize32 ? edi + 4'd4 : edi + 4'd2);
+		a <= OperandSize32 ? eax : ax;
+		b <= OperandSize32 ? dat[31:0] : {16'h0,dat[15:0]};
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			if (df)
+				tUedi(OperandSize32 ? edi - 4'd4 : edi - 4'd2);
+			else
+				tUedi(OperandSize32 ? edi + 4'd4 : edi + 4'd2);
+		end
 	end
 rf80386_pkg::SCASW2:
 	begin
 		pf <= pres;
 		af <= carry   (1'b0,a[3],b[3],alu_o[3]);
-		cf <= carry   (1'b0,a[15],b[15],alu_o[15]);
-		vf <= overflow(1'b0,a[15],b[15],alu_o[15]);
+		if (OperandSize32) begin
+			cf <= carry   (1'b0,a[31],b[31],alu_o[31]);
+			vf <= overflow(1'b0,a[31],b[31],alu_o[31]);
+		end
+		else begin
+			cf <= carry   (1'b0,a[15],b[15],alu_o[15]);
+			vf <= overflow(1'b0,a[15],b[15],alu_o[15]);
+		end
 		sf <= resnw;
 		zf <= reszw;
 		if (repz|repnz)
