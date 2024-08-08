@@ -151,7 +151,6 @@ rf80386_pkg::IFETCH:
       ir <= `NOP;
     end
     else if (!irq_fifo_underflow & ie & checkForInts && int_priorityp > ipri) begin
-    	intp <= 1'b1;
     	int_device <= int_devicep;
     	int_num <= int_nump;
     	ipri <= int_priorityp;

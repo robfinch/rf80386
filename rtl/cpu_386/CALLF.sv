@@ -125,7 +125,7 @@ rf80386_pkg::CALLF2:
 			end
 		5'b00011,	// busy 286 task
 		5'b01011:	// busy 386 task
-			int_num = 8'd10;					// invalid TSS
+			 tGoInt(8'd10);					// invalid TSS
 		5'b00101:	// task gate
 			if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
 				if (cgate.dpl < cpl || cgate.dpl < selector[1:0])

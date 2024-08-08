@@ -84,9 +84,6 @@ wire resz;
 
 reg [31:0] tss_flags;
 reg [2:0] cyc_type;			// type of bus sycle
-reg OperandSize32;
-reg [7:0] AddrSize;
-reg [7:0] StkAddrSize;
 reg wrvz;
 reg lidt, lgdt, lmsw;
 reg lsl, ltr;
@@ -112,7 +109,6 @@ reg [2:0] TTT;
 reg [7:0] lock_insn;
 reg [7:0] prefix1;
 reg [7:0] prefix2;
-reg [7:0] int_num;			// interrupt number to execute
 reg [31:0] seg_reg;			// segment register value for memory access
 reg [15:0] data16;			// caches data
 reg [15:0] disp16;			// caches displacement
@@ -222,7 +218,7 @@ always_ff @(posedge CLK)
 		vf <= 1'b0;
 		zf <= 1'b0;
 		ie <= 1'b0;
-		cs <= 16'h0;
+		cs <= 16'hF000;
 		ds <= 16'h0;
 		es <= 16'h0;
 		fs <= 16'h0;
@@ -249,7 +245,7 @@ always_ff @(posedge CLK)
 		cs_desc.limit_hi <= 4'hF;
 		cs_desc.g <= 1'b1;							// 4096 bytes granularity
 		cs_desc.p <= 1'b1;							// segment is present
-		eip <= 32'h000F0000;
+		eip <= 32'h00000000;
 		ds_desc.db <= 1'b1;							// 32-bit mode
 		ds_desc.base_lo <= 24'hF00000;	// base = 0
 		ds_desc.base_hi <= 8'hFF;			
@@ -316,6 +312,7 @@ always_ff @(posedge CLK)
 		next_ie <= 1'b0;
 		internal_int <= 1'b0;
 		tClearBus();
+		int_num <= 8'h00;
 		tGoto(rf80386_pkg::IFETCH);
 	end
 	else begin

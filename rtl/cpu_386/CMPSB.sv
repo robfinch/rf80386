@@ -39,7 +39,7 @@
 //
 rf80386_pkg::CMPSB:
 	begin
-		ad <= seg_reg + (cs_desc.db ? esi : si);
+		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
 		sel <= 16'h0001;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::CMPSB1);
 	end
@@ -70,12 +70,12 @@ rf80386_pkg::CMPSB4:
 		cf <= carry   (1'b1,a[7],b[7],alu_o[7]);
 		vf <= overflow(1'b1,a[7],b[7],alu_o[7]);
 		if (df) begin
-			esi <= si_dec;
-			edi <= di_dec;
+			tUesi(si_dec);
+			tUedi(di_dec);
 		end
 		else begin
-			esi <= si_inc;
-			edi <= di_inc;
+			tUesi(si_inc);
+			tUedi(di_inc);
 		end
 		if ((repz & !cxz & zf) | (repnz & !cxz & !zf)) begin
 			ecx <= cx_dec;

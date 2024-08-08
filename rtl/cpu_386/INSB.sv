@@ -62,9 +62,9 @@ rf80386_pkg::INSB2:
 rf80386_pkg::INSB3:
 	begin
 		if (df)
-			edi <= edi - 16'd1;
+			tUedi(edi - 16'd1);
 		else
-			edi <= edi + 16'd1;
+			tUedi(edi + 16'd1);
 		if (repz|repnz)
 			ecx <= cx_dec;
 		tGoto(repz|repnz ? rf80386_pkg::INSB : rf80386_pkg::IFETCH);

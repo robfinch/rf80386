@@ -38,8 +38,8 @@
 rf80386_pkg::CMPSW:
 `include "check_for_ints.sv"
 	else begin
-		ad <= seg_reg + (cs_desc.db ? esi : si);
-		if (cs_desc.db)
+		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
+		if (OperandSize32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;
@@ -49,22 +49,22 @@ rf80386_pkg::CMPSW:
 rf80386_pkg::CMPSW1:
 	begin
 		if (df) begin
-			if (cs_desc.db) begin
+			if (OperandSize32) begin
 				a <= dat[31:0];
-				esi <= esi - 4'd4;
+				tUesi(esi - 4'd4);
 			end
 			else begin
-				esi <= esi - 4'd2;
+				tUesi(esi - 4'd2);
 				a <= {{16{dat[15]}},dat[15:0]};
 			end
 		end
 		else begin
-			if (cs_desc.db) begin
+			if (OperandSize32) begin
 				a <= dat[31:0];
-				esi <= esi + 4'd4;
+				tUesi(esi + 4'd4);
 			end
 			else begin
-				esi <= esi + 4'd2;
+				tUesi(esi + 4'd2);
 				a <= {{16{dat[15]}},dat[15:0]};
 			end
 		end
@@ -74,7 +74,7 @@ rf80386_pkg::CMPSW1:
 rf80386_pkg::CMPSW2:
 	begin
 		ad <= esdi;
-		if (cs_desc.db)
+		if (OperandSize32)
 			sel <= 16'h000F;
 		else
 			sel <= 16'h0003;
@@ -84,22 +84,22 @@ rf80386_pkg::CMPSW2:
 rf80386_pkg::CMPSW3:
 	begin
 		if (df) begin
-			if (cs_desc.db) begin
+			if (OperandSize32) begin
 				b <= dat[31:0];
-				edi <= edi - 4'd4;
+				tUedi(edi - 4'd4);
 			end
 			else begin
-				edi <= edi - 4'd2;
+				tUedi(edi - 4'd2);
 				b <= {{16{dat[15]}},dat[15:0]};
 			end
 		end
 		else begin
-			if (cs_desc.db) begin
+			if (OperandSize32) begin
 				b <= dat[31:0];
-				edi <= edi + 4'd4;
+				tUedi(edi + 4'd4);
 			end
 			else begin
-				edi <= edi + 4'd2;
+				tUedi(edi + 4'd2);
 				b <= {{16{dat[15]}},dat[15:0]};
 			end
 		end

@@ -54,39 +54,6 @@ wire [31:0] flags = {vm,1'b0,1'b0,1'b0,nt,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,p
 wire v86 = vm;
 reg [1:0] cpl;
 
-reg [7:0] ir;				// instruction register
-reg [7:0] ir2;				// extended instruction register
-reg [31:0] eip;				// instruction pointer
-reg [31:0] old_eip;
-reg [31:0] ir_ip;			// instruction pointer of ir
-reg [31:0] eax;
-reg [31:0] ebx;
-reg [31:0] ecx;
-reg [31:0] edx;
-reg [31:0] esi;				// source index
-reg [31:0] edi;				// destination index
-reg [31:0] ebp;				// base pointer
-reg [31:0] esp;				// stack pointer
-reg [31:0] old_esp;		// stack pointer
-reg [31:0] new_esp;		// CALL far
-wire cxz = ecx==32'h0000;	// CX is zero
-
-reg [15:0] cs;				// code segment
-reg [15:0] ds;				// data segment
-reg [15:0] es;				// extra segment
-reg [15:0] fs;				// extra segment
-reg [15:0] gs;				// extra segment
-reg [15:0] ss;				// stack segment
-reg [15:0] tr;				// task register
-reg [15:0] ldt;
-reg [15:0] old_cs;		// code segment
-reg [15:0] old_ds;		// data segment
-reg [15:0] old_es;		// extra segment
-reg [15:0] old_fs;		// extra segment
-reg [15:0] old_gs;		// extra segment
-reg [15:0] old_ss;		// stack segment
-reg [15:0] new_ss;		// for CALL far
-
 desc386_t cs_desc;
 desc386_t ds_desc;
 desc386_t es_desc;

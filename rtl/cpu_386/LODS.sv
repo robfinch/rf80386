@@ -37,49 +37,49 @@
 // ============================================================================
 
 rf80386_pkg::LODS:
-	if (w && (cs_desc.db ? esi>32'hFFFFFFFC : si==16'hFFFF) && !df) begin
+	if (w && (AddrSize==8'd32 ? esi>32'hFFFFFFFC : si==16'hFFFF) && !df) begin
 		ir <= `NOP;
 		tGoInt(8'd13);
 	end
 	else begin
-		ad <= seg_reg + (cs_desc.db ? esi : si);
-		sel <= w ? (cs_desc.db ? 16'h000F : 16'h0003) : 16'h0001;
+		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
+		sel <= w ? (OperandSize32 ? 16'h000F : 16'h0003) : 16'h0001;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::LODS_NACK);
 	end
 rf80386_pkg::LODS_NACK:
 begin
 	if (df) begin
 		if (w) begin
-			if (cs_desc.db) begin
-				esi <= esi - 4'd4;
+			if (OperandSize32) begin
+				tUesi(esi - 4'd4);
 				b[31:0] <= dat;
 			end
 			else begin
 				b[15:0] <= {{16{dat[15]}},dat[15:0]};
-				esi <= esi - 4'd2;
+				tUesi(esi - 4'd2);
 			end
 		end
 		else begin
-			esi <= esi - 2'd1;
+			tUesi(esi - 2'd1);
 			b[ 7:0] <= dat[7:0];
 			b[31:8] <= {24{dat[7]}};
 		end
 	end
 	else begin
-		esi <= si_inc;
+		tUesi(si_inc);
 		if (w) begin
-			if (cs_desc.db) begin
-				esi <= esi + 4'd4;
+			if (OperandSize32) begin
+				tUesi(esi + 4'd4);
 				b[31:0] <= dat[31:0];
 			end
 			else begin
-				esi <= esi + 4'd2;
+				tUesi(esi + 4'd2);
 				b[15:0] <= dat[15:0];
 				b[31:16] <= {16{dat[15]}};
 			end
 		end
 		else begin
-			esi <= esi + 2'd1;
+			tUesi(esi + 2'd1);
 			b[ 7:0] <= dat;
 			b[15:8] <= {8{dat[7]}};
 		end

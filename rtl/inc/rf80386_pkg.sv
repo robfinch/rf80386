@@ -974,6 +974,43 @@ typedef struct packed
 // 
 
 // Global variables
+reg OperandSize32;
+reg [7:0] AddrSize;
+reg [7:0] StkAddrSize;
+
+reg [7:0] ir;				// instruction register
+reg [7:0] ir2;				// extended instruction register
+reg [31:0] eip;				// instruction pointer
+reg [31:0] old_eip;
+reg [31:0] ir_ip;			// instruction pointer of ir
+reg [31:0] eax;
+reg [31:0] ebx;
+reg [31:0] ecx;
+reg [31:0] edx;
+reg [31:0] esi;				// source index
+reg [31:0] edi;				// destination index
+reg [31:0] ebp;				// base pointer
+reg [31:0] esp;				// stack pointer
+reg [31:0] old_esp;		// stack pointer
+reg [31:0] new_esp;		// CALL far
+wire cxz = ecx==32'h0000;	// CX is zero
+
+reg [15:0] cs;				// code segment
+reg [15:0] ds;				// data segment
+reg [15:0] es;				// extra segment
+reg [15:0] fs;				// extra segment
+reg [15:0] gs;				// extra segment
+reg [15:0] ss;				// stack segment
+reg [15:0] tr;				// task register
+reg [15:0] ldt;
+reg [15:0] old_cs;		// code segment
+reg [15:0] old_ds;		// data segment
+reg [15:0] old_es;		// extra segment
+reg [15:0] old_fs;		// extra segment
+reg [15:0] old_gs;		// extra segment
+reg [15:0] old_ss;		// stack segment
+reg [15:0] new_ss;		// for CALL far
+
 reg d_jmp;							// jump instruction decoded
 e_80386state state;			// machine state
 e_80386state [5:0] stk_state;	// stacked machine state
@@ -1087,19 +1124,39 @@ end
 endtask
 
 task tSetInt;
-input [7:0] n;
+input [7:0] ino;
 begin
-	int_num = n;
+	int_num <= ino;
 	int_device <= 16'h0;
 end
 endtask
 
 task tGoInt;
-input [7:0] n;
+input [7:0] ino;
 begin
 	internal_int <= 1'b1;
-	tSetInt(n);
+	tSetInt(ino);
 	tGoto(rf80386_pkg::INT2);
+end
+endtask
+
+task tUedi;
+input [31:0] nv;
+begin
+	if (AddrSize==8'd32)
+		edi <= nv;
+	else
+		edi[15:0] <= nv[15:0];
+end
+endtask
+
+task tUesi;
+input [31:0] nv;
+begin
+	if (AddrSize==8'd32)
+		esi <= nv;
+	else
+		esi[15:0] <= nv[15:0];
 end
 endtask
 

@@ -54,9 +54,9 @@ rf80386_pkg::SCASW1:
 		a <= ax;
 		b <= {16'h0,dat[15:0]};
 		if (df)
-			edi <= OperandSize32 ? edi - 4'd4 : edi - 4'd2;
+			tUedi(OperandSize32 ? edi - 4'd4 : edi - 4'd2);
 		else
-			edi <= OperandSize32 ? edi + 4'd4 : edi + 4'd2;
+			tUedi(OperandSize32 ? edi + 4'd4 : edi + 4'd2);
 	end
 rf80386_pkg::SCASW2:
 	begin

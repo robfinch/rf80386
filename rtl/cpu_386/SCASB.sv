@@ -50,9 +50,9 @@ rf80386_pkg::SCASB1:
 		a <= al;
 		b <= dat[7:0];
 		if (df)
-			edi <= di_dec;
+			tUedi(di_dec);
 		else
-			edi <= di_inc;
+			tUedi(di_inc);
 	end
 rf80386_pkg::SCASB2:
 	begin

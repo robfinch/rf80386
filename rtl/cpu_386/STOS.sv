@@ -66,21 +66,21 @@ rf80386_pkg::STOS1:
 		if (w) begin
 			if (OperandSize32) begin
 				if (df)
-					edi <= edi - 2'd4;
+					tUedi(edi - 2'd4);
 				else
-				 	edi <= edi + 2'd4;
+				 	tUedi(edi + 2'd4);
 			end
 			else begin
 				if (df)
-					edi <= edi - 2'd2;
+					tUedi(edi - 2'd2);
 				else
-				 	edi <= edi + 2'd2;
+				 	tUedi(edi + 2'd2);
 			end
 		end
 		else begin
 			if (df)
-				edi <= edi - 2'd1;
+				tUedi(edi - 2'd1);
 			else
-			 	edi <= edi + 2'd1;
+			 	tUedi(edi + 2'd1);
 		end
 	end

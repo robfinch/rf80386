@@ -38,7 +38,7 @@
 
 rf80386_pkg::MOVS:
 `include "check_for_ints.sv"
-	else if (w && (cs_desc.db ? esi > 32'hFFFFFFFC : esi[15:0]==16'hFFFF)) begin
+	else if (w && (AddrSize==8'd32 ? esi > 32'hFFFFFFFC : esi[15:0]==16'hFFFF)) begin
 		ir <= `NOP;
 		tGoInt(8'd13);
 	end
@@ -56,26 +56,26 @@ rf80386_pkg::MOVS1:
 	begin
 		tGoto(rf80386_pkg::MOVS2);
 		if (w) begin
-			if (cs_desc.db) begin
+			if (OperandSize32) begin
 				a[31:0] <= dat[31:0];
-				esi <= df ? esi - 4'd4 : esi + 4'd4;
+				tUesi(df ? esi - 4'd4 : esi + 4'd4);
 			end
 			else begin
 				a[15:0] <= dat[15:0];
-				esi <= df ? esi - 4'd2 : esi + 4'd2;
+				tUesi(df ? esi - 4'd2 : esi + 4'd2);
 			end
 		end
 		else begin
 			a[7:0] <= dat;
-			esi <= df ? esi - 4'd1 : esi + 4'd1;
+			tUesi(df ? esi - 4'd1 : esi + 4'd1);
 		end
 	end
 rf80386_pkg::MOVS2:
 	begin
 		ad <= esdi;
 		if (w) begin
-			sel <= cs_desc.db ? 16'h000F : 16'h0003;
-			dat <= cs_desc.db ? a[31:0] : {2{a[15:0]}};
+			sel <= OperandSize32 ? 16'h000F : 16'h0003;
+			dat <= OperandSize32 ? a[31:0] : {2{a[15:0]}};
 		end
 		else begin
 			sel <= 16'h0001;
@@ -86,10 +86,10 @@ rf80386_pkg::MOVS2:
 rf80386_pkg::MOVS3:
 	begin
 		if (w)
-			edi <= df ? (cs_desc.db ? edi - 4'd4 : edi - 4'd2): 
-									(cs_desc.db ? edi + 4'd4 : edi + 4'd2);
+			tUedi(df ? (OperandSize32 ? edi - 4'd4 : edi - 4'd2): 
+									(OperandSize32 ? edi + 4'd4 : edi + 4'd2));
 		else
-			edi <= df ? edi - 4'd1 : edi + 4'd1;
+			tUedi(df ? edi - 4'd1 : edi + 4'd1);
 		tGoto(rf80386_pkg::MOVS4);
 	end
 rf80386_pkg::MOVS4:

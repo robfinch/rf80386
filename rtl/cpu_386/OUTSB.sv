@@ -50,7 +50,7 @@ rf80386_pkg::OUTSB1:
 	end
 rf80386_pkg::OUTSB2:
 	begin
-		if (cs_desc.db)
+		if (AddrSize==8'd32)
 			ad <= edx;
 		else
 			ad <= dx;
@@ -61,9 +61,9 @@ rf80386_pkg::OUTSB2:
 rf80386_pkg::OUTSB3:
 	begin
 		if (df)
-			esi <= esi - 16'd1;
+			tUesi(esi - 16'd1);
 		else
-			esi <= esi + 16'd1;
+			tUesi(esi + 16'd1);
 		if (repz|repnz)
 			ecx <= cx_dec;
 		tGoto(repz|repnz ? rf80386_pkg::OUTSB : rf80386_pkg::IFETCH);
