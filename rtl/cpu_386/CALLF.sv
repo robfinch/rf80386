@@ -107,10 +107,9 @@ rf80386_pkg::CALLF2:
 	begin
 		// Default to general protection fault. It will be overridden if things
 		// work.
-		int_num = 8'd13;					// GP fault
-		tGoto(rf80386_pkg::INT2);
+		tGoInt(8'd13);					// GP fault
 		if (!cgate.p)
-			int_num = 8'd11;						// segment not present
+			tGoInt(8'd11);								// segment not present
 		casez({cgate.s,cgate.typ})
 		5'b00001,	// 286 task
 		5'b01001:	// 386 task
@@ -118,9 +117,9 @@ rf80386_pkg::CALLF2:
 				old_tss_desc <= tss_desc;
 				tss_desc <= cgate;
 				if (cgate.dpl < cpl)
-					int_num = 8'd10;					// invalid TSS
+					tGoInt(8'd10);					// invalid TSS
 				else if (cgate.dpl < rpl)
-					int_num = 8'd10;					// invalid TSS
+					tGoInt(8'd10);					// invalid TSS
 				else
 					tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::CALLF25);
 			end
@@ -130,13 +129,13 @@ rf80386_pkg::CALLF2:
 		5'b00101:	// task gate
 			if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
 				if (cgate.dpl < cpl || cgate.dpl < selector[1:0])
-					int_num = 8'd10;					// invalid TSS
+					tGoInt(8'd10);					// invalid TSS
 				else if (!cgate.p)
-					int_num = 8'd11;					// segment not present
+					tGoInt(8'd11);					// segment not present
 				else if (tgate.selector[2]!=1'b0)	// must be global
-					int_num = 8'd10;					// invalid TSS
+					tGoInt(8'd10);					// invalid TSS
 				else if (!fnSelectorInLimit(tgate.selector))						
-					int_num = 8'd10;					// invalid TSS
+					tGoInt(8'd10);					// invalid TSS
 				else begin
 					new_tr <= tgate.selector;
 					tGosub(rf80386_pkg::TASK_SWITCH,rf80386_pkg::CALLF25);
@@ -209,10 +208,8 @@ rf80386_pkg::CALLF2:
 	end
 rf80386_pkg::CALLF6:
 	begin
-		if (cs_desc.dpl > cpl) begin
-			int_num <= 8'd13;
-			tGoto(rf80386_pkg::INT2);
-		end
+		if (cs_desc.dpl > cpl)
+			tGoInt(8'd13);
 		else begin
 			// Load ss:esp from TSS based on privilege level
 			ad <= tss_base + 32'd4 + {cgate.dpl,3'b0};
@@ -233,22 +230,14 @@ rf80386_pkg::CALLF7:
 rf80386_pkg::CALLF8:
 	begin
 		// not writeable data segment
-		if (new_ss[15:2]==14'h0 || !fnSelectorInLimit(new_ss) || new_ss[1:0] != cs_desc.dpl || ss_desc.s==1'b0 || ss_desc.typ[3] || ss_desc[1]==1'b0) begin
-			int_num <= 8'd10;	// invalid TSS
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if (!ss_desc.p) begin
-			int_num <= 8'd12;	// stack exception
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if ((OperandSize32 && new_esp > ss_limit - 8'd16 + {cgate.count,2'b0}) || eip > cs_limit) begin
-			int_num <= eip > cs_limit ? 8'd13 : 8'd12;
-			tGoto(rf80386_pkg::INT2);
-		end
-		else if ((!OperandSize32 && new_esp > ss_limit - 8'd8 + {cgate.count,2'b0}) || {16'h0,eip[15:0]} > cs_limit) begin
-			int_num <= {16'h0,eip[15:0]} > cs_limit ? 8'd13 : 8'd12;
-			tGoto(rf80386_pkg::INT2);
-		end
+		if (new_ss[15:2]==14'h0 || !fnSelectorInLimit(new_ss) || new_ss[1:0] != cs_desc.dpl || ss_desc.s==1'b0 || ss_desc.typ[3] || ss_desc[1]==1'b0)
+			tGoInt(8'd10);	// invalid TSS
+		else if (!ss_desc.p)
+			tGoInt(8'd12);	// stack exception
+		else if ((OperandSize32 && new_esp > ss_limit - 8'd16 + {cgate.count,2'b0}) || eip > cs_limit)
+			tGoInt(eip > cs_limit ? 8'd13 : 8'd12);
+		else if ((!OperandSize32 && new_esp > ss_limit - 8'd8 + {cgate.count,2'b0}) || {16'h0,eip[15:0]} > cs_limit)
+			tGoInt({16'h0,eip[15:0]} > cs_limit ? 8'd13 : 8'd12);
 		else if (cpycnt > 5'd0) begin
 			ad <= sssp;
 			sel <= 16'h000F;	// a word
@@ -365,15 +354,15 @@ rf80386_pkg::CALLF20:
 	begin
 		tGoto(rf80386_pkg::INT2);
 		if (cs_desc.dpl > cpl)
-			int_num <= 8'd13;
+			tGoInt(8'd13);
 		else if (OperandSize32 && esp > ss_limit - 4'd6)
-			int_num <= 8'd12;
+			tGoInt(8'd12);
 		else if (OperandSize32 && eip > cs_limit)
-			int_num <= 8'd13;
+			tGoInt(8'd13);
 		else if (!OperandSize32 && esp > ss_limit - 4'd4)
-			int_num <= 8'd12;
+			tGoInt(8'd12);
 		else if (!OperandSize32 && {16'h0,eip[15:0]} > cs_limit)
-			int_num <= 8'd13;
+			tGoInt(8'd13);
 		else begin
 			ad <= sssp;
 			sel <= 16'h000F;
@@ -412,10 +401,8 @@ rf80386_pkg::CALLF22:
 
 rf80386_pkg::CALLF25:
 	begin
-		if (eip >= cs_limit) begin
-			int_num <= 8'd10;	// invalid TSS
-			tGoto(rf80386_pkg::INT2);
-		end
+		if (eip >= cs_limit)
+			tGoInt(8'd10);	// invalid TSS
 		else
 			tGoto(rf80386_pkg::IFETCH);
 	end

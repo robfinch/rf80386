@@ -82,10 +82,8 @@ rf80386_pkg::DECODE:
 		begin
 			w <= 1'b1;
 			rrr <= ir[2:0];
-			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
-				int_num <= 8'h0d;
-				tGoto(rf80386_pkg::INT2);
-			end
+			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF)
+				tGoInt(8'h0d);
 			else
 				tGoto(rf80386_pkg::FETCH_IMM16);
 		end
@@ -118,10 +116,8 @@ rf80386_pkg::DECODE:
 			w <= 1'b1;
 			a <= ax;
 			rrr <= 3'd0;
-			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF) begin
-				int_num <= 8'h0d;
-				tGoto(rf80386_pkg::INT2);
-			end
+			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF)
+				tGoInt(8'h0d);
 			else
 				tGoto(rf80386_pkg::FETCH_IMM16);
 		end
@@ -268,12 +264,11 @@ rf80386_pkg::DECODE:
 	`RETFPOP: tGoto(rf80386_pkg::FETCH_STK_ADJ1);
 	`IRET: tGoto(rf80386_pkg::IRET1);
 	`INT: tGoto(rf80386_pkg::INT);
-	`INT3: begin ir_ip <= eip; int_num <= 8'd3; tGoto(rf80386_pkg::INT2); end
+	`INT3: begin ir_ip <= eip; tGoInt(8'd3); end
 	`INTO:
 		if (vf) begin
 			ir_ip <= eip;
-			int_num <= 8'd4;
-			tGoto(rf80386_pkg::INT2);
+			tGoInt(8'd4);
 		end
 		else
 			tGoto(rf80386_pkg::IFETCH);

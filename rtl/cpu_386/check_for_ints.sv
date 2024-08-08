@@ -38,11 +38,12 @@
 //
   if (pe_nmi & checkForInts) begin
     rst_nmi <= 1'b1;
-    int_num <= 8'h02;
     ir <= `NOP;
-    tGoto(INT2);
+    tGoInt(8'h02);
   end
-  else if (irq_i & ie & checkForInts) begin
-    ir <= `NOP;
-    tGoto(INTA0);
+  else if (!irq_fifo_underflow & ie & checkForInts) begin
+  	intp <= 1'b1;
+  	int_device <= int_devicep;
+  	int_num <= int_nump;
+    tGoto(rf80386_pkg::INT2);
   end

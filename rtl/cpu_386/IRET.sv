@@ -70,6 +70,7 @@ rf80386_pkg::IRET2:
 			ie <= dat[41];
 			df <= dat[42];
 			vf <= dat[43];
+			ipri <= 4'h0;
 		end
 		else begin
 			eip <= dat[31:0];
@@ -84,6 +85,7 @@ rf80386_pkg::IRET2:
 			df <= dat[74];
 			vf <= dat[75];
 			vm <= dat[81];
+			ipri <= dat[95:92];
 		end
 		tGoto(rf80386_pkg::IRET3);
 	end

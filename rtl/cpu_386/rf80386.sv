@@ -314,10 +314,12 @@ always_ff @(posedge CLK)
 		d_jmp <= 1'b0;
 		nest_task <= 1'b0;
 		next_ie <= 1'b0;
+		internal_int <= 1'b0;
 		tClearBus();
 		tGoto(rf80386_pkg::IFETCH);
 	end
 	else begin
+		irq_fifo_read <= 1'b0;
 		rst_nmi <= 1'b0;
 		wrregs <= 1'b0;
 		wrsregs <= 1'b0;
@@ -382,11 +384,26 @@ always_ff @(posedge CLK)
 `include "LOADSTORE.sv"
 `include "LOAD_DESC.sv"
 `include "TASK.sv"
-			default:
+				default:
 				state <= rf80386_pkg::IFETCH;
 			endcase
 		end
 
+int_queue iq1 (
+	.rst(rst_i),
+	.clk(CLK),
+	.cpri(ipri),
+	.wr(irq_fifo_write),
+	.i(irq_fifo_data_in),
+	.rd(irq_fifo_read),
+	.o(irq_fifo_data_out),
+	.ov(),
+	.full(irq_fifo_full),
+	.empty(irq_fifo_empty),
+	.underflow(irq_fifo_underflow)
+);
+
+			
 task nack_ir;
 begin
 	ir <= ibundle[7:0];

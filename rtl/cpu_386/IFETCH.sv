@@ -121,6 +121,7 @@ rf80386_pkg::IFETCH:
 		cnt <= 7'd0;
 		wrvz <= 1'b0;
 		int_disable <= 1'b0;
+		internal_int <= 1'b0;
 //		if (prefix1!=8'h00 && prefix2 !=8'h00 && is_prefix)
 //			state <= TRIPLE_PREFIX;
 		if (is_prefix) begin
@@ -145,18 +146,23 @@ rf80386_pkg::IFETCH:
 		end
 
     if (pe_nmi & checkForInts) begin
-      tGoto(rf80386_pkg::INT2);
       rst_nmi <= 1'b1;
-      int_num <= 8'h02;
+      tGoInt(8'h02);
       ir <= `NOP;
     end
-    else if (irq_i & ie & checkForInts) begin
-      tGoto(rf80386_pkg::INTA0);
+    else if (!irq_fifo_underflow & ie & checkForInts && int_priorityp > ipri) begin
+    	intp <= 1'b1;
+    	int_device <= int_devicep;
+    	int_num <= int_nump;
+    	ipri <= int_priorityp;
+      tGoto(rf80386_pkg::INT2);
       ir <= `NOP;
     end
     else if (ir==`HLT) begin
     	;
     end
+    else if (eip > cs_limit)
+    	tGoInt(8'd13);
     else begin
 			tGoto(rf80386_pkg::IFETCH_ACK);
 		end

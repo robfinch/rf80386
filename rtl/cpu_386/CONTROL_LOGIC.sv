@@ -282,3 +282,11 @@ wire selector_in_limit = {selector.ndx,3'b0} < table_limit;
 
 int_gate386_t igatei = int_gate386_t'(dat[63:0]);
 wire [31:0] idt_limit = {16'h0,idt_desc.limit_lo};
+
+assign irq_fifo_write = ack_i && ftam_resp.err==fta_bus_pkg::IRQ;
+assign irq_fifo_data_in = {ftam_resp.pri,ftam_resp.adr[15:0],ftam_resp.dat[7:0]};
+always_comb intp = !irq_fifo_empty;
+always_comb int_nump = irq_fifo_data_out[7:0];
+always_comb int_devicep = irq_fifo_data_out[23:8];
+always_comb int_priorityp = irq_fifo_data_out[27:24];
+

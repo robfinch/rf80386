@@ -37,20 +37,10 @@
 // ============================================================================
 
 rf80386_pkg::STOS:
-	if (pe_nmi) begin
-		rst_nmi <= 1'b1;
-		int_num <= 8'h02;
-		ir <= `NOP;
-		tGoto(rf80386_pkg::INT2);
-	end
-	else if (irq_i & ie) begin
-		ir <= `NOP;
-		tGoto(rf80386_pkg::INTA0);
-	end
+`include "check_for_ints.sv"
 	else if (w && (di==16'hFFFF)) begin
 		ir <= `NOP;
-		int_num <= 8'd13;
-		tGoto(rf80386_pkg::INT2);
+		tGoInt(8'd13);
 	end
 	else if (repdone)
 		tGoto(rf80386_pkg::IFETCH);

@@ -39,8 +39,7 @@
 rf80386_pkg::LODS:
 	if (w && (cs_desc.db ? esi>32'hFFFFFFFC : si==16'hFFFF) && !df) begin
 		ir <= `NOP;
-		int_num <= 8'd13;
-		tGoto(rf80386_pkg::INT2);
+		tGoInt(8'd13);
 	end
 	else begin
 		ad <= seg_reg + (cs_desc.db ? esi : si);

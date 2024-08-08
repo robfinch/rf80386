@@ -151,61 +151,6 @@ mmu #(.CID(4)) ummu (
 	.tlb_entry()
 );
 
-/*
-tlb3way utlb (
-	.rst(rst),
-	.clk(clk),
-	.wr(1'b0),
-	.way(2'd0), 
-	.entry_no(10'h0), 
-	.entry_i(96'd0),
-	.entry_o(),
-	.vadr0(40'h0),
-	.vadr1(40'h0),
-	.omd0(bigfoot_pkg::OM_SUPERVISOR),
-	.omd1(bigfoot_pkg::OM_SUPERVISOR),
-	.pc_omd(bigfoot_pkg::OM_SUPERVISOR),
-	.asid0(16'h0),
-	.asid1(16'h0), 
-	.pc_asid(ip_asid),
-	.entry0_o(),
-	.entry1_o(),
-	.miss_o(),
-	.missadr_o(),
-	.missasid_o(),
-	.missid_o(),
-	.missqn_o(),
-	.missack(1'b0),
-	.padr0_v(),
-	.tlb1_v(),
-	.op0(),
-	.op1(),
-	.tlb0_op(),
-	.tlb1_op(),
-	.padr0(), 
-	.tlb1_res(), 
-	.pc_ladr({8'h00,ic_miss_adr}),
-	.pc_padr(pcsip),
-	.pc_padr_v(pc_padr_v),
-	.load0_i(1'd0),
-	.load1_i(1'd0),
-	.store0_i(1'd0),
-	.store1_i(1'd0),
-	.load0_o(),
-	.load1_o(),
-	.store0_o(),
-	.store1_o(),
-	.stall_tlb0(),
-	.stall_tlb1(),
-	.agen0_rndx_i(8'd0),
-	.agen1_rndx_i(8'd0),
-	.agen0_rndx_o(),
-	.agen1_rndx_o(),
-	.agen0_v(),
-	.agen1_v()
-);
-*/
-
 rf80386 #(.CORENO(CORENO), .CID(1)) ucpu1
 (
 	.rst_i(rst),

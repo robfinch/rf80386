@@ -44,8 +44,7 @@ rf80386_pkg::DIVIDE1:
 		if (w) begin
 			if (OperandSize32 ? b[31:0]==32'h0000 : b[15:0]==16'h0000) begin
 				$display("Divide by zero");
-				int_num <= 8'h00;
-				tGoto(rf80386_pkg::INT2);
+				tGoInt(8'h00);
 			end
 			else begin
 				if (OperandSize32)
@@ -57,8 +56,7 @@ rf80386_pkg::DIVIDE1:
 		else begin
 			if (b[7:0]==8'h00) begin
 				$display("Divide by zero");
-				int_num <= 8'h00;
-				tGoto(rf80386_pkg::INT2);
+				tGoInt(8'h00);
 			end
 			else
 				ld_div16 <= 1'b1;
@@ -104,15 +102,13 @@ rf80386_pkg::DIVIDE3:
 				if (TTT[0]) begin
 					if (q64[63:32]!={32{q64[31]}}) begin
 						$display("DIVIDE Overflow");
-						int_num <= 8'h00;
-						tGoto(rf80386_pkg::INT2);
+						tGoInt(8'h00);
 					end
 				end
 				else begin
 					if (q64[63:32]!=32'h0) begin
 						$display("DIVIDE Overflow");
-						int_num <= 8'h00;
-						tGoto(rf80386_pkg::INT2);
+						tGoInt(8'h00);
 					end
 				end
 			end
@@ -120,15 +116,13 @@ rf80386_pkg::DIVIDE3:
 				if (TTT[0]) begin
 					if (q32[31:16]!={16{q32[15]}}) begin
 						$display("DIVIDE Overflow");
-						int_num <= 8'h00;
-						tGoto(rf80386_pkg::INT2);
+						tGoInt(8'h00);
 					end
 				end
 				else begin
 					if (q32[31:16]!=16'h0) begin
 						$display("DIVIDE Overflow");
-						int_num <= 8'h00;
-						tGoto(rf80386_pkg::INT2);
+						tGoInt(8'h00);
 					end
 				end
 			end
@@ -139,15 +133,13 @@ rf80386_pkg::DIVIDE3:
 			if (TTT[0]) begin
 				if (q16[15:8]!={8{q16[7]}}) begin
 					$display("DIVIDE Overflow");
-					int_num <= 8'h00;
-					tGoto(rf80386_pkg::INT2);
+					tGoInt(8'h00);
 				end
 			end
 			else begin
 				if (q16[15:8]!=8'h0) begin
 					$display("DIVIDE Overflow");
-					int_num <= 8'h00;
-					tGoto(rf80386_pkg::INT2);
+					tGoInt(8'h00);
 				end
 			end
 		end

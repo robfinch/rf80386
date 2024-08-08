@@ -44,10 +44,8 @@ rf80386_pkg::TASK_SWITCH:
 	end
 rf80386_pkg::TASK_SWITCH1:
 	begin
-		if (!tss_desc.p) begin
-			int_num <= 8'd11;	//  segment not present
-			tGoto(rf80386_pkg::INT2);
-		end
+		if (!tss_desc.p)
+			tGoInt(8'd11);	//  segment not present
 		else begin
 			casez({tss_desc.s,tss_desc.typ})
 			5'b00001,	// 286 task
@@ -58,10 +56,7 @@ rf80386_pkg::TASK_SWITCH1:
 					tGoto(rf80386_pkg::TASK_SWITCH2);
 				end
 			default:
-				begin
-					int_num <= 8'd10;	//  invalid TSS
-					tGoto(rf80386_pkg::INT2);
-				end
+				tGoInt(8'd10);	//  invalid TSS
 			endcase
 		end
 	end

@@ -90,8 +90,7 @@ rf80386_pkg::RETFPOP2:
 	end
 rf80386_pkg::RETFPOP3:
 	begin
-		int_num <= 8'd13;
-		tGoto(rf80386_pkg::INT2);
+		tGoInt(8'd13);
 		if (selector[15:2]!=14'h0) begin	// selector non-null?
 			if (selector_in_limit) begin		// selector within bounds?
 				if (selector.rpl >= cpl) begin// Check return priv. level
@@ -107,8 +106,7 @@ rf80386_pkg::RETFPOP3:
 	end
 rf80386_pkg::RETFPOP4:
 	begin
-		int_num <= 8'd13;	// default: general protection fault
-		tGoto(rf80386_pkg::INT2);
+		tGoInt(8'd13);	// default: general protection fault
 		if (cs_desc.s && cs_desc.typ[3]) begin	// executable segment
 			if ((cs_desc.typ[1] && cs_desc.dpl <= cpl) || cs_desc.dpl==cpl)	begin		// conforming?, or non-conforming and cpl match
 				if (cs_desc.p) begin			// segment present
@@ -122,8 +120,7 @@ rf80386_pkg::RETFPOP4:
 	end
 rf80386_pkg::RETFPOP_SAME_LEVEL:
 	begin
-		int_num <= 8'd13;	// default: general protection fault
-		tGoto(rf80386_pkg::INT2);
+		tGoInt(8'd13);	// default: general protection fault
 		if (esp <= ss_limit) begin	// stack within limit
 			if (eip <= cs_limit) begin
 				ad <= sssp;
@@ -138,11 +135,11 @@ rf80386_pkg::RETFPOP_SAME_LEVEL:
 				tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETFPOP5);
 			end
 			else begin
-				int_num <= 8'd11;	// segment not present
+				tGoInt(8'd11);	// segment not present
 			end
 		end
 		else
-			int_num <= 8'd12;		// stack exception
+			tGoInt(8'd12);		// stack exception
 	end
 
 rf80386_pkg::RETFPOP5:
@@ -162,15 +159,11 @@ rf80386_pkg::RETFPOP5:
 rf80386_pkg::RETFPOP_OUTER_LEVEL:
 	begin
 		if (OperandSize32) begin
-			if (esp + 32'd16 + {bundle[15:0],1'b0} > ss_limit) begin
-				int_num <= 8'd12;		// stack exception
-				tGoto (rf80386_pkg::INT2);
-			end
+			if (esp + 32'd16 + {bundle[15:0],1'b0} > ss_limit)
+				tGoInt(8'd12);		// stack exception
 		end
-		else if (esp + 32'd8 + {bundle[15:0]} > ss_limit) begin
-			int_num <= 8'd12;		// stack exception
-			tGoto (rf80386_pkg::INT2);
-		end
+		else if (esp + 32'd8 + {bundle[15:0]} > ss_limit)
+			tGoInt(8'd12);		// stack exception
 		else begin
 			if (OperandSize32)
 				esp <= esp + {bundle[15:0],1'b0};

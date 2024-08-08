@@ -40,8 +40,7 @@ rf80386_pkg::MOVS:
 `include "check_for_ints.sv"
 	else if (w && (cs_desc.db ? esi > 32'hFFFFFFFC : esi[15:0]==16'hFFFF)) begin
 		ir <= `NOP;
-		int_num <= 8'd13;
-		tGoto(INT1);
+		tGoInt(8'd13);
 	end
 	else if ((repz|repnz) & cxz)
 		tGoto(rf80386_pkg::IFETCH);

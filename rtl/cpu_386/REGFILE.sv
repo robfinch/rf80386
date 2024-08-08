@@ -46,11 +46,11 @@ reg af;						// auxillary carry (half carry) flag
 reg zf, cf, vf;
 reg sf;						// sign flag
 reg df;						// direction flag
-reg ie;						// interrupt enable flag
 reg tf;
 reg nt;						// nested task
 reg vm;
-wire [31:0] flags = {vm,1'b0,1'b0,1'b0,nt,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,pf,1'b0,cf};
+reg [3:0] ipri;
+wire [31:0] flags = {vm,1'b0,1'b0,1'b0,nt,2'b00,vf,df,ie,tf,sf,zf,1'b0,af,1'b0,pf,1'b0,cf}|{ipri,28'd0};
 wire v86 = vm;
 reg [1:0] cpl;
 

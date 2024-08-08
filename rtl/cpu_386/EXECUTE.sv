@@ -193,10 +193,8 @@ rf80386_pkg::EXECUTE:
 			end
 
 		`BOUND:
-			if (c < a || c > b) begin
-				int_num <= 8'h05;
-				tGoto(rf80386_pkg::INT2);
-			end
+			if (c < a || c > b)
+				tGoInt(8'h05);
 
 		`IMULI8,`IMULI:
 			begin
@@ -364,10 +362,8 @@ rf80386_pkg::EXECUTE:
 			begin
 				w <= 1'b1;
 				res <= offsdisp;
-				if (mod==2'b11) begin
-					int_num <= 8'h06;
-					tGoto(INT);
-				end
+				if (mod==2'b11)
+					tGoInt(8'h06);
 				else begin
 					tGoto(rf80386_pkg::IFETCH);
 					wrregs <= 1'b1;
@@ -441,20 +437,16 @@ rf80386_pkg::EXECUTE:
 				// instruction causes a fault.
 				if (sreg3==3'd2)
 					int_disable <= 1'b1;
-				if (sreg3==3'd1)	begin // move to CS?
-					int_num = 8'd6;				// Invalid opcode
-					tGoto(rf80386_pkg::INT2);
-				end
+				if (sreg3==3'd1)			// move to CS?
+					tGoInt(8'd6);				// Invalid opcode
 				else if (realMode) begin
 					wrsregs <= 1'b1;
 					res <= alu_o;
 					tGoto(rf80386_pkg::IFETCH);
 				end
 				else begin
-					if (sreg3==3'd2 && alu_o[15:2]==14'h0)	begin // move NULL to SS?
-						int_num = 8'd13;					// GP
-						tGoto(rf80386_pkg::INT2);
-					end
+					if (sreg3==3'd2 && alu_o[15:2]==14'h0)	// move NULL to SS?
+						tGoInt(8'd13);					// GP
 					else begin
 						wrsregs <= 1'b1;
 						res <= alu_o;

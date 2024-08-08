@@ -48,6 +48,7 @@ package rf80386_pkg;
 
 `define REALMODE_PG16		8'hFF			// for lidt, lgdt
 `define REALMODE_PG1M		12'hFFF
+parameter IRQ_FIFO_DEPTH = 32;
 
 // Opcodes
 //
@@ -980,13 +981,27 @@ reg nest_task;
 reg [1:0] rpl;
 reg [31:0] ad;
 reg [19:0] sel;
-reg [63:0] dat;
+reg [127:0] dat;
 reg [31:0] ldt_limit, gdt_limit;
 reg [31:0] tbase;
 reg [15:0] new_tr;
 desc386_t old_tss_desc;
 desc386_t new_tss_desc;
+
+reg ie;								// interrupt enable flag
 reg next_ie;
+wire irq_fifo_empty;
+reg irq_fifo_read;
+wire irq_fifo_write;
+wire irq_fifo_underflow;
+wire irq_fifo_wr_rst_busy, irq_fifo_rd_rst_busy;
+wire [27:0] irq_fifo_data_in;
+wire [27:0] irq_fifo_data_out;
+reg intp;						// INT pending
+reg [7:0] int_num, int_nump;	// pending INT number
+reg [15:0] int_device, int_devicep;
+reg int_priority, int_priorityp;
+reg internal_int;
 
 function fnIsReadableCodeOrData;
 input desc386_t	desc;
@@ -1007,6 +1022,16 @@ endfunction
 task tGoto;
 input e_80386state nst;
 begin
+	// Whenever there is a transition to the IFETCH state or a string state,
+	// check for an outstanding interrupt request which will be in the fifo.
+	// However, do not read the fifo if interrupts are disabled.
+	if (nst==rf80386_pkg::IFETCH ||
+		nst==rf80386_pkg::MOVS ||
+		nst==rf80386_pkg::STOS ||
+		nst==rf80386_pkg::CMPSW ||
+		nst==rf80386_pkg::SCASW
+		)
+		irq_fifo_read <= ie;
 	state <= nst;
 end
 endtask
@@ -1058,6 +1083,23 @@ begin
 	ad <= tbase + offs;
 	sel <= wid ? 16'h000F : 16'h0003;
 	tGosub(rf80386_pkg::LOAD,nxt);
+end
+endtask
+
+task tSetInt;
+input [7:0] n;
+begin
+	int_num = n;
+	int_device <= 16'h0;
+end
+endtask
+
+task tGoInt;
+input [7:0] n;
+begin
+	internal_int <= 1'b1;
+	tSetInt(n);
+	tGoto(rf80386_pkg::INT2);
 end
 endtask
 

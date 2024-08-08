@@ -36,16 +36,7 @@
 // ============================================================================
 
 rf80386_pkg::CMPSW:
-  if (pe_nmi & checkForInts) begin
-    rst_nmi <= 1'b1;
-    int_num <= 8'h02;
-    ir <= `NOP;
-    tGoto(rf80386_pkg::INT2);
-  end
-  else if (irq_i & ie & checkForInts) begin
-    ir <= `NOP;
-    tGoto(rf80386_pkg::INTA0);
-  end
+`include "check_for_ints.sv"
 	else begin
 		ad <= seg_reg + (cs_desc.db ? esi : si);
 		if (cs_desc.db)
