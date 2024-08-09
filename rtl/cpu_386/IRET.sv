@@ -59,7 +59,7 @@ rf80386_pkg::IRET1:
 rf80386_pkg::IRET2:
 	begin
 		if (realMode) begin
-			eip[15:0] <= dat[15:0];
+			neip[15:0] <= dat[15:0];
 			selector <= dat[31:16];
 			cf <= dat[32];
 			pf <= dat[34];
@@ -73,7 +73,7 @@ rf80386_pkg::IRET2:
 			ipri <= 4'h0;
 		end
 		else begin
-			eip <= dat[31:0];
+			neip <= dat[31:0];
 			selector <= dat[47:32];
 			cf <= dat[64];
 			pf <= dat[66];
@@ -111,9 +111,14 @@ rf80386_pkg::IRET4:
 	end
 rf80386_pkg::IRET5:
 	begin
-		cs <= selector;
 		if (cs != selector || !cs_desc_v)
-			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
+			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IRET6);
 		else
-			tGoto(rf80386_pkg::IFETCH);
+			tGoto(rf80386_pkg::IRET6);
+	end
+rf80386_pkg::IRET5:
+	begin
+		eip <= neip;
+		cs <= selector;
+		tGoto(rf80386_pkg::IFETCH);
 	end

@@ -38,7 +38,7 @@
 rf80386_pkg::PUSHA:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= eax;
 			esp <= esp - 4'd4;
@@ -53,7 +53,7 @@ rf80386_pkg::PUSHA:
 rf80386_pkg::PUSHA1:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= ecx;
 			esp <= esp - 4'd4;
@@ -68,7 +68,7 @@ rf80386_pkg::PUSHA1:
 rf80386_pkg::PUSHA2:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= edx;
 			esp <= esp - 4'd4;
@@ -83,7 +83,7 @@ rf80386_pkg::PUSHA2:
 rf80386_pkg::PUSHA3:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= ebx;
 			esp <= esp - 4'd4;
@@ -99,7 +99,7 @@ rf80386_pkg::PUSHA3:
 rf80386_pkg::PUSHA4:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= tsp;
 			esp <= esp - 4'd4;
@@ -114,7 +114,7 @@ rf80386_pkg::PUSHA4:
 rf80386_pkg::PUSHA5:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= ebp;
 			esp <= esp - 4'd4;
@@ -129,7 +129,7 @@ rf80386_pkg::PUSHA5:
 rf80386_pkg::PUSHA6:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= esi;
 			esp <= esp - 4'd4;
@@ -144,7 +144,7 @@ rf80386_pkg::PUSHA6:
 rf80386_pkg::PUSHA7:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= edi;
 		end

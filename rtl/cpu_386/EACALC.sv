@@ -526,4 +526,5 @@ rf80386_pkg::EACALC1:
 		endcase
 //		ea <= ea + disp16;
 		ea <= seg_reg + offsdisp;	// offsdisp = offset + disp16
+		ea1 <= seg_reg + offsdisp;	
 	end

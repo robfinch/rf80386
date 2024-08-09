@@ -49,6 +49,7 @@ package rf80386_pkg;
 `define REALMODE_PG16		8'hFF			// for lidt, lgdt
 `define REALMODE_PG1M		12'hFFF
 parameter IRQ_FIFO_DEPTH = 32;
+parameter LSBIT = 4;
 
 // Opcodes
 //
@@ -314,8 +315,8 @@ parameter IRQ_FIFO_DEPTH = 32;
 `define LSL		8'h03
 `define CLTS	8'h06
 
-`define MOV_R2CR	8'h20
-`define MOV_CR2R	8'h22
+`define MOV_CR2R	8'h20
+`define MOV_R2CR	8'h22
 
 `define LSS		8'hB2
 `define LFS		8'hB4
@@ -534,6 +535,7 @@ typedef enum logic [8:0] {
   JUMP_VECTOR1,
   JUMP_VECTOR2,
   JUMP_VECTOR3,
+  JUMP_VECTOR4,
 
   STORE_DATA,
   STORE_DATA1,
@@ -698,6 +700,7 @@ typedef enum logic [8:0] {
   IRET3,
   IRET4,
   IRET5,
+  IRET6,
 
   XCHG_MEM,
 
@@ -977,10 +980,15 @@ typedef struct packed
 reg OperandSize32;
 reg [7:0] AddrSize;
 reg [7:0] StkAddrSize;
+reg [7:0] prefix1;
+reg [7:0] prefix2;
+reg [7:0] prefix3;
+reg [7:0] prefix4;
 
 reg [7:0] ir;				// instruction register
 reg [7:0] ir2;				// extended instruction register
 reg [31:0] eip;				// instruction pointer
+reg [31:0] neip;			// next instruction pointer (far flushing)
 reg [31:0] old_eip;
 reg [31:0] ir_ip;			// instruction pointer of ir
 reg [31:0] eax;
@@ -1040,6 +1048,58 @@ reg [15:0] int_device, int_devicep;
 reg int_priority, int_priorityp;
 reg internal_int;
 
+function fnIsInsnPrefix;
+input [7:0] byt;
+begin
+	fnIsInsnPrefix =
+		byt==`REPZ ||
+		byt==`REPNZ ||
+		byt==`LOCK
+		;
+end
+endfunction
+
+function fnIsOpszPrefix;
+input [7:0] byt;
+begin
+	fnIsOpszPrefix = byt==`OPSZ;
+end
+endfunction
+
+function fnIsAddrszPrefix;
+input [7:0] byt;
+begin
+	fnIsAddrszPrefix = byt==`ADSZ;
+end
+endfunction
+
+function fnIsSegPrefix;
+input [7:0] byt;
+begin
+	fnIsSegPrefix =
+		byt==`CS ||
+		byt==`DS ||
+		byt==`ES ||
+		byt==`SS ||
+		byt==`FS ||
+		byt==`GS
+		;
+end
+endfunction
+
+function fnIsPrefix;
+input [7:0] byt;
+begin
+	fnIsPrefix =
+		fnIsInsnPrefix(byt) ||
+		fnIsOpszPrefix(byt) ||
+		fnIsAddrszPrefix(byt) ||
+		fnIsSegPrefix(byt)
+		;
+end
+endfunction
+
+
 function fnIsReadableCodeOrData;
 input desc386_t	desc;
 begin
@@ -1069,6 +1129,12 @@ begin
 		nst==rf80386_pkg::SCASW
 		)
 		irq_fifo_read <= ie;
+	if (nst==rf80386_pkg::IFETCH) begin
+		prefix1 <= 8'h00;
+		prefix2 <= 8'h00;
+		prefix3 <= 8'h00;
+		prefix4 <= 8'h00;
+	end
 	state <= nst;
 end
 endtask
@@ -1089,7 +1155,7 @@ endtask
 
 task tReturn;
 begin
-	state <= stk_state[0];
+	tGoto(stk_state[0]);
 	stk_state[0] <= stk_state[1];
 	stk_state[1] <= stk_state[2];
 	stk_state[2] <= stk_state[3];

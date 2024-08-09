@@ -84,7 +84,7 @@ wire resz;
 
 reg [31:0] tss_flags;
 reg [2:0] cyc_type;			// type of bus sycle
-reg wrvz;
+reg wrvz, realModeLock;
 reg lidt, lgdt, lmsw;
 reg lsl, ltr;
 reg sidt, sgdt, smsw;
@@ -114,7 +114,7 @@ reg [31:0] data32;
 reg [31:0] disp32;
 reg [31:0] offset;			// caches offset
 rf80386_pkg::selector_t selector;		// caches selector
-reg [31:0] ea;				// effective address
+reg [31:0] ea,ea1;		// effective address
 reg [31:0] ftmp;			// temporary frame pointer (ENTER)
 reg [39:0] desc;			// buffer for sescriptor
 reg [6:0] cnt;				// counter
@@ -313,6 +313,8 @@ always_ff @(posedge CLK)
 		internal_int <= 1'b0;
 		tClearBus();
 		int_num <= 8'h00;
+		ea1 <= 32'h0;
+		realModeLock <= 1'b0;
 		tGoto(rf80386_pkg::IFETCH);
 	end
 	else begin

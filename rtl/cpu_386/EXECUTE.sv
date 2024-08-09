@@ -73,8 +73,18 @@ rf80386_pkg::EXECUTE:
 			`LxDT: tGoto(rf80386_pkg::LxDT);
 			`MOV_R2CR:
 				case(rrr)
-				3'd0:	cr0 <= a;
-				3'd2:	cr2 <= a;
+				3'd0:
+					begin
+						cr0 <= a;
+						if (!cr0[0] && a[0])
+							realModeLock <= 1'b1;
+						tGoto(rf80386_pkg::IFETCH);
+					end
+				3'd2:
+					begin
+						cr2 <= a;
+						tGoto(rf80386_pkg::IFETCH);
+					end
 				3'd3:
 					begin
 						cr3 <= a;							
@@ -84,7 +94,8 @@ rf80386_pkg::EXECUTE:
 //						tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH);
 						tGoto(rf80386_pkg::IFETCH);
 					end
-				default:	;
+				default:
+					tGoto(rf80386_pkg::IFETCH);
 				endcase
 			`MOV_CR2R:
 				begin
@@ -97,8 +108,10 @@ rf80386_pkg::EXECUTE:
 					3'd3:	res <= cr3;
 					default:	;
 					endcase
+					tGoto(rf80386_pkg::IFETCH);
 				end
-			default:	;
+			default:
+				tGoto(rf80386_pkg::IFETCH);
 			endcase
 
 		`DAA:
@@ -188,8 +201,10 @@ rf80386_pkg::EXECUTE:
 					else
 						tGoto(rf80386_pkg::STORE_DATA);
 				end
-				else
+				else begin
 					zf <= 1'b0;
+					tGoto(rf80386_pkg::IFETCH);
+				end
 			end
 
 		`BOUND:
@@ -215,7 +230,6 @@ rf80386_pkg::EXECUTE:
 
 		8'hF6,8'hF7:
 			begin
-				tGoto(rf80386_pkg::IFETCH);
 				res <= alu_o;
 				case(TTT)
 				3'd0:	// TEST
@@ -225,10 +239,12 @@ rf80386_pkg::EXECUTE:
 						vf <= 1'b0;
 						sf <= resn;
 						zf <= resz;
+						tGoto(rf80386_pkg::IFETCH);
 					end
 				3'd2:	// NOT
 					begin
 						wrregs <= 1'b1;
+						tGoto(rf80386_pkg::IFETCH);
 					end
 				3'd3:	// NEG
 					begin
@@ -239,6 +255,7 @@ rf80386_pkg::EXECUTE:
 						sf <= resn;
 						zf <= resz;
 						wrregs <= 1'b1;
+						tGoto(rf80386_pkg::IFETCH);
 					end
 				// Normally only a single register update is required, however with 
 				// multiply word both AX and DX need to be updated. So we bypass the
@@ -270,6 +287,7 @@ rf80386_pkg::EXECUTE:
 							sf <= p16[8];
 							zf <= p16==16'd0;
 						end
+						tGoto(rf80386_pkg::IFETCH);
 					end
 				3'd5:
 					begin
@@ -298,13 +316,15 @@ rf80386_pkg::EXECUTE:
 							sf <= p[8];
 							zf <= p[15:0]==16'h0;
 						end
+						tGoto(rf80386_pkg::IFETCH);
 					end
 				3'd6,3'd7:
 					begin
 						$display("tGoto(DIVIDE1");
 						tGoto(DIVIDE1);
 					end
-				default:	;
+				default:
+					tGoto(rf80386_pkg::IFETCH);
 				endcase
 			end
 
@@ -486,7 +506,6 @@ rf80386_pkg::EXECUTE:
 
 		8'hD0,8'hD1,8'hD2,8'hD3,`SHI8,`SHI16:
 			begin
-				tGoto(rf80386_pkg::IFETCH);
 				wrvz <= 1'b1;
 				if (mod==2'd3)
 					wrregs <= 1'b1;
@@ -501,36 +520,42 @@ rf80386_pkg::EXECUTE:
 								res <= shlo32[31:0]|shlo32[63:32];
 								cf <= shlo32[32];
 								vf <= shlo32[32]^shlo32[31];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b001:	// ROR
 							begin
 								res <= shruo32[31:0]|shruo32[63:32];
 								cf <= shruo32[31];
 								vf <= shruo32[31]^shruo32[30];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b010:	// RCL
 							begin
 								res <= shlco32[31:0]|shlco32[63:32];
 								cf <= shlco32[32];
 								vf <= shlo32[32]^shlo32[31];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b011:	// RCR
 							begin
 								res <= shrcuo32[31:0]|shrcuo32[63:32];
 								cf <= shrcuo32[31];
 								vf <= shrcuo32[31]^shrcuo32[30];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b100:	// SHL
 							begin
 								res <= shlo32[31:0];
 								cf <= |shlo32[63:32];
 								vf <= b[31] ? ~&shlo32[63:31] : |shlo32[63:31];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b101:	// SHR
 							begin
 								res <= shruo32[63:32];
 								cf <= shruo32[31];
 								vf <= shruo32[63]^b[31];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b110:
 							tGoto(INVALID_OPCODE);
@@ -539,6 +564,7 @@ rf80386_pkg::EXECUTE:
 								res <= shro32[63:32];
 								cf <= shro32[31];
 								vf <= 1'b0;
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						endcase
 					else
@@ -548,36 +574,42 @@ rf80386_pkg::EXECUTE:
 								res <= shlo16[15:0]|shlo16[31:16];
 								cf <= shlo16[16];
 								vf <= shlo16[16]^shlo16[15];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b001:	// ROR
 							begin
 								res <= shruo16[15:0]|shruo16[31:16];
 								cf <= shruo16[15];
 								vf <= shruo16[15]^shruo16[14];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b010:	// RCL
 							begin
 								res <= shlco16[15:0]|shlco16[31:16];
 								cf <= shlco16[16];
 								vf <= shlco16[16]^shlco16[15];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b011:	// RCR
 							begin
 								res <= shrcuo16[15:0]|shrcuo16[31:16];
 								cf <= shrcuo16[15];
 								vf <= shrcuo16[15]^shrcuo16[14];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b100:	// SHL
 							begin
 								res <= shlo16[15:0];
 								cf <= |shlo16[63:16];
 								vf <= b[15] ? ~&shlo16[63:15] : |shlo16[63:15];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b101:	// SHR
 							begin
 								res <= shruo16[31:16];
 								cf <= shruo16[15];
 								vf <= shruo16[31]^b[15];
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						3'b110:
 							tGoto(INVALID_OPCODE);
@@ -586,6 +618,7 @@ rf80386_pkg::EXECUTE:
 								res <= shro16[31:16];
 								cf <= shro16[15];
 								vf <= 1'b0;
+								tGoto(rf80386_pkg::IFETCH);
 							end
 						endcase
 				end
@@ -596,36 +629,42 @@ rf80386_pkg::EXECUTE:
 							res <= shlo8[7:0]|shlo8[15:8];
 							cf <= shlo8[8];
 							vf <= shlo8[8]^shlo8[7];
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					3'b001:	// ROR
 						begin
 							res <= shruo8[15:8]|shruo8[7:0];
 							cf <= shruo8[7];
 							vf <= shruo8[7]^shruo8[6];
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					3'b010:	// RCL
 						begin
 							res <= shlco8[7:0]|shlco8[15:8];
 							cf <= shlco8[8];
 							vf <= shlco8[8]^shlco8[7];
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					3'b011:	// RCR
 						begin
 							res <= shrcuo8[15:8]|shrcuo8[7:0];
 							cf <= shrcuo8[7];
 							vf <= shrcuo8[7]^shrcuo8[6];
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					3'b100:	// SHL
 						begin
 							res <= shlo8[7:0];
 							cf <= |shlo8[63:8];
 							vf <= b[7] ? ~&shlo8[63:7] : |shlo8[63:7];
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					3'b101:	// SHR
 						begin
 							res <= shruo8[15:8];
 							cf <= shruo8[7];
 							vf <= shruo8[15]^b[7];
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					3'b110:
 						tGoto(INVALID_OPCODE);
@@ -634,6 +673,7 @@ rf80386_pkg::EXECUTE:
 							res <= shro8[15:8];
 							cf <= shro8[7];
 							vf <= 1'b0;
+							tGoto(rf80386_pkg::IFETCH);
 						end
 					endcase
 			end
@@ -693,6 +733,7 @@ rf80386_pkg::EXECUTE:
 							vf <= overflow(1'b0,a[31],b[31],alu_o[31]);
 						else
 							vf <= overflow(1'b0,a[15],b[15],alu_o[15]);
+						tGoto(rf80386_pkg::IFETCH);
 					end
 				endcase
 			end

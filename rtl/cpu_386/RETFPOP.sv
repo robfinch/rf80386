@@ -92,7 +92,7 @@ rf80386_pkg::RETFPOP1:
 rf80386_pkg::RETFPOP2:
 	begin
 		esp <= esp + 4'd8;
-		{selector,eip} <= dat[47:0];
+		{selector,neip} <= dat[47:0];
 		tGoto(rf80386_pkg::RETFPOP3);
 	end
 rf80386_pkg::RETFPOP3:
@@ -102,7 +102,6 @@ rf80386_pkg::RETFPOP3:
 			if (selector_in_limit) begin		// selector within bounds?
 				if (selector.rpl >= cpl) begin// Check return priv. level
 					old_cs <= cs;
-					cs <= selector;
 					if (cs != selector)
 						tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::RETFPOP4);
 					else
@@ -114,6 +113,8 @@ rf80386_pkg::RETFPOP3:
 rf80386_pkg::RETFPOP4:
 	begin
 		tGoInt(8'd13);	// default: general protection fault
+		eip <= neip;
+		cs <= selector;
 		if (cs_desc.s && cs_desc.typ[3]) begin	// executable segment
 			if ((cs_desc.typ[1] && cs_desc.dpl <= cpl) || cs_desc.dpl==cpl)	begin		// conforming?, or non-conforming and cpl match
 				if (cs_desc.p) begin			// segment present

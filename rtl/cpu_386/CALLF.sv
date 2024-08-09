@@ -126,9 +126,9 @@ rf80386_pkg::CALLF2:
 										cs <= selector;
 										cs[1:0] <= cpl;
 										if (OperandSize32)
-											eip <= offset;
+											neip <= offset;
 										else
-											eip <= offset & 32'h0ffff;
+											neip <= offset & 32'h0ffff;
 										tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
 									end
 								end
@@ -146,9 +146,9 @@ rf80386_pkg::CALLF2:
 								if (eip < (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo})) begin
 									cs <= selector;
 									if (OperandSize32)
-										eip <= offset;
+										neip <= offset;
 									else
-										eip <= offset & 32'h0ffff;
+										neip <= offset & 32'h0ffff;
 									tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
 								end
 							end
@@ -163,7 +163,7 @@ rf80386_pkg::CALLF2:
 						if (cgate.dpl >= cpl) begin
 							if (cgate.dpl >= selector[1:0] && cgate.p) begin
 								if (|cgate.selector[15:2] && fnSelectorInLimit(cgate.selector)) begin	// selector must be non-null and within limits
-									eip <= {cgate.offset_hi,cgate.offset_lo};
+									neip <= {cgate.offset_hi,cgate.offset_lo};
 									selector <= cgate.selector;
 									if (cgate.dpl < cpl && !cgate.typ[2])	begin // non-conforming and dpl < cpl  (increasing priv)
 										cpycnt <= cgate.count;
@@ -182,6 +182,9 @@ rf80386_pkg::CALLF2:
 	end
 rf80386_pkg::CALLF6:
 	begin
+		eip <= neip;
+		cs <= selector;
+		realModeLock <= 1'b0;
 		if (cs_desc.dpl > cpl)
 			tGoInt(8'd13);
 		else begin
@@ -326,16 +329,19 @@ rf80386_pkg::CALLF16:
 // Call at same privilege level
 rf80386_pkg::CALLF20:
 	begin
+		eip <= neip;
+		cs <= selector;
+		realModeLock <= 1'b0;
 		tGoto(rf80386_pkg::INT2);
 		if (cs_desc.dpl > cpl)
 			tGoInt(8'd13);
 		else if (OperandSize32 && esp > ss_limit - 4'd6)
 			tGoInt(8'd12);
-		else if (OperandSize32 && eip > cs_limit)
+		else if (OperandSize32 && neip > cs_limit)
 			tGoInt(8'd13);
 		else if (!OperandSize32 && esp > ss_limit - 4'd4)
 			tGoInt(8'd12);
-		else if (!OperandSize32 && {16'h0,eip[15:0]} > cs_limit)
+		else if (!OperandSize32 && {16'h0,neip[15:0]} > cs_limit)
 			tGoInt(8'd13);
 		else begin
 			ad <= sssp;

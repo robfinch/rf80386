@@ -38,7 +38,7 @@
 rf80386_pkg::POPA:
 	begin
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -50,12 +50,12 @@ rf80386_pkg::POPA:
 	end
 rf80386_pkg::POPA1:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			edi <= dat[31:0];
 		else
 			edi[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -67,12 +67,12 @@ rf80386_pkg::POPA1:
 	end
 rf80386_pkg::POPA2:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			esi <= dat[31:0];
 		else
 			esi[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -84,12 +84,12 @@ rf80386_pkg::POPA2:
 	end
 rf80386_pkg::POPA3:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			ebp <= dat[31:0];
 		else
 			ebp[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -101,12 +101,12 @@ rf80386_pkg::POPA3:
 	end
 rf80386_pkg::POPA4:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			eax <= dat[31:0];
 		else
 			eax[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -118,12 +118,12 @@ rf80386_pkg::POPA4:
 	end
 rf80386_pkg::POPA5:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			ebx <= dat[31:0];
 		else
 			ebx[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -135,12 +135,12 @@ rf80386_pkg::POPA5:
 	end
 rf80386_pkg::POPA6:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			edx <= dat[31:0];
 		else
 			edx[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -152,12 +152,12 @@ rf80386_pkg::POPA6:
 	end
 rf80386_pkg::POPA7:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			ecx <= dat[31:0];
 		else
 			ecx[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (cs_desc.db) begin
+		if (OperandSize32) begin
 			sel <= 16'h000F;
 			esp <= esp + 4'd4;
 		end
@@ -169,18 +169,9 @@ rf80386_pkg::POPA7:
 	end
 rf80386_pkg::POPA8:
 	begin
-		if (cs_desc.db)
+		if (OperandSize32)
 			eax <= dat[31:0];
 		else
 			eax[15:0] <= dat[15:0];
-		ad <= sssp;
-		if (cs_desc.db) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
 		tGoto(rf80386_pkg::IFETCH);
 	end

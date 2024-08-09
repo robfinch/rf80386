@@ -164,9 +164,9 @@ rf80386_pkg::V86_INT5:
 		// the address of the following instruction.
 		old_eip <= ir_ip;
 		// get int routine target address (selector:offset)
-		eip[15: 0] <= igate.offset_lo;
-		eip[31:16] <= igate.offset_hi;
-		cs <= igate.selector;
+		neip[15: 0] <= igate.offset_lo;
+		neip[31:16] <= igate.offset_hi;
+		selector <= igate.selector;
 		esp <= esp - 4'd4;
 		tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::V86_INT6);
 	end
@@ -175,6 +175,8 @@ rf80386_pkg::V86_INT6:
 		// Load ss:esp from TSS privilege level 0
 		ad <= tss_base + 4'd4;		// esp
 		sel <= 16'h00FF;					// read eight bytes
+		eip <= neip;
+		cs <= selector;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::V86_INT7);
 	end
 	// Push segement registers for v86 mode
@@ -319,13 +321,15 @@ rf80386_pkg::INT4:
 rf80386_pkg::INT5:
 	begin
 		// get int routine target address (selector:offset)
-		eip[15: 0] <= igate.offset_lo;
-		eip[31:16] <= igate.offset_hi;
-		if (cs == igate.selector && cs_desc_v)
+		neip[15: 0] <= igate.offset_lo;
+		neip[31:16] <= igate.offset_hi;
+		if (cs == igate.selector && cs_desc_v) begin
+			eip[15: 0] <= igate.offset_lo;
+			eip[31:16] <= igate.offset_hi;
 			tGoto(rf80386_pkg::INT11);
+		end
 		else begin
 			// Load CS descriptor, needed to know if priv level changes
-			cs <= igate.selector;
 			selector <= igate.selector;
 			if (!fnSelectorInLimit(igate.selector))
 				tGoInt(8'd13);		// general protection fault
@@ -335,6 +339,8 @@ rf80386_pkg::INT5:
 	end
 rf80386_pkg::INT6:
 	begin
+		eip <= neip;
+		cs <= selector;
 		// Descriptor must be for a code segment
 		if ({cs_desc.s,cs_desc.typ[3]} != 2'b11)
 			tGoInt(8'd13);		// general protection fault

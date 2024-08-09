@@ -174,16 +174,16 @@ begin
 	//-----------------------------------------------------------------
 	// Stack Operations
 	//-----------------------------------------------------------------
-	`PUSH_REG: begin esp <= StkAddrSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSH_REG: begin esp <= OperandSize32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_DS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_ES: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_SS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSH_CS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSHF: begin esp <= StkAddrSize==8'd32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSHF: begin esp <= OperandSize32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
 	`PUSHA:
 		begin
 			tsp <= esp; 
-			if (StkAddrSize==8'd32)
+			if (OperandSize32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;
@@ -191,7 +191,7 @@ begin
 		end
 	`PUSHI,`PUSHI8:
 		begin
-			if (StkAddrSize==8'd32)
+			if (OperandSize32)
 				esp <= esp - 4'd4;
 			else
 				esp <= esp - 4'd2;

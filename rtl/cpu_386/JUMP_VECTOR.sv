@@ -38,7 +38,8 @@
 
 rf80386_pkg::JUMP_VECTOR1:
 	begin
-		ad <= ea;
+		// ea gets changed by load/store ops, so a second copy is used.
+		ad <= ea1;
 		if (OperandSize32)
 			sel <= 16'h003F;
 		else
@@ -59,12 +60,17 @@ rf80386_pkg::JUMP_VECTOR2:
 	end
 JUMP_VECTOR3:
 	begin
+		if (realMode || v86)
+			tGoto(rf80386_pkg::JUMP_VECTOR4);
+		else if (cs != selector || !cs_desc_v)
+			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::JUMP_VECTOR4);
+		else
+			tGoto(rf80386_pkg::JUMP_VECTOR4);
+	end
+JUMP_VECTOR4:
+	begin
 		eip <= offset;
 		cs <= selector;
-		if (realMode || v86)
-			tGoto(rf80386_pkg::IFETCH);
-		else if (cs != selector || !cs_desc_v)
-			tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
-		else
-			tGoto(rf80386_pkg::IFETCH);
+		realModeLock <= 1'b0;
+		tGoto(rf80386_pkg::IFETCH);
 	end
