@@ -47,13 +47,13 @@
 
 rf80386_pkg::FETCH_OFFSET:
 	begin
-		if (AddrSize==8'd32) begin
-			{selector[15:0],offset[31:0]} <= bundle[47:0];
+		if (OperandSize32) begin
+			{offset[31:0],selector[15:0]} <= bundle[47:0];
 			bundle <= bundle[127:48];
 			eip <= eip + 4'd6;
 		end
 		else begin
-			{selector[15:0],offset[15:0]} <= bundle[31:0];
+			{offset[15:0],selector[15:0]} <= bundle[31:0];
 			offset[31:16] <= 16'h0;
 			bundle <= bundle[127:32];
 			eip <= eip + 4'd4;

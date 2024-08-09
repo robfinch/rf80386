@@ -60,7 +60,7 @@ wire [31:0] offsdisp = offset + disp32;
 // Buffer for copying stack parameters
 reg [31:0] parmbuf [0:31];
 
-wire checkForInts = (prefix1==8'h00) && (prefix2==8'h00) && !int_disable;
+wire checkForInts = (prefix1==8'h00) && (prefix2==8'h00) && (prefix3==8'h00) && (prefix4==8'h00) && !int_disable;
  
 wire doCmp = ir==8'h38 || ir==8'h39 || ir==8'h3A || ir==8'h3B || ir==8'h3C || ir==8'h3D;
 
@@ -178,11 +178,11 @@ wire store_data =
 	((ir==8'h80 || ir==8'h81 || ir==8'h83) && (rrr!=3'b111) && (mod!=2'b11))	   // compare excluded
 	;
 
-wire bus_locked = prefix1==`LOCK || prefix2==`LOCK ||
+wire bus_locked = prefix1==`LOCK ||
 	((ir==8'h86||ir==8'h87) && mod!=2'b11)
 	;
 
-wire is_prefix = 
+wire is_prefix =
 	ir==`REPZ ||
 	ir==`REPNZ ||
 	ir==`LOCK ||
@@ -221,10 +221,9 @@ endcase
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 wire lea = ir==`LEA;
 
-wire hasPrefix = prefix1!=8'h00;
-wire hasDoublePrefix = hasPrefix && prefix2!=8'h00;
-wire repz = prefix1==`REPZ || prefix2==`REPZ;
-wire repnz = prefix1==`REPNZ || prefix2==`REPNZ;
+wire hasPrefix = prefix1!=8'h00 || prefix2 != 8'h00 || prefix3 != 8'h00 || prefix4 != 8'h00;
+wire repz = prefix1==`REPZ;
+wire repnz = prefix1==`REPNZ;
 
 // ZF is tested only for SCAS, CMPS
 wire repdone =
@@ -258,7 +257,7 @@ begin
 end
 
 always_comb
-	sel_shift = sel << ad[3:0];
+	sel_shift = {16'h0,sel} << ad[3:0];
 
 always_comb
 	case(sel)

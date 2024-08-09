@@ -60,6 +60,7 @@ rf80386_pkg::STOS1:
 		if (repz|repnz) begin
 			tGoto(rf80386_pkg::STOS);
 			ecx <= cx_dec;
+			insn_count <= insn_count + 2'd1;
 		end
 		else
 			tGoto(rf80386_pkg::IFETCH);

@@ -122,15 +122,11 @@ rf80386_pkg::IFETCH:
 		wrvz <= 1'b0;
 		int_disable <= 1'b0;
 		internal_int <= 1'b0;
+		if (!hasPrefix)
+			ir_ip <= eip;
 //		if (prefix1!=8'h00 && prefix2 !=8'h00 && is_prefix)
 //			state <= TRIPLE_PREFIX;
-		if (is_prefix) begin
-			prefix1 <= ir;
-			prefix2 <= prefix1;
-		end
-		else begin
-			prefix1 <= 8'h00;
-			prefix2 <= 8'h00;
+		begin
 			if (cs_desc.db & ~realMode)
 				OperandSize32 = 1'b1;
 			else
@@ -143,11 +139,11 @@ rf80386_pkg::IFETCH:
 				StkAddrSize = 8'd32;
 			else
 				StkAddrSize = 8'd16;
-		end
-		if (ir==`XCHG_MEM && mod==2'b11) begin
-			wrregs <= 1'b1;
-			rrr <= TTT;
-			res <= b;
+			if (ir==`XCHG_MEM && mod==2'b11) begin
+				wrregs <= 1'b1;
+				rrr <= TTT;
+				res <= b;
+			end
 		end
 
     if (pe_nmi & checkForInts) begin
@@ -203,19 +199,31 @@ rf80386_pkg::IFETCH:
 rf80386_pkg::IFETCH_ACK:
 	if (ihit) begin
 		$display("CSIP: %h IR: %h",csip,bundle[7:0]);
-		bundle <= ibundle;
-		nack_ir();
-		if (!hasPrefix)
-			ir_ip <= eip;
-//		ir_ip <= dat_i;
-		w <= ibundle[0];
-		d <= ibundle[1];
-		v <= ibundle[1];
-		sxi <= ibundle[1];
-		sreg2 <= ibundle[4:3];
-		sreg3 <= {1'b0,ibundle[4:3]};
-		ir2 <= 8'h00;
-		tGoto(rf80386_pkg::DECODE);
+		if (fnIsPrefix(ibundle[7:0])) begin
+			if (fnIsInsnPrefix(ibundle[7:0]))
+				prefix1 <= ibundle[7:0];
+			else if (fnIsAddrszPrefix(ibundle[7:0]))
+				prefix2 <= ibundle[7:0];
+			else if (fnIsOpszPrefix(ibundle[7:0]))
+				prefix3 <= ibundle[7:0];
+			else if (fnIsSegPrefix(ibundle[7:0]))
+				prefix4 <= ibundle[7:0];
+			eip <= ip_inc;
+			// The logic in tGoto() is undesirable here.
+			state <= rf80386_pkg::IFETCH;
+		end
+		else begin
+			bundle <= ibundle;
+			nack_ir();
+			w <= ibundle[0];
+			d <= ibundle[1];
+			v <= ibundle[1];
+			sxi <= ibundle[1];
+			sreg2 <= ibundle[4:3];
+			sreg3 <= {1'b0,ibundle[4:3]};
+			ir2 <= 8'h00;
+			tGoto(rf80386_pkg::DECODE);
+		end
 	end
 
 // Fetch extended opcode

@@ -107,8 +107,6 @@ reg [1:0] sreg2;
 reg [2:0] sreg3;
 reg [2:0] TTT;
 reg [7:0] lock_insn;
-reg [7:0] prefix1;
-reg [7:0] prefix2;
 reg [31:0] seg_reg;			// segment register value for memory access
 reg [15:0] data16;			// caches data
 reg [15:0] disp16;			// caches displacement
@@ -282,6 +280,8 @@ always_ff @(posedge CLK)
 		ir <= `NOP;
 		prefix1 <= 8'h00;
 		prefix2 <= 8'h00;
+		prefix3 <= 8'h00;
+		prefix4 <= 8'h00;
 		rst_nmi <= 1'b1;
 		wrregs <= 1'b0;
 		wrsregs <= 1'b0;

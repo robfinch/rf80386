@@ -58,7 +58,6 @@ rf80386_pkg::SCASB1:
 	end
 rf80386_pkg::SCASB2:
 	begin
-		tGoto(rf80386_pkg::IFETCH);
 		pf <= pres;
 		af <= carry   (1'b0,a[3],b[3],alu_o[3]);
 		cf <= carry   (1'b0,a[7],b[7],alu_o[7]);
@@ -67,6 +66,10 @@ rf80386_pkg::SCASB2:
 		zf <= reszb;
 		if (repz|repnz)
 			ecx <= cx_dec;
-		if ((repz & reszb) | (repnz & !reszb))
+		if ((repz & reszb) | (repnz & !reszb)) begin
 			tGoto(rf80386_pkg::SCASB);
+			insn_count <= insn_count + 2'd1;
+		end
+		else
+			tGoto(rf80386_pkg::IFETCH);
 	end

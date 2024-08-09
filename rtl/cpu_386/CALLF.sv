@@ -49,43 +49,17 @@ rf80386_pkg::CALLF:
 	end
 rf80386_pkg::CALLF_RMD1:
 	begin
-		if (StkAddrSize==8'd32)
-			esp <= esp - 4'd2;
+		if (OperandSize32)
+			esp[15:0] <= esp - 4'd8;
 		else
-			esp[15:0] <= esp - 4'd2;
+			esp[15:0] <= esp - 4'd4;
 		tGoto(rf80386_pkg::CALLF_RMD2);
 	end
 rf80386_pkg::CALLF_RMD2:
 	begin
 		ad <= sssp;
-		dat <= cs;
-		sel <= 16'h0003;
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF_RMD3);
-	end
-rf80386_pkg::CALLF_RMD3:
-	begin
-		if (StkAddrSize==8'd32) begin
-			if (OperandSize32)
-				esp <= esp - 4'd4;
-			else
-				esp <= esp - 4'd2;
-		end
-		else begin
-			if (OperandSize32)
-				esp[15:0] <= esp - 4'd4;
-			else
-				esp[15:0] <= esp - 4'd2;
-		end
-		tGoto(rf80386_pkg::CALLF_RMD4);
-	end
-rf80386_pkg::CALLF_RMD4:
-	begin
-		ad <= sssp;
-		dat <= eip;
-		if (OperandSize32)
-			sel <= 16'h000F;
-		else
-			sel <= 16'h0003;
+		dat <= OperandSize32 ? {16'h0,cs,eip} : {cs,eip[15:0]};
+		sel <= OperandSize32 ? 16'h00FF : 16'h000F;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF_RMD5);
 	end
 rf80386_pkg::CALLF_RMD5:

@@ -76,8 +76,10 @@ rf80386_pkg::SCASW2:
 		zf <= reszw;
 		if (repz|repnz)
 			ecx <= cx_dec;
-		if ((repz & reszw) | (repnz & !reszw))
+		if ((repz & reszw) | (repnz & !reszw)) begin
 			tGoto(rf80386_pkg::SCASW);
+			insn_count <= insn_count + 2'd1;
+		end
 		else
 			tGoto(rf80386_pkg::IFETCH);
 	end

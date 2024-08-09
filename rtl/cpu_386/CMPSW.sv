@@ -134,6 +134,7 @@ rf80386_pkg::CMPSW4:
 		end
 		if ((repz & !cxz & zf) | (repnz & !cxz & !zf)) begin
 			ecx <= cx_dec;
+			insn_count <= insn_count + 2'd1;
 			tGoto(rf80386_pkg::CMPSW);
 		end
 		else

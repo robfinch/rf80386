@@ -39,27 +39,26 @@
 //=============================================================================
 
 rf80386_pkg::DECODE:
+begin
+
+	if (|prefix2) begin
+		if (cs_desc.db & ~realMode)
+			AddrSize = 8'd16;
+		else
+			AddrSize = 8'd32;
+		if (ss_desc.db & ~realMode)
+			StkAddrSize = 8'd16;
+		else
+			StkAddrSize = 8'd32;
+	end
+	if (|prefix3) begin
+		if (cs_desc.db & ~realMode)
+			OperandSize32 = 1'b0;
+		else
+			OperandSize32 = 1'b1;
+	end
+
 	casez(ir)
-	`OPSZ:
-		begin
-			if (cs_desc.db & ~realMode)
-				OperandSize32 = 1'b0;
-			else
-				OperandSize32 = 1'b1;
-			tGoto(rf80386_pkg::IFETCH);
-		end
-	`ADSZ:
-		begin
-			if (cs_desc.db & ~realMode)
-				AddrSize = 8'd16;
-			else
-				AddrSize = 8'd32;
-			if (ss_desc.db & ~realMode)
-				StkAddrSize = 8'd16;
-			else
-				StkAddrSize = 8'd32;
-			tGoto(rf80386_pkg::IFETCH);
-		end
 	`MORE1: tGoto(rf80386_pkg::XI_FETCH);
 	`MORE2: tGoto(rf80386_pkg::XI_FETCH);
 	`EXTOP: tGoto(rf80386_pkg::XI_FETCH);
@@ -257,7 +256,7 @@ rf80386_pkg::DECODE:
 			end
 			tGoto(rf80386_pkg::FETCH_DISP16b);
 		end
-	`CALLF: begin tGoto(rf80386_pkg::FETCH_OFFSET); end
+	`CALLF: tGoto(rf80386_pkg::FETCH_OFFSET);
 	`RET: tGoto(rf80386_pkg::RETPOP);		// data16 is zero
 	`RETPOP: tGoto(rf80386_pkg::FETCH_STK_ADJ1);
 	`RETF: tGoto(rf80386_pkg::RETFPOP);	// data16 is zero
@@ -381,3 +380,4 @@ rf80386_pkg::DECODE:
 			tGoto(rf80386_pkg::IFETCH);
 		end
 	endcase
+end

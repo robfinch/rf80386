@@ -40,7 +40,6 @@
 
 rf80386_pkg::DECODER2:
 	begin
-		tGoto(rf80386_pkg::IFETCH);
 		case(ir)
 		`MORE1:
 			casez(ir2)
@@ -53,8 +52,9 @@ rf80386_pkg::DECODER2:
 					sf <= 1'b0;
 					zf <= reszb;
 					pf <= pres;
+					tGoto(rf80386_pkg::IFETCH);
 				end
-			default:	;
+			default: tGoto(rf80386_pkg::IFETCH);
 			endcase
 		`MORE2:
 			casez(ir2)
@@ -67,8 +67,9 @@ rf80386_pkg::DECODER2:
 					sf <= 1'b0;
 					zf <= reszw;
 					pf <= pres;
+					tGoto(rf80386_pkg::IFETCH);
 				end
-			default:	;
+			default:	tGoto(rf80386_pkg::IFETCH);
 			endcase
 		`EXTOP:
 			casez(ir2)
@@ -205,9 +206,9 @@ rf80386_pkg::DECODER2:
 					tGoto(rf80386_pkg::EACALC);		// override state transition
 				end
 
-			default:	;
+			default:	tGoto(rf80386_pkg::IFETCH);
 			endcase
-		default:	;
+		default:	tGoto(rf80386_pkg::IFETCH);
 		endcase
 	end
 

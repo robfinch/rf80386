@@ -41,7 +41,8 @@
 
 rf80386_pkg::LOAD:
 	if (ihit) begin
-		ea <= ad;
+		ea <= {ad[$bits(ad)-1:6],6'd0};
+//		ea <= ad;
 		tSetTid();
 		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
@@ -51,9 +52,9 @@ rf80386_pkg::LOAD:
 		ftam_req.stb <= HIGH;
 		ftam_req.sel <= sel_shift[15:0];
 		ftam_req.we <= LOW;
-		ftam_req.vadr <= ad;
-		ftam_req.padr <= ad;
-		adr_o <= ad;
+		ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+		ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
+		adr_o <= {ad[$bits(ad)-1:6],6'd0};
 		cyc_done <= FALSE;
 		rty_wait <= 5'd0;
 		tGoto(rf80386_pkg::LOAD_ACK);
@@ -72,7 +73,7 @@ rf80386_pkg::LOAD_ACK:
 			if (rty_wait==5'd31) begin
 				rty_wait <= 5'd0;
 				if (ihit) begin
-					ea <= ad;
+					ea <= {ad[$bits(ad)-1:6],6'd0};
 					tSetTid();
 					ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 					ftam_req.blen <= 6'd0;
@@ -82,8 +83,8 @@ rf80386_pkg::LOAD_ACK:
 					ftam_req.stb <= HIGH;
 					ftam_req.sel <= sel_shift[15:0];
 					ftam_req.we <= LOW;
-					ftam_req.vadr <= ad;
-					ftam_req.padr <= ad;
+					ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+					ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 					adr_o <= ad;
 				end
 			end
@@ -143,7 +144,7 @@ rf80386_pkg::LOAD2_ACK:
 
 rf80386_pkg::STORE:
 	if (ihit) begin
-		ea <= ad;
+		ea <= {ad[$bits(ad)-1:6],6'd0};
 		tSetTid();
 		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
@@ -153,10 +154,10 @@ rf80386_pkg::STORE:
 		ftam_req.stb <= HIGH;
 		ftam_req.sel <= sel_shift[15:0];
 		ftam_req.we <= HIGH;
-		ftam_req.vadr <= ad;
-		ftam_req.padr <= ad;
+		ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+		ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 		ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
-		adr_o <= ad;
+		adr_o <= {ad[$bits(ad)-1:6],6'd0};
 		cyc_done <= FALSE;
 		rty_wait <= 5'd0;
 		tGoto(rf80386_pkg::STORE_ACK);
@@ -177,7 +178,7 @@ rf80386_pkg::STORE_ACK:
 			if (rty_wait==5'd31) begin
 				rty_wait <= 5'd0;
 				if (ihit) begin
-					ea <= ad;
+					ea <= {ad[$bits(ad)-1:6],6'd0};
 					tSetTid();
 					ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 					ftam_req.blen <= 6'd0;
@@ -187,8 +188,8 @@ rf80386_pkg::STORE_ACK:
 					ftam_req.stb <= HIGH;
 					ftam_req.sel <= sel_shift[15:0];
 					ftam_req.we <= HIGH;
-					ftam_req.vadr <= ad;
-					ftam_req.padr <= ad;
+					ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+					ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 					ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
 					adr_o <= ad;
 					cyc_done <= FALSE;
@@ -255,7 +256,7 @@ rf80386_pkg::STORE2_ACK:
 
 rf80386_pkg::IRQ_LOAD:
 	if (ihit) begin
-		ea <= ad;
+		ea <= {ad[$bits(ad)-1:6],6'd0};
 		tSetTid();
 		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
@@ -265,9 +266,9 @@ rf80386_pkg::IRQ_LOAD:
 		ftam_req.stb <= HIGH;
 		ftam_req.sel <= 16'h0001;
 		ftam_req.we <= LOW;
-		ftam_req.vadr <= ad;
-		ftam_req.padr <= ad;
-		adr_o <= ad;
+		ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+		ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
+		adr_o <= {ad[$bits(ad)-1:6],6'd0};
 		cyc_done <= FALSE;
 		rty_wait <= 5'd0;
 		tGoto(rf80386_pkg::IRQ_LOAD_ACK);
@@ -282,7 +283,7 @@ rf80386_pkg::IRQ_LOAD_ACK:
 			if (rty_wait==5'd31) begin
 				rty_wait <= 5'd0;
 				if (ihit) begin
-					ea <= ad;
+					ea <= {ad[$bits(ad)-1:6],6'd0};
 					tSetTid();
 					ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 					ftam_req.blen <= 6'd0;
@@ -292,9 +293,9 @@ rf80386_pkg::IRQ_LOAD_ACK:
 					ftam_req.stb <= HIGH;
 					ftam_req.sel <= 16'h0001;
 					ftam_req.we <= LOW;
-					ftam_req.vadr <= ad;
-					ftam_req.padr <= ad;
-					adr_o <= ad;
+					ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+					ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
+					adr_o <= {ad[$bits(ad)-1:6],6'd0};
 					cyc_done <= FALSE;
 				end
 			end
@@ -304,7 +305,7 @@ rf80386_pkg::IRQ_LOAD_ACK:
 
 rf80386_pkg::LOAD_IO:
 	if (ihit) begin
-		ea <= ad;
+		ea <= {ad[$bits(ad)-1:6],6'd0};
 		tSetTid();
 		ftam_req.cmd <= fta_bus_pkg::CMD_LOAD;
 		ftam_req.blen <= 6'd0;
@@ -314,8 +315,8 @@ rf80386_pkg::LOAD_IO:
 		ftam_req.stb <= HIGH;
 		ftam_req.sel <= sel_shift[15:0];
 		ftam_req.we <= LOW;
-		ftam_req.vadr <= ad;
-		ftam_req.padr <= ad;
+		ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+		ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 		adr_o <= ad;
 		cyc_done <= FALSE;
 		rty_wait <= 5'd0;
@@ -344,8 +345,8 @@ rf80386_pkg::LOAD_IO_ACK:
 				ftam_req.stb <= HIGH;
 				ftam_req.sel <= sel_shift[15:0];
 				ftam_req.we <= LOW;
-				ftam_req.vadr <= ad;
-				ftam_req.padr <= ad;
+				ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+				ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 				adr_o <= ad;
 				cyc_done <= FALSE;
 			end
@@ -404,7 +405,7 @@ rf80386_pkg::LOAD_IO2_ACK:
 
 rf80386_pkg::STORE_IO:
 	if (ihit) begin
-		ea <= ad;
+		ea <= {ad[$bits(ad)-1:6],6'd0};
 		ftam_req.cmd <= fta_bus_pkg::CMD_STORE;
 		ftam_req.blen <= 6'd0;
 		ftam_req.bte <= fta_bus_pkg::LINEAR;
@@ -413,10 +414,10 @@ rf80386_pkg::STORE_IO:
 		ftam_req.stb <= HIGH;
 		ftam_req.sel <= sel_shift[15:0];
 		ftam_req.we <= HIGH;
-		ftam_req.vadr <= ad;
-		ftam_req.padr <= ad;
+		ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+		ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 		ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
-		adr_o <= ad;
+		adr_o <= {ad[$bits(ad)-1:6],6'd0};
 		cyc_done <= FALSE;
 		rty_wait <= 5'd0;
 		tGoto(rf80386_pkg::STORE_IO_ACK);
@@ -436,10 +437,10 @@ rf80386_pkg::STORE_IO_ACK:
 				ftam_req.stb <= HIGH;
 				ftam_req.sel <= sel_shift[15:0];
 				ftam_req.we <= HIGH;
-				ftam_req.vadr <= ad;
-				ftam_req.padr <= ad;
+				ftam_req.vadr <= {ad[$bits(ad)-1:6],6'd0};
+				ftam_req.padr <= {ad[$bits(ad)-1:6],6'd0};
 				ftam_req.data1 <= {128'd0,dat} << {ad[3:0],3'd0};
-				adr_o <= ad;
+				adr_o <= {ad[$bits(ad)-1:6],6'd0};
 				cyc_done <= FALSE;
 			end
 		end

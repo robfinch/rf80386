@@ -40,7 +40,7 @@
 
 rf80386_pkg::RETFPOP:
 	begin
-		if (realMode)
+		if (realMode | v86)
 			tGoto(rf80386_pkg::RETFPOP_RMD1);
 		else
 			tGoto(rf80386_pkg::RETFPOP1);
@@ -48,17 +48,24 @@ rf80386_pkg::RETFPOP:
 rf80386_pkg::RETFPOP_RMD1:
 	begin
 		ad <= sssp;
-		sel <= 16'h000F;
-		if (StkAddrSize==8'd32)
-			esp <= esp + 4'd4;
-		else
+		if (OperandSize32) begin
+			esp[15:0] <= esp[15:0] + 4'd8;
+			sel <= 16'h00FF;
+		end
+		else begin
 			esp[15:0] <= esp[15:0] + 4'd4;
+			sel <= 16'h000F;
+		end
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETFPOP_RMD2);
 	end
 rf80386_pkg::RETFPOP_RMD2:
 	begin
-		{selector,eip[15:0]} <= dat[31:0];
-		eip[31:16] <= 16'h0;
+		if (OperandSize32)
+			{selector,eip[31:0]} <= dat[47:0];
+		else begin
+			{selector,eip[15:0]} <= dat[31:0];
+			eip[31:16] <= 16'h0;
+		end
 		tGoto(rf80386_pkg::RETFPOP_RMD3);
 	end
 rf80386_pkg::RETFPOP_RMD3:

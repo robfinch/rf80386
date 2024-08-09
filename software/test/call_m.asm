@@ -111,7 +111,7 @@ rm32\@:
 
 	clc
 #	data16
-	callw $\arg1,$farfn16\@
+	lcall $\arg1,$farfn16\@
 	jnc error
 	jmp o32\@
 farfn16\@:
@@ -121,12 +121,12 @@ farfn16\@:
 	add $4,%ax
 	stc
 #	data16
-	retl
+	lret
 	jmp error
 
 o32\@:
 	clc
-	calll $\arg1,$farfn32\@
+	lcalll $\arg1,$farfn32\@-TEST_CODE
 	jnc error
 	jmp m1616\@
 farfn32\@:
@@ -135,7 +135,7 @@ farfn32\@:
 	jne error
 	add $8,%ax
 	stc
-	retl
+	lretl
 	jmp error
 
 m1616\@:
@@ -143,14 +143,14 @@ m1616\@:
 	movw $farfn16\@,(%si)
 	movw $\arg1,2(%si)
 #	data16
-	calll (%si)
+	lcall (%si)
 	jnc error
 m1632\@:
 	clc
 	movl $farfn32\@-TEST_CODE,(%si)
 	movw $\arg1,4(%si)
 #	data32
-	calll (%si)
+	lcalll (%si)
 	jnc error
 exit\@:
 .endm

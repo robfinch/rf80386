@@ -108,6 +108,7 @@ rf80386_pkg::MOVS4:
 	begin
 		if (repz|repnz) begin
 			ecx <= cx_dec;
+			insn_count <= insn_count + 2'd1;
 			tGoto(rf80386_pkg::MOVS);
 		end
 		else
