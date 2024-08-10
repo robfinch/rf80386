@@ -38,7 +38,7 @@
 
 rf80386_pkg::STORE_DATA:
 	begin
-		ad <= ea;
+		// ad nust be set coming in
 		if (ir==`ARPL)
 			sel <= 16'h0003;
 		else if (OperandSize32)

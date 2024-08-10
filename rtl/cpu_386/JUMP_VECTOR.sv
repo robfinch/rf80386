@@ -7,6 +7,8 @@
 //
 //  JUMP_VECTOR
 //  - fetch 32 bit vector into selector:offset and jump to it
+//  There is sometimes a little more work that must be done after the jump
+//  so this is a hardware subroutine.
 //
 // BSD 3-Clause License
 // Redistribution and use in source and binary forms, with or without
@@ -72,5 +74,5 @@ JUMP_VECTOR4:
 		eip <= offset;
 		cs <= selector;
 		realModeLock <= 1'b0;
-		tGoto(rf80386_pkg::IFETCH);
+		tReturn();
 	end

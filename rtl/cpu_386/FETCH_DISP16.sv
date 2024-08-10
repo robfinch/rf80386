@@ -69,6 +69,7 @@ rf80386_pkg::FETCH_DISP16b:
 		begin
 			res <= eax;
 			ea <= seg_reg + disp32;
+			ad <= seg_reg + disp32;
 			tGoto(rf80386_pkg::STORE_DATA);
 		end
 	`MOV_M2AL,`MOV_M2AX:
@@ -76,6 +77,7 @@ rf80386_pkg::FETCH_DISP16b:
 			d <= 1'b0;
 			rrr <= 3'd0;
 			ea <= seg_reg + disp32;
+			ad <= seg_reg + disp32;
 			tGoto(rf80386_pkg::FETCH_DATA);
 		end
 
@@ -93,6 +95,7 @@ rf80386_pkg::FETCH_DISP16b:
 			w <= ir[0];
 			tGoto(rf80386_pkg::STORE_DATA);
 			ea  <= ds_base + disp32;
+			ad <= ds_base + disp32;
 			res <= ir[0] ? eax : {al,al,al,al};
 		end
 	default:	tGoto(rf80386_pkg::IFETCH);

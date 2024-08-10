@@ -154,6 +154,13 @@ _start1:
 # ==============================================================================
 
 .include "real_m.asm"
+
+	mov $D1_SEG_REAL,%dx
+	mov %dx,%ds
+	mov $21,%ebx
+	mov $0x12,%dx
+	orb %dx,(%ebx)
+
 #-------------------------------------------------------------------------------
 	POST $0x00
 #-------------------------------------------------------------------------------
@@ -367,10 +374,10 @@ ptrTSSprot: # pointer to the task state segment
 	.2byte TSS_DSEG_PROT
 addrProtIDT: # address of pmode IDT to be used with lidt
 	.2byte 0xFF              						# 16-bit limit
-	.4byte 0xffff0000|(IDT_SEG_REAL << 4) 	# 32-bit base address
+	.4byte 0xfff80000|(IDT_SEG_REAL << 4) 	# 32-bit base address
 addrGDT: # address of GDT to be used with lgdt
 	.2byte GDT_SEG_LIMIT
-	.4byte 0xffff0000|(GDT_SEG_REAL << 4)
+	.4byte 0xfff80000|(GDT_SEG_REAL << 4)
 
 # Initializes an interrupt gate in system memory in real mode
 initIntGateReal:
@@ -455,9 +462,9 @@ switchToProtMode:
 	mov %cr0,%eax
 	or $CR0_MSW_PE | CR0_PG,%eax
 	mov %eax,%cr0
-	jmp $C_SEG_PROT32,$toProt32 	# jump to flush the prefetch queue
-toProt32:
 	.code32
+	jmp $C_SEG_PROT32,$toProt32-TEST_CODE 	# jump to flush the prefetch queue
+toProt32:
 	jmp initLDT
 
 .include "protected_p.asm"

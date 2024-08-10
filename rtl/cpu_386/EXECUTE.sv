@@ -129,7 +129,7 @@ rf80386_pkg::EXECUTE:
 				sf <= resn;
 				zf <= resz;
 			end
-		`ADD,`ADD_ALI8,`ADD_AXI16,`ADC,`ADC_ALI8,`ADC_AXI16:
+		`ADD_ALI8,`ADD_AXI16,`ADC,`ADC_ALI8,`ADC_AXI16:
 			begin
 				tGoto(rf80386_pkg::IFETCH);
 				wrregs <= 1'b1;
@@ -142,10 +142,43 @@ rf80386_pkg::EXECUTE:
 				zf <= resz;
 			end
 
-		`AND,`OR,`XOR,`AND_ALI8,`OR_ALI8,`XOR_ALI8,`AND_AXI16,`OR_AXI16,`XOR_AXI16:
+		`ADD:
+			begin
+				if (mod==2'd3 || d==1'b1) begin
+					tGoto(rf80386_pkg::IFETCH);
+					wrregs <= 1'b1;
+				end
+				else
+					tGoto(rf80386_pkg::STORE_DATA);
+				res <= alu_o;
+				pf <= pres;
+				af <= carry   (1'b0,a[3],b[3],alu_o[3]);
+				cf <= carry   (1'b0,amsb,bmsb,resn);
+				vf <= overflow(1'b0,amsb,bmsb,resn);
+				sf <= resn;
+				zf <= resz;
+			end
+
+		`AND_ALI8,`OR_ALI8,`XOR_ALI8,`AND_AXI16,`OR_AXI16,`XOR_AXI16:
 			begin
 				tGoto(rf80386_pkg::IFETCH);
 				wrregs <= 1'b1;
+				res <= alu_o;
+				pf <= pres;
+				cf <= 1'b0;
+				vf <= 1'b0;
+				sf <= resn;
+				zf <= resz;
+			end
+
+		`AND,`OR,`XOR:
+			begin
+				if (mod==2'd3 || d==1'b1) begin
+					tGoto(rf80386_pkg::IFETCH);
+					wrregs <= 1'b1;
+				end
+				else
+					tGoto(rf80386_pkg::STORE_DATA);
 				res <= alu_o;
 				pf <= pres;
 				cf <= 1'b0;
@@ -176,10 +209,27 @@ rf80386_pkg::EXECUTE:
 				zf <= resz;
 			end
 
-		`SBB,`SUB,`SBB_ALI8,`SUB_ALI8,`SBB_AXI16,`SUB_AXI16:
+		`SBB_ALI8,`SUB_ALI8,`SBB_AXI16,`SUB_AXI16:
 			begin
 				wrregs <= 1'b1;
 				tGoto(rf80386_pkg::IFETCH);
+				res <= alu_o;
+				pf <= pres;
+				af <= carry   (1'b1,a[3],b[3],alu_o[3]);
+				cf <= carry   (1'b1,amsb,bmsb,resn);
+				vf <= overflow(1'b1,amsb,bmsb,resn);
+				sf <= resn;
+				zf <= resz;
+			end
+			
+		`SBB,`SUB:
+			begin
+				if (mod==2'd3 || d==1'b1) begin
+					wrregs <= 1'b1;
+					tGoto(rf80386_pkg::IFETCH);
+				end
+				else
+					tGoto(rf80386_pkg::STORE_DATA);
 				res <= alu_o;
 				pf <= pres;
 				af <= carry   (1'b1,a[3],b[3],alu_o[3]);
@@ -213,7 +263,7 @@ rf80386_pkg::EXECUTE:
 
 		`IMULI8,`IMULI:
 			begin
-				if (cs_desc.db) begin
+				if (OperandSize32) begin
 					eax <= sp32x32[31:0];
 					edx <= sp32x32[63:32];
 					cf <= sp32x32[63:32]!=32'd0;
@@ -507,7 +557,7 @@ rf80386_pkg::EXECUTE:
 		8'hD0,8'hD1,8'hD2,8'hD3,`SHI8,`SHI16:
 			begin
 				wrvz <= 1'b1;
-				if (mod==2'd3)
+				if (mod==2'd3 || d==1'b1)
 					wrregs <= 1'b1;
 				else
 					tGosub(rf80386_pkg::STORE_DATA,rf80386_pkg::IFETCH);
@@ -688,7 +738,7 @@ rf80386_pkg::EXECUTE:
 						tGoto(rf80386_pkg::IFETCH);
 						wrregs <= 1'b1;
 						af <= carry   (1'b0,a[3],b[3],alu_o[3]);
-						if (cs_desc.db)
+						if (OperandSize32)
 							vf <= overflow(1'b0,a[31],b[31],alu_o[31]);
 						else
 							vf <= overflow(1'b0,a[15],b[15],alu_o[15]);
@@ -704,7 +754,7 @@ rf80386_pkg::EXECUTE:
 						tGoto(rf80386_pkg::IFETCH);
 						wrregs <= 1'b1;
 						af <= carry   (1'b1,a[3],b[3],alu_o[3]);
-						if (cs_desc.db)
+						if (OperandSize32)
 							vf <= overflow(1'b1,a[31],b[31],alu_o[31]);
 						else
 							vf <= overflow(1'b1,a[15],b[15],alu_o[15]);

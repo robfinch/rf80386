@@ -95,6 +95,7 @@ rf80386_pkg::POP1:
 		`POP_MEM:
 			begin
 				esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
+				ad <= ea;
 				tGoto(rf80386_pkg::STORE_DATA);
 			end
 		`EXTOP:

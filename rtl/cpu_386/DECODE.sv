@@ -242,9 +242,9 @@ begin
 	`JCXZ: tGoto(rf80386_pkg::BRANCH1);
 	`JMPS: tGoto(rf80386_pkg::BRANCH1);
 	`JMPF: begin d_jmp <= 1'b1; tGoto(rf80386_pkg::FETCH_OFFSET); end
-	`CALL:
+	`CALL,`JMP:
 		begin
-			if (AddrSize==8'd32) begin
+			if (OperandSize32) begin
 				disp32 <= bundle[31:0];
 				bundle <= bundle[127:32];
 				eip <= eip + 4'd4;
@@ -326,7 +326,7 @@ begin
 	//-----------------------------------------------------------------
 	// disp16 instructions
 	//-----------------------------------------------------------------
-	`MOV_M2AL,`MOV_M2AX,`MOV_AL2M,`MOV_AX2M,`JMP:
+	`MOV_M2AL,`MOV_M2AX,`MOV_AL2M,`MOV_AX2M:
 		begin
 			if (OperandSize32) begin
 				disp32 <= bundle[31:0];

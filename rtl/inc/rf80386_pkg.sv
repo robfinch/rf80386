@@ -452,6 +452,8 @@ typedef enum logic [8:0] {
   CALLF20,
   CALLF21,
   CALLF22,
+  CALLF23,
+  CALLF24,
   CALLF25,
 
   CALLF_RMD1,

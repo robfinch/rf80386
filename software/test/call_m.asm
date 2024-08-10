@@ -26,8 +26,7 @@ nearfn16\@:
 
 rel32\@:
 		clc
-		data32
-		call nearfn32\@
+		calll nearfn32-TEST_CODE\@
 		jnc error
 		jmp rm16\@
 nearfn32\@:
@@ -36,8 +35,7 @@ nearfn32\@:
 		jne error
 		add $4,%ax
 		stc
-		data32
-		ret
+		retl
 		jmp error
 
 rm16\@:

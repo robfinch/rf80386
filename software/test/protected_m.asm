@@ -56,9 +56,7 @@
 	mov $\arg3,%edi
 	mov $\arg4|\arg5,%dx
 	initDescriptor
-	.ifnc \arg1, 0
 	.set GDTSelDesc,GDTSelDesc+8
-	.endif
 .endm
 
 #
@@ -67,7 +65,7 @@
 .set LDTSelDesc,4
 .macro defLDTDesc arg1,arg2,arg3,arg4,arg5=0
 	.set \arg1,LDTSelDesc
-	lds %cs:ptrLDTprot,%ebx  # this macro is used in prot mode to set up prot mode env.
+	lds %cs:ptrLDTprot-TEST_CODE,%ebx  # this macro is used in prot mode to set up prot mode env.
 	mov $\arg1,%eax
 	mov $\arg2,%esi
 	mov $\arg3,%edi

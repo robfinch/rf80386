@@ -44,8 +44,12 @@ rf80386_pkg::CALLF:
 		rpl <= selector[1:0];
 		if (realMode || v86)
 			tGoto(d_jmp ? rf80386_pkg::CALLF_RMD5 : rf80386_pkg::CALLF_RMD1);
-		else
-			tGoto(rf80386_pkg::CALLF1);
+		else begin
+			if (selector[15:2] == 14'h0)	// target selector cannot be NULL
+				tGoInt(8'd13);					// GP fault
+			else
+				tGoto(rf80386_pkg::CALLF1);
+		end
 	end
 rf80386_pkg::CALLF_RMD1:
 	begin
@@ -65,7 +69,7 @@ rf80386_pkg::CALLF_RMD2:
 rf80386_pkg::CALLF_RMD5:
 	begin
 		if (ir==8'hFF && (rrr==3'b101 | rrr==3'b011))	// JMP/CALL FAR indirect
-			tGoto(rf80386_pkg::JUMP_VECTOR1);
+			tGosub(rf80386_pkg::JUMP_VECTOR1,rf80386_pkg::IFETCH);
 		else begin
 			cs <= selector;
 			eip <= offset;
@@ -79,30 +83,29 @@ rf80386_pkg::CALLF1:
 	end
 rf80386_pkg::CALLF2:
 	begin
-		// Default to general protection fault. It will be overridden if things
-		// work.
-		tGoInt(8'd13);					// GP fault
 		if (!cgate.p)
 			tGoInt(8'd11);								// segment not present
-		casez({cgate.s,cgate.typ})
-		5'b00001,	// 286 task
-		5'b01001:	// 386 task
-			begin
-				old_tss_desc <= tss_desc;
-				tss_desc <= cgate;
-				if (cgate.dpl < cpl)
-					tGoInt(8'd10);					// invalid TSS
-				else if (cgate.dpl < rpl)
-					tGoInt(8'd10);					// invalid TSS
-				else
-					tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::CALLF25);
-			end
-		5'b00011,	// busy 286 task
-		5'b01011:	// busy 386 task
-			 tGoInt(8'd10);					// invalid TSS
-		5'b00101:	// task gate
-			if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
-				if (cgate.dpl < cpl || cgate.dpl < selector[1:0])
+		else begin
+			casez({cgate.s,cgate.typ})
+			5'b00001,	// 286 task
+			5'b01001:	// 386 task
+				begin
+					old_tss_desc <= tss_desc;
+					tss_desc <= cgate;
+					if (cgate.dpl < cpl)
+						tGoInt(8'd10);					// invalid TSS
+					else if (cgate.dpl < rpl)
+						tGoInt(8'd10);					// invalid TSS
+					else
+						tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::CALLF25);
+				end
+			5'b00011,	// busy 286 task
+			5'b01011:	// busy 386 task
+				 tGoInt(8'd10);					// invalid TSS
+			5'b00101:	// task gate
+				if (cgate.selector[15:2] == 14'h0)	// target selector cannot be NULL
+					tGoInt(8'd13);					// GP fault
+				else if (cgate.dpl < cpl || cgate.dpl < rpl)
 					tGoInt(8'd10);					// invalid TSS
 				else if (!cgate.p)
 					tGoInt(8'd11);					// segment not present
@@ -114,71 +117,65 @@ rf80386_pkg::CALLF2:
 					new_tr <= tgate.selector;
 					tGosub(rf80386_pkg::TASK_SWITCH,rf80386_pkg::CALLF25);
 				end
-			end
-		5'b110??:	// non-conforming code segment
-			begin
-				if (max_pl <= cgate.dpl) begin
-					if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
-						if (selector[1:0] <= cpl && cdesc.p) begin
-							if (cdesc.dpl == cpl) begin
-								if (esp < ss_limit - 4'd8) begin
-									if (eip < (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo})) begin
-										cs <= selector;
-										cs[1:0] <= cpl;
-										if (OperandSize32)
-											neip <= offset;
-										else
-											neip <= offset & 32'h0ffff;
-										tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
-									end
-								end
-							end
-						end
+			5'b110??:	// non-conforming code segment
+				begin
+					if (max_pl > cgate.dpl)
+						tGoInt(8'd13);					// GP fault
+					else if (rpl > cpl || !cdesc.p)
+						tGoInt(8'd13);					// GP fault
+					else if (cdesc.dpl != cpl)
+						tGoInt(8'd13);					// GP fault
+					else if (esp >= ss_limit - 4'd8)
+						tGoInt(8'd13);					// GP fault
+					else if (eip >= (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo}))
+						tGoInt(8'd13);					// GP fault
+					else begin					
+						neip <= offset;
+						tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF17);
 					end
 				end
-			end
-		5'b111??:	// conforming code segment
-			begin
-				if (max_pl <= cgate.dpl) begin
-					if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
-						if (cgate.dpl <= cpl && cgate.p) begin
-							if (esp < ss_limit - 4'd8) begin
-								if (eip < (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo})) begin
-									cs <= selector;
-									if (OperandSize32)
-										neip <= offset;
-									else
-										neip <= offset & 32'h0ffff;
-									tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::IFETCH);
-								end
-							end
-						end
+			5'b111??:	// conforming code segment
+				begin
+					if (max_pl > cgate.dpl)
+						tGoInt(8'd13);					// GP fault
+					else if (cgate.dpl > cpl || !cgate.p)
+						tGoInt(8'd13);					// GP fault
+					else if (esp >= ss_limit - 4'd8)
+						tGoInt(8'd13);					// GP fault
+					else if (eip >= (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo}))
+						tGoInt(8'd13);					// GP fault
+					else begin
+						neip <= offset;
+						tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF18);
 					end
 				end
-			end
-		5'b01100:	// CALL gate
-			begin
-				if (max_pl <= cgate.dpl) begin
-					if (cgate.selector[15:2] != 14'h0) begin	// target selector cannot be NULL
-						if (cgate.dpl >= cpl) begin
-							if (cgate.dpl >= selector[1:0] && cgate.p) begin
-								if (|cgate.selector[15:2] && fnSelectorInLimit(cgate.selector)) begin	// selector must be non-null and within limits
-									neip <= {cgate.offset_hi,cgate.offset_lo};
-									selector <= cgate.selector;
-									if (cgate.dpl < cpl && !cgate.typ[2])	begin // non-conforming and dpl < cpl  (increasing priv)
-										cpycnt <= cgate.count;
-										tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF6);
-									end
-									else
-										tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF20);	// staying at the same priv
-								end
-							end
+			5'b01100:	// CALL gate
+				begin
+					if (max_pl > cgate.dpl)
+						tGoInt(8'd13);					// GP fault
+					else if (cgate.selector[15:2] == 14'h0)	// target selector cannot be NULL
+						tGoInt(8'd13);					// GP fault
+					else if (cgate.dpl < cpl)
+						tGoInt(8'd13);					// GP fault
+					else if (cgate.dpl < rpl || !cgate.p)
+						tGoInt(8'd13);					// GP fault
+					else if (~|cgate.selector[15:2] || !fnSelectorInLimit(cgate.selector))	// selector must be non-null and within limits
+						tGoInt(8'd13);					// GP fault
+					else begin
+						neip <= {cgate.offset_hi,cgate.offset_lo};
+						selector <= cgate.selector;
+						if (cgate.dpl < cpl && !cgate.typ[2])	begin // non-conforming and dpl < cpl  (increasing priv)
+							cpycnt <= cgate.count;
+							tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF6);
 						end
+						else
+							tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF20);	// staying at the same priv
 					end
 				end
-			end
-		default:	;
-		endcase
+			default:
+				tGoInt(8'd13);		// GP fault
+			endcase
+		end
 	end
 rf80386_pkg::CALLF6:
 	begin
@@ -321,9 +318,35 @@ rf80386_pkg::CALLF15:
 rf80386_pkg::CALLF16:
 	begin
 		if (ir==8'hFF && (rrr==3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
-			tGoto(rf80386_pkg::JUMP_VECTOR1);
-		else
+			tGosub(rf80386_pkg::JUMP_VECTOR1,rf80386_pkg::CALLF24);
+		else begin
+			realModeLock <= 1'b0;
 			tGoto(rf80386_pkg::IFETCH);
+		end
+	end
+
+// Set CS:EIP and start next instruction
+rf80386_pkg::CALLF17:
+	begin					
+		cs <= selector;
+		cs[1:0] <= cpl;
+		if (OperandSize32)
+			eip <= neip;
+		else
+			eip <= neip & 32'h0ffff;
+		realModeLock <= 1'b0;
+		tGoto(rf80386_pkg::IFETCH);
+	end
+rf80386_pkg::CALLF18:
+	begin					
+		cs <= selector;
+		cpl <= selector[1:0];
+		if (OperandSize32)
+			eip <= neip;
+		else
+			eip <= neip & 32'h0ffff;
+		realModeLock <= 1'b0;
+		tGoto(rf80386_pkg::IFETCH);
 	end
 
 // Call at same privilege level
@@ -332,7 +355,6 @@ rf80386_pkg::CALLF20:
 		eip <= neip;
 		cs <= selector;
 		realModeLock <= 1'b0;
-		tGoto(rf80386_pkg::INT2);
 		if (cs_desc.dpl > cpl)
 			tGoInt(8'd13);
 		else if (OperandSize32 && esp > ss_limit - 4'd6)
@@ -372,17 +394,32 @@ rf80386_pkg::CALLF21:
 	end
 rf80386_pkg::CALLF22:
 	begin
-		cs[1:0] <= cpl;
 		if (ir==8'hFF && (rrr==3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
-			tGoto(rf80386_pkg::JUMP_VECTOR1);
-		else
+			tGosub(rf80386_pkg::JUMP_VECTOR1,rf80386_pkg::CALLF23);
+		else begin
+			realModeLock <= 1'b0;
 			tGoto(rf80386_pkg::IFETCH);
+		end
+	end
+rf80386_pkg::CALLF23:
+	begin
+		realModeLock <= 1'b0;
+		cs[1:0] <= cpl;
+		tGoto(rf80386_pkg::IFETCH);
+	end
+rf80386_pkg::CALLF24:
+	begin
+		realModeLock <= 1'b0;
+		cpl <= cs[1:0];
+		tGoto(rf80386_pkg::IFETCH);
 	end
 
 rf80386_pkg::CALLF25:
 	begin
 		if (eip >= cs_limit)
 			tGoInt(8'd10);	// invalid TSS
-		else
+		else begin
+			realModeLock <= 1'b0;
 			tGoto(rf80386_pkg::IFETCH);
+		end
 	end
