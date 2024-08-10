@@ -42,7 +42,7 @@ rf80386_pkg::STOS:
 		tGoto(rf80386_pkg::IFETCH);
 	else if (w && (AddrSize==8'd32 ? edi==32'hFFFFFFFF : di==16'hFFFF)) begin
 		ir <= `NOP;
-		tGoInt(8'd13);
+		tError(8'd13,32'h0,1'b1);
 	end
 	else begin
 		ad <= esdi;

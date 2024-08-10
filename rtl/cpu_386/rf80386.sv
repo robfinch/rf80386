@@ -315,6 +315,7 @@ always_ff @(posedge CLK)
 		int_num <= 8'h00;
 		ea1 <= 32'h0;
 		realModeLock <= 1'b0;
+		wr_err_code <= 1'b0;
 		tGoto(rf80386_pkg::IFETCH);
 	end
 	else begin

@@ -44,12 +44,8 @@ rf80386_pkg::CALLF:
 		rpl <= selector[1:0];
 		if (realMode || v86)
 			tGoto(d_jmp ? rf80386_pkg::CALLF_RMD5 : rf80386_pkg::CALLF_RMD1);
-		else begin
-			if (selector[15:2] == 14'h0)	// target selector cannot be NULL
-				tGoInt(8'd13);					// GP fault
-			else
-				tGoto(rf80386_pkg::CALLF1);
-		end
+		else
+			tGoto(rf80386_pkg::CALLF_RMD1);
 	end
 rf80386_pkg::CALLF_RMD1:
 	begin
@@ -68,12 +64,20 @@ rf80386_pkg::CALLF_RMD2:
 	end
 rf80386_pkg::CALLF_RMD5:
 	begin
-		if (ir==8'hFF && (rrr==3'b101 | rrr==3'b011))	// JMP/CALL FAR indirect
-			tGosub(rf80386_pkg::JUMP_VECTOR1,rf80386_pkg::IFETCH);
+		if (realMode || v86) begin
+			if (ir==8'hFF && (rrr==3'b101 | rrr==3'b011))	// JMP/CALL FAR indirect
+				tGosub(rf80386_pkg::JUMP_VECTOR1,rf80386_pkg::IFETCH);
+			else begin
+				cs <= selector;
+				eip <= offset;
+				tGoto(rf80386_pkg::IFETCH);
+			end
+		end
 		else begin
-			cs <= selector;
-			eip <= offset;
-			tGoto(rf80386_pkg::IFETCH);
+			if (selector[15:2] == 14'h0)	// target selector cannot be NULL
+				tError(8'd13,32'h0,1'b1);		// GP fault
+			else
+				tGoto(rf80386_pkg::CALLF1);
 		end
 	end
 
@@ -84,7 +88,7 @@ rf80386_pkg::CALLF1:
 rf80386_pkg::CALLF2:
 	begin
 		if (!cgate.p)
-			tGoInt(8'd11);								// segment not present
+			tError(8'd11,selector,1'b1);		/// segment not present
 		else begin
 			casez({cgate.s,cgate.typ})
 			5'b00001,	// 286 task
@@ -93,26 +97,24 @@ rf80386_pkg::CALLF2:
 					old_tss_desc <= tss_desc;
 					tss_desc <= cgate;
 					if (cgate.dpl < cpl)
-						tGoInt(8'd10);					// invalid TSS
+						tError(8'd10,tgate.selector,1'b1);	// invalid TSS
 					else if (cgate.dpl < rpl)
-						tGoInt(8'd10);					// invalid TSS
+						tError(8'd10,tgate.selector,1'b1);	// invalid TSS
 					else
 						tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::CALLF25);
 				end
 			5'b00011,	// busy 286 task
 			5'b01011:	// busy 386 task
-				 tGoInt(8'd10);					// invalid TSS
+				tError(8'd10,tgate.selector,1'b1);	// invalid TSS
 			5'b00101:	// task gate
 				if (cgate.selector[15:2] == 14'h0)	// target selector cannot be NULL
-					tGoInt(8'd13);					// GP fault
+					tError(8'd13,32'h0,1'b1);						// GP fault
 				else if (cgate.dpl < cpl || cgate.dpl < rpl)
-					tGoInt(8'd10);					// invalid TSS
-				else if (!cgate.p)
-					tGoInt(8'd11);					// segment not present
+					tError(8'd10,tgate.selector,1'b1);	// invalid TSS
 				else if (tgate.selector[2]!=1'b0)	// must be global
-					tGoInt(8'd10);					// invalid TSS
+					tError(8'd10,tgate.selector,1'b1);	// invalid TSS
 				else if (!fnSelectorInLimit(tgate.selector))						
-					tGoInt(8'd10);					// invalid TSS
+					tError(8'd10,tgate.selector,1'b1);	// invalid TSS
 				else begin
 					new_tr <= tgate.selector;
 					tGosub(rf80386_pkg::TASK_SWITCH,rf80386_pkg::CALLF25);
@@ -120,15 +122,15 @@ rf80386_pkg::CALLF2:
 			5'b110??:	// non-conforming code segment
 				begin
 					if (max_pl > cgate.dpl)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (rpl > cpl || !cdesc.p)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (cdesc.dpl != cpl)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (esp >= ss_limit - 4'd8)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd12,ss,1'b1);					// Stack fault
 					else if (eip >= (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo}))
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,32'h0,1'b1);				// GP fault
 					else begin					
 						neip <= offset;
 						tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF17);
@@ -137,13 +139,13 @@ rf80386_pkg::CALLF2:
 			5'b111??:	// conforming code segment
 				begin
 					if (max_pl > cgate.dpl)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (cgate.dpl > cpl || !cgate.p)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (esp >= ss_limit - 4'd8)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd12,ss,1'b1);					// Stack fault
 					else if (eip >= (cdesc.g ? {cdesc.limit_hi,cdesc.limit_lo,12'h0} : {12'h0,cdesc.limit_hi,cdesc.limit_lo}))
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,32'h0,1'b1);				// GP fault
 					else begin
 						neip <= offset;
 						tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::CALLF18);
@@ -152,15 +154,15 @@ rf80386_pkg::CALLF2:
 			5'b01100:	// CALL gate
 				begin
 					if (max_pl > cgate.dpl)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (cgate.selector[15:2] == 14'h0)	// target selector cannot be NULL
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (cgate.dpl < cpl)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (cgate.dpl < rpl || !cgate.p)
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else if (~|cgate.selector[15:2] || !fnSelectorInLimit(cgate.selector))	// selector must be non-null and within limits
-						tGoInt(8'd13);					// GP fault
+						tError(8'd13,selector,1'b1);		// GP fault
 					else begin
 						neip <= {cgate.offset_hi,cgate.offset_lo};
 						selector <= cgate.selector;
@@ -173,7 +175,7 @@ rf80386_pkg::CALLF2:
 					end
 				end
 			default:
-				tGoInt(8'd13);		// GP fault
+				tError(8'd13,32'h0,1'b1);		// GP fault
 			endcase
 		end
 	end
@@ -183,7 +185,7 @@ rf80386_pkg::CALLF6:
 		cs <= selector;
 		realModeLock <= 1'b0;
 		if (cs_desc.dpl > cpl)
-			tGoInt(8'd13);
+			tError(8'd13,selector,1'b1);		// GP fault
 		else begin
 			// Load ss:esp from TSS based on privilege level
 			ad <= tss_base + 32'd4 + {cgate.dpl,3'b0};
@@ -205,13 +207,13 @@ rf80386_pkg::CALLF8:
 	begin
 		// not writeable data segment
 		if (new_ss[15:2]==14'h0 || !fnSelectorInLimit(new_ss) || new_ss[1:0] != cs_desc.dpl || ss_desc.s==1'b0 || ss_desc.typ[3] || ss_desc[1]==1'b0)
-			tGoInt(8'd10);	// invalid TSS
+			tError(8'd10,selector,1'b1);		// invalid TSS
 		else if (!ss_desc.p)
-			tGoInt(8'd12);	// stack exception
+			tError(8'd12,ss,1'b1);					// Stack fault
 		else if ((OperandSize32 && new_esp > ss_limit - 8'd16 + {cgate.count,2'b0}) || eip > cs_limit)
-			tGoInt(eip > cs_limit ? 8'd13 : 8'd12);
+			tError(eip > cs_limit ? 8'd13 : 8'd12,32'h0,1'b1);				// GP fault
 		else if ((!OperandSize32 && new_esp > ss_limit - 8'd8 + {cgate.count,2'b0}) || {16'h0,eip[15:0]} > cs_limit)
-			tGoInt({16'h0,eip[15:0]} > cs_limit ? 8'd13 : 8'd12);
+			tError({16'h0,eip[15:0]} > cs_limit ? 8'd13 : 8'd12,32'h0,1'b1);				// GP fault
 		else if (cpycnt > 5'd0) begin
 			ad <= sssp;
 			sel <= 16'h000F;	// a word
@@ -290,9 +292,10 @@ rf80386_pkg::CALLF13:
 				tGoto(rf80386_pkg::CALLF16);
 			end
 			else 
-				tGoto(rf80386_pkg::CALLF14);
+				tGoto(rf80386_pkg::CALLF16);
 		end
 	end
+/* CS:EIP pushed already above
 rf80386_pkg::CALLF14:
 	begin
 		ad <= sssp;
@@ -315,6 +318,7 @@ rf80386_pkg::CALLF15:
 			esp[15:0] <= esp - 4'd4;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF16);
 	end
+*/
 rf80386_pkg::CALLF16:
 	begin
 		if (ir==8'hFF && (rrr==3'b101 || rrr==3'b011))	// JMP/CALL FAR indirect
@@ -356,41 +360,17 @@ rf80386_pkg::CALLF20:
 		cs <= selector;
 		realModeLock <= 1'b0;
 		if (cs_desc.dpl > cpl)
-			tGoInt(8'd13);
+			tError(8'd13,selector,1'b1);
 		else if (OperandSize32 && esp > ss_limit - 4'd6)
-			tGoInt(8'd12);
+			tError(8'd12,ss,1'b1);
 		else if (OperandSize32 && neip > cs_limit)
-			tGoInt(8'd13);
+			tError(8'd13,32'h0,1'b1);
 		else if (!OperandSize32 && esp > ss_limit - 4'd4)
-			tGoInt(8'd12);
+			tError(8'd12,ss,1'b1);
 		else if (!OperandSize32 && {16'h0,neip[15:0]} > cs_limit)
-			tGoInt(8'd13);
-		else begin
-			ad <= sssp;
-			sel <= 16'h000F;
-			dat <= old_cs;
-			if (d_jmp) begin
-				if (StkAddrSize==8'd32)
-					esp <= esp + 4'd4;
-				else
-					esp[15:0] <= esp + 4'd4;
-				tGoto(rf80386_pkg::CALLF22);
-			end
-			else begin
-				if (StkAddrSize==8'd32)
-					esp <= esp - 4'd4;
-				else
-					esp[15:0] <= esp - 4'd4;
-				tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF21);
-			end
-		end
-	end
-rf80386_pkg::CALLF21:
-	begin
-		ad <= sssp;
-		sel <= 16'h000F;
-		dat <= old_eip;
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::CALLF22);
+			tError(8'd13,32'h0,1'b1);
+		else
+			tGoto(rf80386_pkg::CALLF22);
 	end
 rf80386_pkg::CALLF22:
 	begin
@@ -417,7 +397,7 @@ rf80386_pkg::CALLF24:
 rf80386_pkg::CALLF25:
 	begin
 		if (eip >= cs_limit)
-			tGoInt(8'd10);	// invalid TSS
+			tError(8'd10,tgate.selector,1'b1);		// invalid TSS
 		else begin
 			realModeLock <= 1'b0;
 			tGoto(rf80386_pkg::IFETCH);

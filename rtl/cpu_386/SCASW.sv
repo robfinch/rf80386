@@ -39,7 +39,7 @@ rf80386_pkg::SCASW:
 `include "check_for_ints.sv"
 	else if (w && (AddrSize==8'd32 ? edi==32'hFFFFFFFF : di==16'hFFFF) && !df) begin
 		ir <= `NOP;
-		tGoInt(8'd13);
+		tError(8'd13,32'h0,1'b1);
 	end
 	else if ((repz|repnz) & cxz)
 		tGoto(rf80386_pkg::IFETCH);

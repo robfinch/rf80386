@@ -122,6 +122,7 @@ rf80386_pkg::IFETCH:
 		wrvz <= 1'b0;
 		int_disable <= 1'b0;
 		internal_int <= 1'b0;
+		wr_err_code <= 1'b0;
 		if (!hasPrefix)
 			ir_ip <= eip;
 //		if (prefix1!=8'h00 && prefix2 !=8'h00 && is_prefix)
@@ -162,7 +163,7 @@ rf80386_pkg::IFETCH:
     	;
     end
     else if (eip > cs_limit)
-    	tGoInt(8'd13);
+			tError(8'd13,cs&16'hFFFC,1'b1);
     else begin
 			tGoto(rf80386_pkg::IFETCH_ACK);
 		end

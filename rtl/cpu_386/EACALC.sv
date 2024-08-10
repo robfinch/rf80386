@@ -339,7 +339,7 @@ rf80386_pkg::EACALC1:
 				begin
 					$display("EACALC1: tGoto(FETCH_DATA");
 					if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-						tGoInt(8'h0d);
+						tError(8'd13,32'h0,1'b1);
 					else	
 						tGoto(rf80386_pkg::FETCH_DATA);
 				end
@@ -351,7 +351,7 @@ rf80386_pkg::EACALC1:
 					default: tGoto(rf80386_pkg::FETCH_DATA);
 					endcase
 					if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-						tGoInt(8'h0d);
+						tError(8'd13,32'h0,1'b1);
 				end
 			8'h01:
 				begin
@@ -362,23 +362,23 @@ rf80386_pkg::EACALC1:
 					default: tGoto(rf80386_pkg::FETCH_DATA);
 					endcase
 					if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-						tGoInt(8'h0d);
+						tError(8'd13,32'h0,1'b1);
 				end
 			8'h03:
 				if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-					tGoInt(8'h0d);
+					tError(8'd13,32'h0,1'b1);
 				else
 					tGoto(rf80386_pkg::FETCH_DATA);
 			default:
 				if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-					tGoInt(8'h0d);
+					tError(8'd13,32'h0,1'b1);
 				else
 					tGoto(rf80386_pkg::FETCH_DATA);
 			endcase
 		`MOV_I8M: tGoto(rf80386_pkg::FETCH_IMM8);
 		`MOV_I16M:
 			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'h0000FFFF)
-				tGoInt(8'h0d);
+				tError(8'd13,32'h0,1'b1);
 			else
 				tGoto(rf80386_pkg::FETCH_IMM16);
 		`POP_MEM:
@@ -394,7 +394,7 @@ rf80386_pkg::EACALC1:
 			begin
 				$display("EACALC1: tGoto(STORE_DATA");
 				if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-					tGoInt(8'h0d);
+					tError(8'd13,32'h0,1'b1);
 				else begin	
 					res <= rfso;
 					tGoto(rf80386_pkg::STORE_DATA);
@@ -404,7 +404,7 @@ rf80386_pkg::EACALC1:
 			begin
 				$display("EACALC1: tGoto(STORE_DATA");
 				if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-					tGoInt(8'h0d);
+					tError(8'd13,32'h0,1'b1);
 				else begin	
 					res <= rrro;
 					tGoto(rf80386_pkg::STORE_DATA);
@@ -415,7 +415,7 @@ rf80386_pkg::EACALC1:
 			begin
 				$display("EACALC1: tGoto(FETCH_DATA");
 				if (w && (OperandSize32 ? offsdisp > 32'hFFFFFFFC : offsdisp==32'h0000FFFF))
-					tGoInt(8'h0d);
+					tError(8'd13,32'h0,1'b1);
 				else	
 					tGoto(rf80386_pkg::FETCH_DATA);
 				if (ir==8'hff) begin

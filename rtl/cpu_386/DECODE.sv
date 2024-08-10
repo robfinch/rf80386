@@ -82,7 +82,7 @@ begin
 			w <= 1'b1;
 			rrr <= ir[2:0];
 			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF)
-				tGoInt(8'h0d);
+				tError(8'd13,32'h0,1'b1);
 			else
 				tGoto(rf80386_pkg::FETCH_IMM16);
 		end
@@ -116,7 +116,7 @@ begin
 			a <= OperandSize32 ? eax : ax;
 			rrr <= 3'd0;
 			if (OperandSize32 ? eip > 32'hFFFFFFFC : eip==32'hFFFF)
-				tGoInt(8'h0d);
+				tError(8'd13,32'h0,1'b1);
 			else
 				tGoto(rf80386_pkg::FETCH_IMM16);
 		end

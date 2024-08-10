@@ -53,13 +53,13 @@ rf80386_pkg::INT2:
 			tGoto(rf80386_pkg::RMD_INT3);
 		else if (v86) begin
 			if ({int_num,3'd0} > idt_limit)
-				tSetInt(8'd13);		// general protection fault
+				tError(8'd13,{int_num,3'd2},1'b1);		// general protection fault
 			else
 				tGoto(rf80386_pkg::V86_INT3);
 		end
 		else begin
 			if ({int_num,3'd0} > idt_limit)
-				tSetInt(8'd13);		// general protection fault
+				tError(8'd13,{int_num,3'd2},1'b1);		// general protection fault
 			else
 				tGoto(rf80386_pkg::INT3);
 		end
@@ -101,9 +101,18 @@ rf80386_pkg::RMD_INT7:
 		ad <= sssp;
 		sel <= 16'h0003;
 		dat <= ir_ip[15:0];
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::RMD_INT8);
+		if (wr_err_code)
+			esp <= esp - 4'd2;
+		tGosub(rf80386_pkg::STORE,wr_err_code ? rf80386_pkg::RMD_INT8:rf80386_pkg::RMD_INT9);
 	end
 rf80386_pkg::RMD_INT8:
+	begin
+		ad <= sssp;
+		sel <= 16'h0003;
+		dat <= err_code[15:0];
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::RMD_INT9);
+	end
+rf80386_pkg::RMD_INT9:
 	begin
 		cs <= selector;
 		eip <= offset;
@@ -256,9 +265,18 @@ rf80386_pkg::V86_INT17:
 		ad <= sssp;
 		sel <= 16'h000F;
 		dat <= old_eip;
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::V86_INT18);
+		if (wr_err_code)
+			esp <= esp - 4'd4;
+		tGosub(rf80386_pkg::STORE,wr_err_code ? rf80386_pkg::V86_INT18 : rf80386_pkg::V86_INT19);
 	end
 rf80386_pkg::V86_INT18:
+	begin
+		ad <= sssp;
+		sel <= 16'h000F;
+		dat <= err_code;
+		tGosub(rf80386_pkg::STORE,rf80386_pkg::V86_INT19);
+	end
+rf80386_pkg::V86_INT19:
 	begin
 		ds <= 16'h0;
 		es <= 16'h0;
@@ -332,7 +350,7 @@ rf80386_pkg::INT5:
 			// Load CS descriptor, needed to know if priv level changes
 			selector <= igate.selector;
 			if (!fnSelectorInLimit(igate.selector))
-				tGoInt(8'd13);		// general protection fault
+				tError(8'd13,igate.selector|32'd2,1'b1);		// general protection fault
 			else
 				tGosub(rf80386_pkg::LOAD_CS_DESC,rf80386_pkg::INT6);
 		end
@@ -343,9 +361,9 @@ rf80386_pkg::INT6:
 		cs <= selector;
 		// Descriptor must be for a code segment
 		if ({cs_desc.s,cs_desc.typ[3]} != 2'b11)
-			tGoInt(8'd13);		// general protection fault
+			tError(8'd13,selector,1'b1);		// general protection fault
 		else if (!cs_desc.p)
-			tGoInt(8'd11);		// segment not present
+			tError(8'd11,selector,1'b1);		// segment not present
 		else if (!cs_desc.typ[1] && cs_desc.dpl < cpl)
 			tGoto(rf80386_pkg::INT_INNER_PRIV);
 		// if cpl match dpl or it is conforming
@@ -385,11 +403,11 @@ rf80386_pkg::INT8:
 	begin
 		// selector NULL?
 		if (ss[15:2]==14'd0)
-			tGoInt(8'd13);		// general protection fault
+			tError(8'd13,32'h0,1'b1);				// general protection fault
 		else if (!fnSelectorInLimit(ss))
-			tGoInt(8'd10);		// invalid TSS
+			tError(8'd10,selector,1'b1);		// invalid TSS
 		else if (ss[1:0] != cs_desc.dpl)
-			tGoInt(8'd10);		// invalid TSS
+			tError(8'd10,selector,1'b1);		// invalid TSS
 		else begin
 			esp <= esp - 4'd4;
 			selector <= ss;
@@ -400,17 +418,17 @@ rf80386_pkg::INT9:
 	begin
 		// Must be writable data segment
 		if (!ss_desc.s || ss_desc.typ[3] || !ss_desc.typ[1])
-			tGoInt(8'd10);		// invalid TSS
+			tError(8'd10,selector,1'b1);		// invalid TSS
 		// and must be present
 		else if (!ss_desc.p)
-			tGoInt(8'd12);		// stack exception
+			tError(8'd12,ss&16'hFFFC,1'b1);	// stack exception
 		// must have room for 20 bytes
 		// ToDo: check for 10 bytes room for 16-bit
 		else if (esp > ss_limit - 8'd20)
-			tGoInt(8'd12);		// stack exception
+			tError(8'd12,ss&16'hFFFC,1'b1);	// stack exception
 		// instruction pointer must be within cs limit
 		else if (eip > cs_limit)
-			tGoInt(8'd13);		// general protection fault
+			tError(8'd13,cs&16'hFFFC,1'b1);				// general protection fault
 		else begin
 			ad <= sssp;
 			sel <= 16'h000F;
@@ -453,6 +471,15 @@ rf80386_pkg::INT13:
 		tf <= 1'b0;
 		nt <= 1'b0;
 		ie <= next_ie;
+		if (wr_err_code)
+			esp <= esp - 4'd4;
+		tGosub(rf80386_pkg::STORE,wr_err_code ? rf80386_pkg::INT14 : rf80386_pkg::IFETCH);
+	end
+rf80386_pkg::INT14:
+	begin
+		ad <= sssp;
+		sel <= 16'h000F;
+		dat <= err_code;
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH);
 	end
 rf80386_pkg::INT_SAME_PRIV:
@@ -460,10 +487,10 @@ rf80386_pkg::INT_SAME_PRIV:
 		// must have room for 10 bytes
 		// ToDo: check for 6 bytes room for 16-bit
 		if (esp > ss_limit - 8'd10)
-			tGoInt(8'd12);		// stack exception
+			tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
 		// instruction pointer must be within cs limit
 		else if (eip > cs_limit)
-			tGoInt(8'd13);		// general protection fault
+			tError(8'd13,cs&16'hFFFC,1'b1);		// general protection fault
 		else
 			tGoto(rf80386_pkg::INT11);
 	end
@@ -486,7 +513,7 @@ rf80386_pkg::INT_TASK1:
 rf80386_pkg::INT_TASK2:
 	begin
 		if (!tss_desc.p)
-			tGoInt(8'd11);		// segment not present
+			tError(8'd11,selector&16'hFFFC,1'b1);		// segment not present
 		else begin
 			nest_task <= 1'b1;
 			tGosub(rf80386_pkg::TASK_SWITCH1,rf80386_pkg::INT_TASK3);
@@ -495,7 +522,7 @@ rf80386_pkg::INT_TASK2:
 rf80386_pkg::INT_TASK3:
 	begin
 		if (eip > cs_limit)
-			tGoInt(8'd13);		// general protection fault
+			tError(8'd13,cs&16'hFFFC,1'b1);		// general protection fault
 		else
 			tGoto(rf80386_pkg::IFETCH);
 	end

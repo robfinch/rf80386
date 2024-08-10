@@ -259,7 +259,7 @@ rf80386_pkg::EXECUTE:
 
 		`BOUND:
 			if (c < a || c > b)
-				tGoInt(8'h05);
+				tError(8'd5,32'h0,1'b0);
 
 		`IMULI8,`IMULI:
 			begin
@@ -433,7 +433,7 @@ rf80386_pkg::EXECUTE:
 				w <= 1'b1;
 				res <= offsdisp;
 				if (mod==2'b11)
-					tGoInt(8'h06);
+					tError(8'd6,32'h0,1'b0);
 				else begin
 					tGoto(rf80386_pkg::IFETCH);
 					wrregs <= 1'b1;
@@ -508,7 +508,7 @@ rf80386_pkg::EXECUTE:
 				if (sreg3==3'd2)
 					int_disable <= 1'b1;
 				if (sreg3==3'd1)			// move to CS?
-					tGoInt(8'd6);				// Invalid opcode
+					tError(8'd6,32'h0,1'b0);	// invalid opcode
 				else if (realMode) begin
 					wrsregs <= 1'b1;
 					res <= alu_o;
@@ -516,7 +516,7 @@ rf80386_pkg::EXECUTE:
 				end
 				else begin
 					if (sreg3==3'd2 && alu_o[15:2]==14'h0)	// move NULL to SS?
-						tGoInt(8'd13);					// GP
+						tError(8'd13,32'h0,1'b1);
 					else begin
 						wrsregs <= 1'b1;
 						res <= alu_o;

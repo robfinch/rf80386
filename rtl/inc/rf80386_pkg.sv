@@ -665,6 +665,7 @@ typedef enum logic [8:0] {
   INT11,
   INT12,
   INT13,
+  INT14,
   
   INT_TASK1,
   INT_TASK2,
@@ -676,6 +677,7 @@ typedef enum logic [8:0] {
   RMD_INT6,
   RMD_INT7,
   RMD_INT8,
+  RMD_INT9,
 
 	V86_INT3,
 	V86_INT4,
@@ -693,6 +695,7 @@ typedef enum logic [8:0] {
 	V86_INT16,
 	V86_INT17,
 	V86_INT18,
+	V86_INT19,
 
 	INT_INNER_PRIV,
 	INT_SAME_PRIV,
@@ -1050,6 +1053,9 @@ reg [15:0] int_device, int_devicep;
 reg int_priority, int_priorityp;
 reg internal_int;
 
+reg [31:0] err_code;
+reg wr_err_code;
+
 function fnIsInsnPrefix;
 input [7:0] byt;
 begin
@@ -1205,6 +1211,20 @@ begin
 	internal_int <= 1'b1;
 	tSetInt(ino);
 	tGoto(rf80386_pkg::INT2);
+end
+endtask
+
+task tError;
+input [7:0] ino;
+input [31:0] ecd;
+input ecdv;
+begin
+	if (ecdv)
+		err_code <= ecd;
+	else
+		err_code <= 32'h0;
+	wr_err_code <= ecdv;
+	tGoInt(ino);
 end
 endtask
 

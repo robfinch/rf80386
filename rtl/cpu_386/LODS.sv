@@ -39,7 +39,7 @@
 rf80386_pkg::LODS:
 	if (w && (AddrSize==8'd32 ? esi>32'hFFFFFFFC : si==16'hFFFF) && !df) begin
 		ir <= `NOP;
-		tGoInt(8'd13);
+		tError(8'd13,32'h0,1'b1);
 	end
 	else begin
 		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
