@@ -331,13 +331,17 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 						alu_o <= ffo24o;
 					end
 				end
+			/* - not used, see execute
 			`LSS,`LFS,`LGS:
 				alu_o <= {b[15:0],a[15:0]};
+			*/
 			default:
 				alu_o <= 32'h0;
 			endcase
+		/*
 		`LDS,`LES:
 			alu_o <= {b[15:0],a[15:0]};
+		*/
 		default: alu_o <= 32'h0000;
 		endcase
 	end

@@ -174,27 +174,45 @@ begin
 	//-----------------------------------------------------------------
 	// Stack Operations
 	//-----------------------------------------------------------------
-	`PUSH_REG: begin esp <= OperandSize32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSH_DS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSH_ES: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSH_SS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSH_CS: begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
-	`PUSHF: begin esp <= OperandSize32 ? esp - 4'd4 : esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+	`PUSH_REG:
+		begin
+			if (OperandSize32)
+				tUsp(esp - 4'd4);
+			else
+				tUsp(esp - 4'd2);
+			tGoto(rf80386_pkg::PUSH);
+		end
+	`PUSH_CS,`PUSH_DS,`PUSH_ES,`PUSH_SS:
+		begin
+			if (OperandSize32)
+				tUsp(esp - 4'd4);
+			else
+				tUsp(esp - 4'd2);
+			tGoto(rf80386_pkg::PUSH);
+		end
+	`PUSHF:
+		begin 
+			if (OperandSize32)
+				tUsp(esp - 4'd4);
+			else
+				tUsp(esp - 4'd2);
+			tGoto(rf80386_pkg::PUSH);
+		end
 	`PUSHA:
 		begin
 			tsp <= esp; 
 			if (OperandSize32)
-				esp <= esp - 4'd4;
+				tUsp(esp - 4'd4);
 			else
-				esp <= esp - 4'd2;
+				tUsp(esp - 4'd2);
 			tGoto(rf80386_pkg::PUSHA);
 		end
 	`PUSHI,`PUSHI8:
 		begin
 			if (OperandSize32)
-				esp <= esp - 4'd4;
+				tUsp(esp - 4'd4);
 			else
-				esp <= esp - 4'd2;
+				tUsp(esp - 4'd2);
 			tGoto(rf80386_pkg::PUSH);
 		end
 	`POP_REG: tGoto(rf80386_pkg::POP);

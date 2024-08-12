@@ -123,25 +123,53 @@ rf80386_pkg::FETCH_DATA1:
 			if (OperandSize32) begin
 				a <= dat[31:0];
 				b <= dat[47:32];
+				selector <= dat[47:32];
 			end
 			else begin
 				a <= dat[15:0];
 				b <= dat[31:16];
+				selector <= dat[31:16];
+			end
+			if (realMode)
+				tGoto(rf80386_pkg::EXECUTE);
+			else begin
+				if (d_lss) begin
+					rrr <= 3'd2;
+					ds_desc_v <= 1'b0;
+				end
+				else if (d_lds) begin
+					rrr <= 3'd3;
+					ss_desc_v <= 1'b0;
+				end
+				else if (d_les) begin
+					rrr <= 3'd0;
+					es_desc_v <= 1'b0;
+				end
+				else if (d_lfs) begin
+					rrr <= 3'd4;
+					fs_desc_v <= 1'b0;
+				end
+				else begin	// d_lgs
+					rrr <= 3'd5;
+					gs_desc_v <= 1'b0;
+				end
+				tGosub(rf80386_pkg::LOAD_DESC,rf80386_pkg::EXECUTE);
 			end
 		end
-		case(ir)
-		`IMULI8:tGoto(rf80386_pkg::FETCH_IMM8);
-		`IMULI:	tGoto(rf80386_pkg::FETCH_IMM16);
-		8'h80:	tGoto(rf80386_pkg::FETCH_IMM8);
-		8'h81:	tGoto(rf80386_pkg::FETCH_IMM16);
-		8'h83:	tGoto(rf80386_pkg::FETCH_IMM8);
-		`SHI8:	tGoto(rf80386_pkg::FETCH_IMM8);
-		`SHI16:	tGoto(rf80386_pkg::FETCH_IMM8);
-		8'hC6:	tGoto(rf80386_pkg::FETCH_IMM8);
-		8'hC7:	tGoto(rf80386_pkg::FETCH_IMM16);
-		8'hF6:	tGoto(rf80386_pkg::FETCH_IMM8);
-		8'hF7:	tGoto(rf80386_pkg::FETCH_IMM16);
-		default: tGoto(rf80386_pkg::EXECUTE);
-		endcase
+		else
+			case(ir)
+			`IMULI8:tGoto(rf80386_pkg::FETCH_IMM8);
+			`IMULI:	tGoto(rf80386_pkg::FETCH_IMM16);
+			8'h80:	tGoto(rf80386_pkg::FETCH_IMM8);
+			8'h81:	tGoto(rf80386_pkg::FETCH_IMM16);
+			8'h83:	tGoto(rf80386_pkg::FETCH_IMM8);
+			`SHI8:	tGoto(rf80386_pkg::FETCH_IMM8);
+			`SHI16:	tGoto(rf80386_pkg::FETCH_IMM8);
+			8'hC6:	tGoto(rf80386_pkg::FETCH_IMM8);
+			8'hC7:	tGoto(rf80386_pkg::FETCH_IMM16);
+			8'hF6:	tGoto(rf80386_pkg::FETCH_IMM8);
+			8'hF7:	tGoto(rf80386_pkg::FETCH_IMM16);
+			default: tGoto(rf80386_pkg::EXECUTE);
+			endcase
 		hasFetchedData <= 1'b1;
 	end

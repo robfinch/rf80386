@@ -38,15 +38,14 @@
 rf80386_pkg::PUSHA:
 	begin
 		ad <= sssp;
+		tUsp(OperandSize32 ? esp - 4'd4 : esp - 4'd2);
 		if (OperandSize32) begin
 			sel <= 16'h000F;
 			dat <= eax;
-			esp <= esp - 4'd4;
 		end
 		else begin
 			sel <= 16'h0003;
 			dat <= {2{ax}};
-			esp <= esp - 4'd2;
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA1);
 	end
@@ -54,14 +53,12 @@ rf80386_pkg::PUSHA1:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= ecx;
-			esp <= esp - 4'd4;
+			tUsp(esp - 4'd4);
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{cx}};
-			esp <= esp - 4'd2;
+			tUsp(esp - 4'd2);
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA2);
 	end	
@@ -69,14 +66,12 @@ rf80386_pkg::PUSHA2:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= edx;
-			esp <= esp - 4'd4;
+			tUsp(esp - 4'd4);
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{dx}};
-			esp <= esp - 4'd2;
+			tUsp(esp - 4'd2);
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA3);
 	end	
@@ -84,14 +79,12 @@ rf80386_pkg::PUSHA3:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= ebx;
-			esp <= esp - 4'd4;
+			tUsp(esp - 4'd4);
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{bx}};
-			esp <= esp - 4'd2;
+			tUsp(esp - 4'd2);
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA4);
 	end	
@@ -100,14 +93,12 @@ rf80386_pkg::PUSHA4:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= tsp;
-			esp <= esp - 4'd4;
+			tUsp(esp - 4'd4);
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{tsp[15:0]}};
-			esp <= esp - 4'd2;
+			tUsp(esp - 4'd2);
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA5);
 	end	
@@ -115,14 +106,12 @@ rf80386_pkg::PUSHA5:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= ebp;
-			esp <= esp - 4'd4;
+			tUsp(esp - 4'd4);
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{ebp[15:0]}};
-			esp <= esp - 4'd2;
+			tUsp(esp - 4'd2);
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA6);
 	end	
@@ -130,14 +119,12 @@ rf80386_pkg::PUSHA6:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= esi;
-			esp <= esp - 4'd4;
+			tUsp(esp - 4'd4);
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{esi[15:0]}};
-			esp <= esp - 4'd2;
+			tUsp(esp - 4'd2);
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::PUSHA7);
 	end	
@@ -145,11 +132,9 @@ rf80386_pkg::PUSHA7:
 	begin
 		ad <= sssp;
 		if (OperandSize32) begin
-			sel <= 16'h000F;
 			dat <= edi;
 		end
 		else begin
-			sel <= 16'h0003;
 			dat <= {2{edi[15:0]}};
 		end
 		tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH);

@@ -199,7 +199,7 @@ rf80386_pkg::IFETCH:
 
 rf80386_pkg::IFETCH_ACK:
 	if (ihit) begin
-		$display("CSIP: %h IR: %h",csip,bundle[7:0]);
+		$display("CSIP: %h IR: %h",csip,ibundle[7:0]);
 		if (fnIsPrefix(ibundle[7:0])) begin
 			if (fnIsInsnPrefix(ibundle[7:0]))
 				prefix1 <= ibundle[7:0];

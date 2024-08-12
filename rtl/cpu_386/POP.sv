@@ -38,18 +38,7 @@
 rf80386_pkg::POP:
 	begin
 		ad <= sssp;
-		case(ir)
-		`POP_AX,`POP_CX,`POP_BX,`POP_DX,
-		`POP_SI,`POP_DI,`POP_BP,`POP_SP:
-			sel <= OperandSize32 ? 16'h000F : 16'h0003;
-		`POP_SS,`POP_ES,`POP_DS:
-			sel <= 16'h0003;
-		`POPF:
-			sel <= OperandSize32 ? 16'h000F : 16'h0003;
-		`POP_MEM:
-			sel <= OperandSize32 ? 16'h000F : 16'h0003;
-		default: ;
-		endcase
+		sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POP1);
 		w <= 1'b1;
 		rrr <= ir[2:0];
@@ -63,38 +52,38 @@ rf80386_pkg::POP1:
 		`POP_AX,`POP_CX,`POP_BX,`POP_DX,
 		`POP_SI,`POP_DI,`POP_BP,`POP_SP:
 			begin
-				esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
+				tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 				wrregs <= 1'b1;
 			end
 		`POP_SS:
 			begin
-				esp <= esp + 4'd2;
+				tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 				if (realMode)
 					begin rrr <= 3'd2; wrsregs <= 1'b1; end
-				else if (dat[15:0] != ss)
+				else if (dat[15:0] != ss || !ss_desc_v)
 					tGosub(rf80386_pkg::LOAD_SS_DESC,rf80386_pkg::IFETCH);
 			end
 		`POP_DS:
 			begin
-				esp <= esp + 4'd2;
+				tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 				if (realMode)
 					begin rrr <= 3'd3; wrsregs <= 1'b1; end
-				else if (dat[15:0] != ds)
+				else if (dat[15:0] != ds || !ds_desc_v)
 					tGosub(rf80386_pkg::LOAD_DS_DESC,rf80386_pkg::IFETCH);
 			end
 		`POP_ES:
 			begin
-				esp <= esp + 4'd2;
+				tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 				if (realMode)
 					begin rrr <= 3'd0; wrsregs <= 1'b1; end
-				else if (dat[15:0] != es)
+				else if (dat[15:0] != es || !es_desc_v)
 					tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
 			end
 		`POPF:
-			esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
+				tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		`POP_MEM:
 			begin
-				esp <= OperandSize32 ? esp + 4'd4 : esp + 4'd2;
+				tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 				ad <= ea;
 				tGoto(rf80386_pkg::STORE_DATA);
 			end
@@ -102,18 +91,18 @@ rf80386_pkg::POP1:
 			case(ir2)
 			8'hA1:	// POP_FS
 				begin
-					esp <= esp + 4'd2;
+					tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 					if (realMode)
 						begin rrr <= 3'd4; wrsregs <= 1'b1; end
-					else if (dat[15:0] != fs)
+					else if (dat[15:0] != fs || !fs_desc_v)
 						tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
 				end
 			8'hA9:	// POP_GS
 				begin
-					esp <= esp + 4'd2;
+					tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 					if (realMode)
 						begin rrr <= 3'd5; wrsregs <= 1'b1; end
-					else if (dat[15:0] != gs)
+					else if (dat[15:0] != gs || !gs_desc_v)
 						tGosub(rf80386_pkg::LOAD_ES_DESC,rf80386_pkg::IFETCH);
 				end
 			default:	;
@@ -132,6 +121,11 @@ rf80386_pkg::POP1:
 				ie <= dat[9];
 				df <= dat[10];
 				vf <= dat[11];
+				nt <= dat[14];
+				if (OperandSize32) begin
+					vm <= dat[18];
+					ipri <= dat[31:28];
+				end
 			end
 		default: ;
 		endcase

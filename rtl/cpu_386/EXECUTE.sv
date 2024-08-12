@@ -69,7 +69,17 @@ rf80386_pkg::EXECUTE:
 					gs <= b;
 					tGoto(rf80386_pkg::IFETCH);
 				end
-			`LLDT: tGoto(rf80386_pkg::LLDT);
+			`LLDT: 
+				begin
+					// If selector is coming from a register, no need to load the selector
+					// from memory.
+					if (mod==2'd3) begin
+						selector <= b;
+						tGoto(rf80386_pkg::LLDT2);
+					end
+					else
+						tGoto(rf80386_pkg::LLDT);
+				end
 			`LxDT: tGoto(rf80386_pkg::LxDT);
 			`MOV_R2CR:
 				case(rrr)

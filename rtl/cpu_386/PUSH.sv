@@ -37,57 +37,62 @@
 
 rf80386_pkg::PUSH:
 	begin
+		ad <= sssp;
 		// Note SP is predecremented at the decode stage
-		if (AddrSize==8'd32)
+		if (OperandSize32) begin
+			sel <= 16'h000F;
 			case(ir)
 			`EXTOP:			
 				case(ir2)
-				`PUSH_FS:	begin ad <= sssp; sel <= 16'h0003; dat <= fs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-				`PUSH_GS:	begin ad <= sssp; sel <= 16'h0003; dat <= gs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+				`PUSH_FS:	begin dat <= {16'h0,fs}; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+				`PUSH_GS:	begin dat <= {16'h0,gs}; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 				default:	tGoto(rf80386_pkg::RESET);
 				endcase
-			`PUSH_AX: begin ad <= sssp; sel <= 16'h000F; dat <= eax; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_BX: begin ad <= sssp; sel <= 16'h000F; dat <= ebx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_CX: begin ad <= sssp; sel <= 16'h000F; dat <= ecx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_DX: begin ad <= sssp; sel <= 16'h000F; dat <= edx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_SP: begin ad <= sssp; sel <= 16'h000F; dat <= esp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_BP: begin ad <= sssp; sel <= 16'h000F; dat <= ebp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_SI: begin ad <= sssp; sel <= 16'h000F; dat <= esi; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_DI: begin ad <= sssp; sel <= 16'h000F; dat <= edi; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_CS: begin ad <= sssp; sel <= 16'h0003; dat <= cs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_DS: begin ad <= sssp; sel <= 16'h0003; dat <= ds; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_SS: begin ad <= sssp; sel <= 16'h0003; dat <= ss; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_ES: begin ad <= sssp; sel <= 16'h0003; dat <= es; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSHF:   begin ad <= sssp; sel <= 16'h000F; dat <= flags[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSHI:		begin ad <= sssp; sel <= 16'h000F; dat <= bundle[31:0]; eip <= eip + 4'd4; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSHI8:	begin ad <= sssp; sel <= 16'h000F; dat <= {{24{bundle[7]}},bundle[7:0]}; eip <= eip + 4'd1; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			8'hFF:	begin ad <= sssp; sel <= 16'h000F; dat <= ea[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_AX: begin dat <= eax; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_BX: begin dat <= ebx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_CX: begin dat <= ecx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_DX: begin dat <= edx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_SP: begin dat <= esp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_BP: begin dat <= ebp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_SI: begin dat <= esi; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_DI: begin dat <= edi; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_CS: begin dat <= {16'h0,cs}; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_DS: begin dat <= {16'h0,ds}; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_SS: begin dat <= {16'h0,ss}; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_ES: begin dat <= {16'h0,es}; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSHF:   begin dat <= flags[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSHI:		begin dat <= bundle[31:0]; eip <= eip + 4'd4; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSHI8:	begin dat <= {{24{bundle[7]}},bundle[7:0]}; eip <= eip + 4'd1; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			8'hFF:	begin dat <= ea[31:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			default:	tGoto(rf80386_pkg::RESET);	// only gets here if there's a hardware error
 			endcase
-		else
+		end
+		else begin
+			sel <= 16'h0003;
 			case(ir)
 			`EXTOP:			
 				case(ir2)
-				`PUSH_FS:	begin ad <= sssp; sel <= 16'h0003; dat <= fs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-				`PUSH_GS:	begin ad <= sssp; sel <= 16'h0003; dat <= gs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+				`PUSH_FS:	begin dat <= fs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+				`PUSH_GS:	begin dat <= gs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 				default:	tGoto(rf80386_pkg::RESET);
 				endcase
-			`PUSH_AX: begin ad <= sssp; sel <= 16'h0003; dat <= ax; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_BX: begin ad <= sssp; sel <= 16'h0003; dat <= bx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_CX: begin ad <= sssp; sel <= 16'h0003; dat <= cx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_DX: begin ad <= sssp; sel <= 16'h0003; dat <= dx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_SP: begin ad <= sssp; sel <= 16'h0003; dat <= sp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_BP: begin ad <= sssp; sel <= 16'h0003; dat <= bp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_SI: begin ad <= sssp; sel <= 16'h0003; dat <= si; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_DI: begin ad <= sssp; sel <= 16'h0003; dat <= di; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_CS: begin ad <= sssp; sel <= 16'h0003; dat <= cs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_DS: begin ad <= sssp; sel <= 16'h0003; dat <= ds; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_SS: begin ad <= sssp; sel <= 16'h0003; dat <= ss; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSH_ES: begin ad <= sssp; sel <= 16'h0003; dat <= es; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSHF:   begin ad <= sssp; sel <= 16'h0003; dat <= flags[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSHI:		begin ad <= sssp; sel <= 16'h0003; dat <= bundle[15:0]; eip <= eip + 4'd2; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			`PUSHI8:	begin ad <= sssp; sel <= 16'h0003; dat <= {{8{bundle[7]}},bundle[7:0]}; eip <= eip + 4'd1; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
-			8'hFF:	begin ad <= sssp; sel <= 16'h0003; dat <= ea[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_AX: begin dat <= ax; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_BX: begin dat <= bx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_CX: begin dat <= cx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_DX: begin dat <= dx; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_SP: begin dat <= sp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_BP: begin dat <= bp; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_SI: begin dat <= si; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_DI: begin dat <= di; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_CS: begin dat <= cs; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_DS: begin dat <= ds; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_SS: begin dat <= ss; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSH_ES: begin dat <= es; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSHF:   begin dat <= flags[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSHI:		begin dat <= bundle[15:0]; eip <= eip + 4'd2; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			`PUSHI8:	begin dat <= {{8{bundle[7]}},bundle[7:0]}; eip <= eip + 4'd1; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
+			8'hFF:	begin dat <= ea[15:0]; tGosub(rf80386_pkg::STORE,rf80386_pkg::IFETCH); end
 			default:	tGoto(rf80386_pkg::RESET);	// only gets here if there's a hardware error
 			endcase
+		end
 	end

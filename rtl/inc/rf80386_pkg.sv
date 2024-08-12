@@ -1248,4 +1248,14 @@ begin
 end
 endtask
 
+task tUsp;
+input [31:0] nv;
+begin
+	if (StkAddrSize==8'd32)
+		esp <= nv;
+	else
+		esp[15:0] <= nv;
+end
+endtask
+
 endpackage

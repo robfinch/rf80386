@@ -122,6 +122,7 @@ mmu #(.CID(4)) ummu (
 	.ic_miss_adr({8'h00,ic_miss_adr}),
 	.ic_miss_asid(ip_asid),
 	.vadr_ir(1'b0),
+	.vadr(40'h0),
 	.vadr_v(1'b0),
 	.vadr_asid(16'h0),
 	.tlb_entry0(),

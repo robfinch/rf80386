@@ -184,7 +184,13 @@ rf80386_pkg::DECODER2:
 					endcase
 				end
 			`PUSH_FS,`PUSH_GS:
-				begin esp <= esp - 4'd2; tGoto(rf80386_pkg::PUSH); end
+				begin 
+					if (OperandSize32)
+						tUsp(esp - 4'd4);
+					else
+						tUsp(esp - 4'd2);
+					tGoto(rf80386_pkg::PUSH);
+				end
 			`JccL:	
 				begin
 					ir <= {4'h7,ir2[3:0]};	// for eval_branch

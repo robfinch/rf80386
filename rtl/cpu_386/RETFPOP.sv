@@ -48,12 +48,11 @@ rf80386_pkg::RETFPOP:
 rf80386_pkg::RETFPOP_RMD1:
 	begin
 		ad <= sssp;
+		tUsp(OperandSize32 ? esp + 4'd8 : esp + 4'd4);
 		if (OperandSize32) begin
-			esp[15:0] <= esp[15:0] + 4'd8;
 			sel <= 16'h00FF;
 		end
 		else begin
-			esp[15:0] <= esp[15:0] + 4'd4;
 			sel <= 16'h000F;
 		end
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETFPOP_RMD2);
@@ -61,25 +60,19 @@ rf80386_pkg::RETFPOP_RMD1:
 rf80386_pkg::RETFPOP_RMD2:
 	begin
 		if (OperandSize32)
-			{selector,eip[31:0]} <= dat[47:0];
+			{selector,neip[31:0]} <= dat[47:0];
 		else begin
-			{selector,eip[15:0]} <= dat[31:0];
-			eip[31:16] <= 16'h0;
+			{selector,neip[15:0]} <= dat[31:0];
+			neip[31:16] <= 16'h0;
 		end
 		tGoto(rf80386_pkg::RETFPOP_RMD3);
 	end
 rf80386_pkg::RETFPOP_RMD3:
 	begin
-		if (ir==`RETFPOP) begin
-			wrregs <= 1'b1;
-			w <= 1'b1;
-			rrr <= 3'd4;
-			if (OperandSize32)
-				res <= esp + {bundle[15:0],1'b0};
-			else
-				res <= esp + bundle[15:0];
-		end
+		if (ir==`RETFPOP)
+			tUsp(OperandSize32 ? esp + {bundle[15:0],1'b0} : esp + bundle[15:0]);
 		cs <= selector;
+		eip <= neip;
 		tGoto(rf80386_pkg::IFETCH);
 	end
 
@@ -115,69 +108,64 @@ rf80386_pkg::RETFPOP4:
 	begin
 		eip <= neip;
 		cs <= selector;
-		if (!cs_desc.s || !cs_desc.typ[3])	// executable segment
+		if (!cs_desc.p)			// segment present?
+			tError(8'd11,selector&16'hFFFC,1'b1);	// segment not present
+		else if (!cs_desc.s || !cs_desc.typ[3])	// executable segment
 			tError(8'd13,selector&16'hFFFC,1'b1);
 		else if ((cs_desc.typ[1] && cs_desc.dpl <= cpl) || cs_desc.dpl==cpl)	begin		// conforming?, or non-conforming and cpl match
-			if (cs_desc.p) begin			// segment present
-				if (selector.rpl==cpl)
-					tGoto(rf80386_pkg::RETFPOP_SAME_LEVEL);
-				else
-					tGoto(rf80386_pkg::RETFPOP_OUTER_LEVEL);
-			end
+			if (selector.rpl==cpl)
+				tGoto(rf80386_pkg::RETFPOP_SAME_LEVEL);
+			else
+				tGoto(rf80386_pkg::RETFPOP_OUTER_LEVEL);
 		end
 		else
 			tError(8'd13,selector&16'hFFFC,1'b1);
 	end
 rf80386_pkg::RETFPOP_SAME_LEVEL:
 	begin
-		if (esp <= ss_limit) begin	// stack within limit
-			if (eip <= cs_limit) begin
-				ad <= sssp;
-				if (OperandSize32) begin
-					sel <= 16'h00FF;
-					esp <= esp + 4'd8;
-				end
-				else begin
-					sel <= 16'h000F;
-					esp <= esp + 4'd4;
-				end
-				tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETFPOP5);
+		if (esp > ss_limit)
+			tError(8'd12,ss&16'hFFFC,1'b1);	// stack exception
+		else if (eip > cs_limit)
+			tError(8'd13,cs&16'hFFFC,1'b1);	// general protection fault
+		else begin
+			ad <= sssp;
+			tUsp(OperandSize32 ? esp + 4'd8 : esp + 4'd4);
+			if (OperandSize32) begin
+				sel <= 16'h00FF;
 			end
 			else begin
-				tError(8'd11,cs&16'hFFFC,1'b1);	// segment not present
+				sel <= 16'h000F;
 			end
+			tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETFPOP5);
 		end
-		else
-			tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
 	end
 
 rf80386_pkg::RETFPOP5:
 	begin
-		if (ir==`RETFPOP) begin
-			wrregs <= 1'b1;
-			w <= 1'b1;
-			rrr <= 3'd4;
-			if (OperandSize32)
-				res <= esp + {bundle[15:0],1'b0};
-			else
-				res <= esp + bundle[15:0];
-		end
+		if (ir==`RETFPOP)
+			tUsp(OperandSize32 ? esp + {bundle[15:0],1'b0} : esp + bundle[15:0]);
 		tGoto(rf80386_pkg::IFETCH);
 	end
 
 rf80386_pkg::RETFPOP_OUTER_LEVEL:
 	begin
-		if (OperandSize32) begin
-			if (esp + 32'd16 + {bundle[15:0],1'b0} > ss_limit)
+		if (ir==`RETFPOP) begin
+			if (OperandSize32 && esp + 32'd16 + {bundle[15:0],1'b0} > ss_limit)
 				tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
+			else if (esp + 32'd8 + {bundle[15:0]} > ss_limit)
+				tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
+			else begin
+				tUsp(OperandSize32 ? esp + {bundle[15:0],1'b0} : esp + bundle[15:0]);
+				tGoto(rf80386_pkg::RETFPOP6);
+			end
 		end
-		else if (esp + 32'd8 + {bundle[15:0]} > ss_limit)
-			tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
 		else begin
-			if (OperandSize32)
-				esp <= esp + {bundle[15:0],1'b0};
+			if (OperandSize32 && esp + 32'd16 > ss_limit)
+				tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
+			else if (esp + 32'd8 > ss_limit)
+				tError(8'd12,ss&16'hFFFC,1'b1);		// stack exception
 			else
-				esp <= esp + bundle[15:0];
+				tGoto(rf80386_pkg::RETFPOP6);
 		end
 	end
 // Pop old SS:ESP
@@ -185,7 +173,7 @@ rf80386_pkg::RETFPOP6:
 	begin
 		ad <= sssp;
 		sel <= 16'h00FF;
-		esp <= esp + 4'd8;
+		tUsp(esp + 4'd8);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::RETFPOP7);
 	end
 	// Store SS:ESP in TSS
@@ -206,10 +194,7 @@ rf80386_pkg::RETFPOP8:
 	end
 rf80386_pkg::RETFPOP9:
 	begin
-		if (OperandSize32)
-			esp <= esp + {bundle[15:0],1'b0} + 4'd8;
-		else
-			esp <= esp + bundle[15:0] + 4'd8;
+		tUsp(OperandSize32 ? esp + {bundle[15:0],1'b0} + 4'd8: esp + bundle[15:0] + 4'd8);
 		selector <= ds;
 		tGoto(rf80386_pkg::RETFPOP10);
 	end

@@ -192,8 +192,8 @@ rf80386_pkg::LLDT:
 	begin
 		ad <= ea;
 		sel <= 16'h0003;
-		dat <= ldtr;
 		if (sldt) begin
+			dat <= ldtr;
 			if (mod==2'b11) begin
 				res <= ldtr;
 				w <= 1'b0;

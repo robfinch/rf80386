@@ -38,14 +38,11 @@
 rf80386_pkg::POPA:
 	begin
 		ad <= sssp;
-		if (OperandSize32) begin
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
+		if (OperandSize32)
 			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
+		else
 			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA1);
 	end
 rf80386_pkg::POPA1:
@@ -55,14 +52,7 @@ rf80386_pkg::POPA1:
 		else
 			edi[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA2);
 	end
 rf80386_pkg::POPA2:
@@ -72,14 +62,7 @@ rf80386_pkg::POPA2:
 		else
 			esi[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA3);
 	end
 rf80386_pkg::POPA3:
@@ -89,14 +72,7 @@ rf80386_pkg::POPA3:
 		else
 			ebp[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA4);
 	end
 rf80386_pkg::POPA4:
@@ -106,14 +82,7 @@ rf80386_pkg::POPA4:
 		else
 			eax[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA5);
 	end
 rf80386_pkg::POPA5:
@@ -123,14 +92,7 @@ rf80386_pkg::POPA5:
 		else
 			ebx[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA6);
 	end
 rf80386_pkg::POPA6:
@@ -140,14 +102,7 @@ rf80386_pkg::POPA6:
 		else
 			edx[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA7);
 	end
 rf80386_pkg::POPA7:
@@ -157,14 +112,7 @@ rf80386_pkg::POPA7:
 		else
 			ecx[15:0] <= dat[15:0];
 		ad <= sssp;
-		if (OperandSize32) begin
-			sel <= 16'h000F;
-			esp <= esp + 4'd4;
-		end
-		else begin
-			sel <= 16'h0003;
-			esp <= esp + 4'd2;
-		end
+		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::POPA8);
 	end
 rf80386_pkg::POPA8:
