@@ -46,6 +46,9 @@ package rf80386_pkg;
 `define CS_RESET		16'hF000
 `endif
 
+`define DC_TAGBIT		10
+`define DC_LINENO_BITS	9:4
+
 `define REALMODE_PG16		8'hFF			// for lidt, lgdt
 `define REALMODE_PG1M		12'hFFF
 parameter IRQ_FIFO_DEPTH = 32;
@@ -734,9 +737,12 @@ typedef enum logic [8:0] {
 	POPA7,
 	POPA8,
 
+	LOAD0,
 	LOAD,
 	LOAD_ACK,
 	LOAD1,
+	LOAD1a,
+	LOAD2a,
 	LOAD2,
 	LOAD2_ACK,
 	STORE,
@@ -989,6 +995,7 @@ reg [7:0] prefix1;
 reg [7:0] prefix2;
 reg [7:0] prefix3;
 reg [7:0] prefix4;
+reg bzf;							// bit scan zero flag
 
 reg [7:0] ir;				// instruction register
 reg [7:0] ir2;				// extended instruction register
@@ -1029,15 +1036,17 @@ e_80386state state;			// machine state
 e_80386state [5:0] stk_state;	// stacked machine state
 reg nest_task;
 reg [1:0] rpl;
-reg [31:0] ad;
-reg [19:0] sel;
-reg [127:0] dat;
+reg [31:0] ad, org_ad, sorg_ad;
+reg [19:0] sel, org_sel, sorg_sel;
+reg [127:0] dat, org_dat, sorg_dat;
 reg [31:0] ldt_limit, gdt_limit;
 reg [31:0] tbase;
 reg [15:0] new_tr;
 desc386_t old_tss_desc;
 desc386_t new_tss_desc;
 
+reg [31:0] val_stack [0:3];
+reg [2:0] val_stack_sp;
 reg ie;								// interrupt enable flag
 reg next_ie;
 wire irq_fifo_empty;
@@ -1055,6 +1064,17 @@ reg internal_int;
 
 reg [31:0] err_code;
 reg wr_err_code;
+
+// Data cache
+integer n10;
+reg dce, org_dce, sorg_dce;
+reg need_load2,need_store2;
+reg [127:0] dc_line [0:63];
+reg [21:0] dc_tag [0:63];
+reg [63:0] dc_modified;
+reg dc_hit, dc_hit2;
+reg [255:0] dat_shift;
+reg [19:0] org_sel_shift, sorg_sel_shift;
 
 function fnIsInsnPrefix;
 input [7:0] byt;
@@ -1173,6 +1193,31 @@ begin
 end
 endtask
 
+task tPush;
+input [31:0] val;
+begin
+	if (val_stack_sp < 3'd4) begin
+		val_stack[0] <= val;
+		val_stack[1] <= val_stack[0];
+		val_stack[2] <= val_stack[1];
+		val_stack[3] <= val_stack[2];
+		val_stack_sp <= val_stack_sp + 2'd1;
+	end
+end
+endtask
+
+task tPop;
+begin
+	if (val_stack_sp > 3'd0) begin
+		val_stack[0] <= val_stack[1];
+		val_stack[1] <= val_stack[2];
+		val_stack[2] <= val_stack[3];
+		val_stack[3] <= 32'hDEADBEEF;
+		val_stack_sp <= val_stack_sp - 2'd1;
+	end
+end
+endtask
+
 task tWriteTSSReg;
 input [31:0] rval;
 input [7:0] offs;
@@ -1255,6 +1300,16 @@ begin
 		esp <= nv;
 	else
 		esp[15:0] <= nv;
+end
+endtask
+
+task tUip;
+input [31:0] nv;
+begin
+	if (OperandSize32)
+		eip <= nv;
+	else
+		eip <= {16'h0,nv[15:0]};
 end
 endtask
 

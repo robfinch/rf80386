@@ -47,16 +47,13 @@ rf80386_pkg::RETPOP:
 	end
 rf80386_pkg::RETPOP_NACK:
 	begin
-		tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
+		if (ir==`RETPOP)
+			tUsp(OperandSize32 ? esp + {bundle[15:0],1'b0} + 4'd4 : esp + bundle[15:0] + 2'd2);
+		else
+			tUsp(OperandSize32 ? esp + 4'd4 : esp + 4'd2);
 		if (OperandSize32)
 			eip <= dat[31:0];
 		else
 			eip <= dat[15:0];
-		tGoto(rf80386_pkg::RETPOP1);
-	end
-rf80386_pkg::RETPOP1:
-	begin
 		tGoto(rf80386_pkg::IFETCH);
-		if (ir==`RETPOP)
-			tUsp(OperandSize32 ? esp + {bundle[15:0],1'b0} : esp + bundle[15:0]);
 	end

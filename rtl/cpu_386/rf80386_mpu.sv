@@ -239,7 +239,7 @@ always_comb	//ff @(posedge clk)
 
 fta_cmd_response128_t [1:0] resp_ch;
 
-fta_respbuf #(.CHANNELS(2))
+fta_respbuf128 #(.CHANNELS(2))
 urb1
 (
 	.rst(rst),

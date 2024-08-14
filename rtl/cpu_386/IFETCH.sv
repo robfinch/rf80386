@@ -156,7 +156,7 @@ rf80386_pkg::IFETCH:
     	int_device <= int_devicep;
     	int_num <= int_nump;
     	ipri <= int_priorityp;
-      tGoto(rf80386_pkg::INT2);
+    	tError(int_nump,32'h1,1'b0);
       ir <= `NOP;
     end
     else if (ir==`HLT) begin
@@ -194,6 +194,10 @@ rf80386_pkg::IFETCH:
 				zf <= res[7:0]==8'h00;
 				sf <= res[7];
 			end
+		end
+		if (ir==`EXTOP) begin
+			if (ir2==`BSF||ir2==`BSR)
+				zf <= bzf;
 		end
 	end
 

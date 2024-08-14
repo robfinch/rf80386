@@ -37,15 +37,20 @@
 // ============================================================================
 
 rf80386_pkg::LODS:
-	if (w && (AddrSize==8'd32 ? esi>32'hFFFFFFFC : si==16'hFFFF) && !df) begin
-		ir <= `NOP;
-		tError(8'd13,32'h0,1'b1);
+	if ((repz|repnz) ? !cxz : 1'b1) begin
+		if (w && (AddrSize==8'd32 ? esi>32'hFFFFFFFC : si==16'hFFFF) && !df) begin
+			ir <= `NOP;
+			tError(8'd13,32'h0,1'b1);
+		end
+		else begin
+			ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
+			sel <= w ? (OperandSize32 ? 16'h000F : 16'h0003) : 16'h0001;
+			tGosub(rf80386_pkg::LOAD,rf80386_pkg::LODS_NACK);
+		end
 	end
-	else begin
-		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
-		sel <= w ? (OperandSize32 ? 16'h000F : 16'h0003) : 16'h0001;
-		tGosub(rf80386_pkg::LOAD,rf80386_pkg::LODS_NACK);
-	end
+	else
+		tGoto(rf80386_pkg::IFETCH);
+
 rf80386_pkg::LODS_NACK:
 begin
 	if ((repz|repnz) ? !cxz : 1'b1) begin

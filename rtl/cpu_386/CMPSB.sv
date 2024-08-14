@@ -39,9 +39,13 @@
 //
 rf80386_pkg::CMPSB:
 	begin
-		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
-		sel <= 16'h0001;
-		tGosub(rf80386_pkg::LOAD,rf80386_pkg::CMPSB1);
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
+			sel <= 16'h0001;
+			tGosub(rf80386_pkg::LOAD,rf80386_pkg::CMPSB1);
+		end
+		else
+			tGoto(rf80386_pkg::IFETCH);
 	end
 rf80386_pkg::CMPSB1:
 	begin

@@ -43,34 +43,34 @@
 rf80386_pkg::BRANCH1:
 	if (take_br) begin
 		if (jccl) begin
-			if (AddrSize==8'd32) begin
+			if (OperandSize32) begin
 				disp32 <= bundle[31:0];
-				eip <= eip + 4'd4;
+				tUip(eip + 4'd4);
 			end
 			else begin
 				disp32 <= {{16{bundle[15]}},bundle[15:0]};
-				eip <= eip + 4'd2;
+				tUip(eip + 4'd2);
 			end
 		end
 		else begin
 			disp32 <= {{24{bundle[7]}},bundle[7:0]};
-			eip <= eip + 4'd1;
+			tUip(eip + 4'd1);
 		end
 		tGoto(rf80386_pkg::BRANCH2);
 	end
 	else begin
 		if (jccl) begin
-			if (AddrSize==8'd32)
-				eip <= eip + 4'd4;
+			if (OperandSize32)
+				tUip(eip + 4'd4);
 			else
-				eip <= eip + 4'd2;
+				tUip(eip + 4'd2);
 		end
 		else
-			eip <= eip + 4'd1;
+			tUip(eip + 4'd1);
 		tGoto(rf80386_pkg::IFETCH);
 	end
 BRANCH2:
 	begin
-		eip <= eip + disp32;
+		tUip(eip + disp32);
 		tGoto(rf80386_pkg::IFETCH);
 	end

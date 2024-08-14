@@ -38,12 +38,16 @@
 rf80386_pkg::CMPSW:
 `include "check_for_ints.sv"
 	else begin
-		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
-		if (OperandSize32)
-			sel <= 16'h000F;
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
+			if (OperandSize32)
+				sel <= 16'h000F;
+			else
+				sel <= 16'h0003;
+			tGosub(rf80386_pkg::LOAD,rf80386_pkg::CMPSW1);
+		end
 		else
-			sel <= 16'h0003;
-		tGosub(rf80386_pkg::LOAD,rf80386_pkg::CMPSW1);
+			tGoto(rf80386_pkg::IFETCH);
 	end
 
 rf80386_pkg::CMPSW1:

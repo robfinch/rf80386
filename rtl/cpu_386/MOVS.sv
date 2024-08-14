@@ -45,9 +45,9 @@ rf80386_pkg::MOVS:
 		tError(8'd13,32'h0,1'b1);
 	end
 	else begin
-		ad <= dssi;
+		ad <= seg_reg + (AddrSize==8'd32 ? esi : si);
 		if (w)
-			sel <= cs_desc.db ? 16'h000F : 16'h0003;
+			sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		else
 			sel <= 16'h0001;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::MOVS1);

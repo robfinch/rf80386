@@ -256,19 +256,6 @@ begin
 	endcase
 end
 
-always_comb
-	sel_shift = {16'h0,sel} << ad[3:0];
-
-always_comb
-	case(sel)
-	16'h0001:	ls_mask <= 128'hFF;
-	16'h0003:	ls_mask <= 128'hFFFF;
-	16'h000F:	ls_mask <= 128'hFFFFFFFF;
-	16'h003F:	ls_mask <= 128'hFFFFFFFFFFFF;	// lidt / lgdt
-	16'h00FF:	ls_mask <= 128'hFFFFFFFFFFFFFFFF;
-	default:	ls_mask <= 128'h0;
-	endcase
-
 wire [1:0] max_pl = cpl > selector.rpl ? cpl : selector.rpl;
 reg [31:0] table_limit;
 always_comb
@@ -287,4 +274,21 @@ assign irq_fifo_data_in = {ftam_resp.pri,ftam_resp.adr[15:0],ftam_resp.dat[7:0]}
 always_comb int_nump = irq_fifo_data_out[7:0];
 always_comb int_devicep = irq_fifo_data_out[23:8];
 always_comb int_priorityp = irq_fifo_data_out[27:24];
+
+/* Some of this is for debugging */
+reg [31:0] ad2, sad2;
+always_comb
+	ad2 = {org_ad[$bits(org_ad)-1:4]+2'd1,4'h0};
+always_comb
+	sad2 = {sorg_ad[$bits(sorg_ad)-1:4]+2'd1,4'h0};
+always_comb
+	dc_hit = dc_tag[ad[`DC_LINENO_BITS]]==ad[$bits(ad)-1:`DC_TAGBIT] && dce;
+always_comb
+	dc_hit2 = dc_tag[ad2[`DC_LINENO_BITS]]==ad2[$bits(ad2)-1:`DC_TAGBIT] && dce;
+
+reg [127:0] dat2, dat3;
+always_comb	
+	dat2 = (dc_line[ad[`DC_LINENO_BITS]] >> {ad[3:0],3'b0}) & ls_mask;
+always_comb	
+	dat3 = dc_line[ad[`DC_LINENO_BITS]];
 

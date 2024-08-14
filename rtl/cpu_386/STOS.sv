@@ -45,15 +45,19 @@ rf80386_pkg::STOS:
 		tError(8'd13,32'h0,1'b1);
 	end
 	else begin
-		ad <= esdi;
-		dat <= eax;
-		if (OperandSize32) begin
-			sel <= w ? 16'h000F : 16'h0001;
+		if ((repz|repnz) ? !cxz : 1'b1) begin
+			ad <= esdi;
+			dat <= eax;
+			if (OperandSize32) begin
+				sel <= w ? 16'h000F : 16'h0001;
+			end
+			else begin
+				sel <= w ? 16'h0003 : 16'h0001;
+			end
+			tGosub(rf80386_pkg::STORE,rf80386_pkg::STOS1);
 		end
-		else begin
-			sel <= w ? 16'h0003 : 16'h0001;
-		end
-		tGosub(rf80386_pkg::STORE,rf80386_pkg::STOS1);
+		else
+			tGoto(rf80386_pkg::IFETCH);
 	end
 rf80386_pkg::STOS1:
 	begin

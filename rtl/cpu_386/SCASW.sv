@@ -37,20 +37,19 @@
 
 rf80386_pkg::SCASW:
 `include "check_for_ints.sv"
+	else if ((repz|repnz) & cxz)
+		tGoto(rf80386_pkg::IFETCH);
 	else if (w && (AddrSize==8'd32 ? edi==32'hFFFFFFFF : di==16'hFFFF) && !df) begin
 		ir <= `NOP;
 		tError(8'd13,32'h0,1'b1);
 	end
-	else if ((repz|repnz) & cxz)
-		tGoto(rf80386_pkg::IFETCH);
 	else begin
-		ad <= esdi;
+		ad <= seg_reg + (AddrSize==8'd32 ? edi : di);
 		sel <= OperandSize32 ? 16'h000F : 16'h0003;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::SCASW1);
 	end
 rf80386_pkg::SCASW1:
 	begin
-		tGoto(rf80386_pkg::SCASW2);
 		a <= OperandSize32 ? eax : ax;
 		b <= OperandSize32 ? dat[31:0] : {16'h0,dat[15:0]};
 		if ((repz|repnz) ? !cxz : 1'b1) begin
@@ -59,6 +58,7 @@ rf80386_pkg::SCASW1:
 			else
 				tUedi(OperandSize32 ? edi + 4'd4 : edi + 4'd2);
 		end
+		tGoto(rf80386_pkg::SCASW2);
 	end
 rf80386_pkg::SCASW2:
 	begin

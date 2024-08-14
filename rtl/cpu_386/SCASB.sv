@@ -40,7 +40,7 @@ rf80386_pkg::SCASB:
 	else if ((repz|repnz) & cxz)
 		tGoto(rf80386_pkg::IFETCH);
 	else begin
-		ad <= esdi;
+		ad <= seg_reg + (AddrSize==8'd32 ? edi : di);
 		sel <= 16'h0001;
 		tGosub(rf80386_pkg::LOAD,rf80386_pkg::SCASB1);
 	end

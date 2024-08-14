@@ -378,24 +378,28 @@ begin
 		//-----------------------------------------------------------------
 		// MOD/RM instructions
 		//-----------------------------------------------------------------
-		if (ir==`LDS)
-			d_lds <= 1'b1;
-		if (ir==`LES)
-			d_les <= 1'b1;
-		if (ir==`LDS || ir==`LES)
-			w <= 1'b1;
-		if (fetch_modrm) begin
-			$display("Fetching mod/rm, w=",w);
-			mod   <= bundle[7:6];
-			rrr   <= bundle[5:3];
-			sreg3 <= bundle[5:3];
-			TTT   <= bundle[5:3];
-			rm    <= bundle[2:0];
-			$display("Mod/RM=%b_%b_%b", bundle[7:6],bundle[5:3],bundle[2:0]);
-			tGoto(rf80386_pkg::EACALC);
-		end
-		else
-			tGoto(rf80386_pkg::IFETCH);
+		if (ir==`LLDT && (realMode|v86))
+			tError(8'd6,32'h0,1'b0);	// Invalid opcode
+		else begin
+			if (ir==`LDS)
+				d_lds <= 1'b1;
+			if (ir==`LES)
+				d_les <= 1'b1;
+			if (ir==`LDS || ir==`LES)
+				w <= 1'b1;
+			if (fetch_modrm) begin
+				$display("Fetching mod/rm, w=",w);
+				mod   <= bundle[7:6];
+				rrr   <= bundle[5:3];
+				sreg3 <= bundle[5:3];
+				TTT   <= bundle[5:3];
+				rm    <= bundle[2:0];
+				$display("Mod/RM=%b_%b_%b", bundle[7:6],bundle[5:3],bundle[2:0]);
+				tGoto(rf80386_pkg::EACALC);
+			end
+			else
+				tGoto(rf80386_pkg::IFETCH);
+			end
 		end
 	endcase
 end

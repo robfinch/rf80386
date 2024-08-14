@@ -181,6 +181,7 @@ ffo24 uffo24(.i({8'd0,a[15:0]}),.o(ffo24o));
 
 always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 	begin
+		bzf <= 1'b0;
 		casez(ir)
 		`MOV_M2AL,`MOV_M2AX,`LDS,`LES:
 			alu_o <= a;
@@ -295,38 +296,38 @@ always_comb	//(ir or ir2 or a or b or cf or af or al or ah or aldv10 or TTT)
 			casez(ir2)
 			`BSF:
 				begin
-					if (cs_desc.db) begin
+					if (OperandSize32) begin
 						if (a==32'h0)
-							zf <= 1'b1;
+							bzf <= 1'b1;
 						else begin
-							zf = 1'b0;
+							bzf = 1'b0;
 						end
 						alu_o <= flo48o;
 					end
 					else begin
 						if (a[15:0]==16'h0)
-							zf <= 1'b1;
+							bzf <= 1'b1;
 						else begin
-							zf = 1'b0;
+							bzf = 1'b0;
 						end
 						alu_o <= flo24o;
 					end
 				end
 			`BSR:
 				begin
-					if (cs_desc.db) begin
+					if (OperandSize32) begin
 						if (a==32'h0)
-							zf <= 1'b1;
+							bzf <= 1'b1;
 						else begin
-							zf = 1'b0;
+							bzf = 1'b0;
 						end
 						alu_o <= ffo48o;
 					end
 					else begin
 						if (a[15:0]==16'h0)
-							zf <= 1'b1;
+							bzf <= 1'b1;
 						else begin
-							zf = 1'b0;
+							bzf = 1'b0;
 						end
 						alu_o <= ffo24o;
 					end
