@@ -316,14 +316,13 @@ always_ff @(posedge CLK)
 		ea1 <= 32'h0;
 		realModeLock <= 1'b0;
 		wr_err_code <= 1'b0;
-		need_load2 <= 1'b0;
-		need_store2 <= 1'b0;
 		dc_modified <= 64'd0;
 		dce <= 1'b1;
 		org_dce <= 1'b1;
 		sorg_dce <= 1'b1;
 		sel_shift <= 20'd0;
 		dat_shift <= 256'd0;
+		store_mod <= 1'b0;
 		for (n10 = 0; n10 < 64; n10 = n10 + 1) begin
 			dc_tag[n10] <= 32'd0;
 			dc_line[n10] <= 128'd0;

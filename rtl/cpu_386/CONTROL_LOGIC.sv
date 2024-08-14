@@ -275,6 +275,13 @@ always_comb int_nump = irq_fifo_data_out[7:0];
 always_comb int_devicep = irq_fifo_data_out[23:8];
 always_comb int_priorityp = irq_fifo_data_out[27:24];
 
+// Compute when a second bus cycle is needed. This is combo logic to save a 
+// clock cycle.
+always_comb
+	need_load2 = |org_sel_shift[19:16];
+always_comb
+	need_store2 = |sorg_sel_shift[19:16];
+
 /* Some of this is for debugging */
 reg [31:0] ad2, sad2;
 always_comb

@@ -1069,6 +1069,7 @@ reg wr_err_code;
 integer n10;
 reg dce, org_dce, sorg_dce;
 reg need_load2,need_store2;
+reg store_mod;
 reg [127:0] dc_line [0:63];
 reg [21:0] dc_tag [0:63];
 reg [63:0] dc_modified;

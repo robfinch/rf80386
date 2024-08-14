@@ -52,6 +52,7 @@ rf80386_pkg::LOAD:
 		org_dce <= dce;
 		sel_shift <= {16'h0,sel} << ad[3:0];
 		org_sel_shift <= {16'h0,sel} << ad[3:0];
+		store_mod <= 1'b0;
 		case(sel)
 		16'h0001:	ls_mask <= 128'hFF;
 		16'h0003:	ls_mask <= 128'hFFFF;
@@ -71,7 +72,7 @@ rf80386_pkg::LOAD1:
 			// If a second bus cycle is needed for an unaligned load, increment the
 			// address pointer and goto the second load state. Otherwise we're done
 			// so return.
-			if (|sel_shift[19:16]) begin
+			if (need_load2) begin
 				ad <= ad2;
 				tGoto(rf80386_pkg::LOAD2);
 			end
@@ -80,16 +81,15 @@ rf80386_pkg::LOAD1:
 		end
 		else if (ihit) begin
 			// There was a cache miss or the data cache was not enabled.
-			// For a modified line , compute the parameters for a store operation,
+			// For a modified line, compute the parameters for a store operation,
 			// then disable caching so a store to memory may take place.
 			if (dc_modified[ad[`DC_LINENO_BITS]] && dce) begin
-				need_store2 <= 1'b0;
-				need_load2 <= |sel_shift[19:16];
 				ad <= {dc_tag[ad[`DC_LINENO_BITS]],ad[`DC_LINENO_BITS],4'h0};
 				sel <= 16'hFFFF;
 				sel_shift <= 20'h0FFFF;
-				dat <= dc_line[ad[`DC_LINENO_BITS]];
+				dat_shift <= dc_line[ad[`DC_LINENO_BITS]];
 				dce <= 1'b0;
+				store_mod <= 1'b1;
 				tGosub(rf80386_pkg::STORE,rf80386_pkg::LOAD1a);
 			end
 			else begin
@@ -109,7 +109,6 @@ rf80386_pkg::LOAD1:
 				adr_o <= {ad[$bits(ad)-1:LSBIT],{LSBIT{1'd0}}};
 				cyc_done <= FALSE;
 				rty_wait <= 5'd0;
-				need_load2 <= |sel_shift[19:16]|need_load2;
 				tGoto(rf80386_pkg::LOAD_ACK);
 			end
 		end
@@ -136,7 +135,7 @@ rf80386_pkg::LOAD_ACK:
 		if (ack_i && ftam_resp.tid.tranid==tid) begin
 			if (dce) begin
 				dc_line[ad[`DC_LINENO_BITS]] <= ftam_resp.dat;
-				dc_tag[ad[`DC_LINENO_BITS]] <= ad[$bits(ad)-1:10];
+				dc_tag[ad[`DC_LINENO_BITS]] <= ad[$bits(ad)-1:`DC_TAGBIT];
 				dc_modified[ad[`DC_LINENO_BITS]] <= 1'b0;
 			end
 			dat <= (ftam_resp.dat >> {ad[3:0],3'b0}) & ls_mask;
@@ -144,8 +143,10 @@ rf80386_pkg::LOAD_ACK:
 			sel <= sel_shift[19:16];
 			if (need_load2)
 				tGoto(rf80386_pkg::LOAD2);
-			else
+			else begin
+				ad <= ad;
 				tReturn();
+			end
 		end
 		else if (rty_i) begin
 			rty_wait <= rty_wait + 2'd1;
@@ -177,7 +178,7 @@ rf80386_pkg::LOAD2:
 		// If a data cache hit, merge in the data from the second cache line and
 		// mask the result. Return as we're done.
 		if (dc_hit) begin
-			dat <= (dat | ({32'd0,dc_line[ad[`DC_LINENO_BITS]]} << {5'd16-ad[3:0],3'b0})) & ls_mask;
+			dat <= (dat | ({128'd0,dc_line[ad[`DC_LINENO_BITS]]} << {5'd16-org_ad[3:0],3'b0})) & ls_mask;
 			ad <= org_ad;
 			tReturn();
 		end
@@ -186,10 +187,10 @@ rf80386_pkg::LOAD2:
 			// line's tag is used to form the address. Data caching is temporarily
 			// disable so the store may go to memory.
 			if (dce && dc_modified[ad[`DC_LINENO_BITS]]) begin
-				need_store2 <= 1'b0;
+				store_mod <= 1'b1;
 				sel <= 16'hFFFF;
 				sel_shift <= 20'h0FFFF;
-				dat <= dc_line[ad[`DC_LINENO_BITS]];
+				dat_shift <= dc_line[ad[`DC_LINENO_BITS]];
 				dc_modified[ad[`DC_LINENO_BITS]] <= 1'b0;
 				ad <= {dc_tag[ad[`DC_LINENO_BITS]],ad[`DC_LINENO_BITS],4'h0};
 				dce <= 1'b0;
@@ -204,11 +205,11 @@ rf80386_pkg::LOAD2:
 				ftam_req.cti <= fta_bus_pkg::CLASSIC;
 				ftam_req.cyc <= HIGH;
 				ftam_req.stb <= HIGH;
-				ftam_req.sel <= 16'hFFFF;
+				ftam_req.sel <= {12'h0,sel_shift[19:16]};
 				ftam_req.we <= LOW;
-				ftam_req.vadr <= {ad[$bits(ad)-1:LSBIT]+2'd1,{LSBIT{1'd0}}};
-				ftam_req.padr <= {ad[$bits(ad)-1:LSBIT]+2'd1,{LSBIT{1'd0}}};
-				adr_o <= {ad[$bits(ad)-1:LSBIT]+2'd1,{LSBIT{1'd0}}};
+				ftam_req.vadr <= {ad[$bits(ad)-1:LSBIT],{LSBIT{1'd0}}};
+				ftam_req.padr <= {ad[$bits(ad)-1:LSBIT],{LSBIT{1'd0}}};
+				adr_o <= {ad[$bits(ad)-1:LSBIT],{LSBIT{1'd0}}};
 				cyc_done <= FALSE;
 				rty_wait <= 5'd0;
 				tGoto(rf80386_pkg::LOAD2_ACK);
@@ -226,6 +227,7 @@ rf80386_pkg::LOAD2a:
 		sel_shift <= org_sel_shift;
 		dc_modified[ad[`DC_LINENO_BITS]] <= 1'b0;
 		dce <= org_dce;
+		store_mod <= 1'b0;
 		tGoto(rf80386_pkg::LOAD2);
 	end
 
@@ -237,7 +239,7 @@ rf80386_pkg::LOAD2_ACK:
 				dc_tag[ad[`DC_LINENO_BITS]] <= ad[$bits(ad)-1:10];
 				dc_modified[ad[`DC_LINENO_BITS]] <= 1'b0;
 			end
-			dat <= (dat | ({32'h0,ftam_resp.dat} << {5'd16-ad[3:0],3'b0})) & ls_mask;
+			dat <= (dat | ({128'h0,ftam_resp.dat} << {5'd16-org_ad[3:0],3'b0})) & ls_mask;
 			ad <= org_ad;
 			tReturn();
 		end
@@ -275,7 +277,8 @@ rf80386_pkg::STORE:
 		sorg_dce <= dce;
 		sorg_sel_shift <= {16'h0,sel} << ad[3:0];
 		sel_shift <= {16'h0,sel} << ad[3:0];
-		dat_shift <= {128'd0,dat} << {ad[3:0],3'd0};
+		if (!store_mod)
+			dat_shift <= {128'd0,dat} << {ad[3:0],3'd0};
 		tGoto(rf80386_pkg::STORE1);
 	end
 
@@ -304,8 +307,7 @@ rf80386_pkg::STORE1:
 			if (sel_shift[14]) dc_line[ad[`DC_LINENO_BITS]][119:112] <= dat_shift[119:112];
 			if (sel_shift[15]) dc_line[ad[`DC_LINENO_BITS]][127:120] <= dat_shift[127:120];
 			dc_modified[ad[`DC_LINENO_BITS]] <= 1'b1;
-			need_store2 <= |sel_shift[19:16];
-			if (|sel_shift[19:16]) begin
+			if (need_store2) begin
 				ad <= sad2;
 				tGoto(rf80386_pkg::STORE2);
 			end
@@ -325,7 +327,7 @@ rf80386_pkg::STORE1:
 			ftam_req.cti <= fta_bus_pkg::CLASSIC;
 			ftam_req.cyc <= HIGH;
 			ftam_req.stb <= HIGH;
-			ftam_req.sel <= sel_shift[15:0];
+			ftam_req.sel <= store_mod ? 16'hFFFF : sel_shift[15:0];
 			ftam_req.we <= HIGH;
 			ftam_req.vadr <= {ad[$bits(ad)-1:LSBIT],{LSBIT{1'd0}}};
 			ftam_req.padr <= {ad[$bits(ad)-1:LSBIT],{LSBIT{1'd0}}};
@@ -371,13 +373,14 @@ rf80386_pkg::STORE_ACK:
 			end
 		end
 		else begin
-			if (|sel_shift[19:16]) begin
+			if (need_store2 && !store_mod) begin
 				ad <= sad2;
 				tGoto(rf80386_pkg::STORE2);
 			end
 			else begin
 				ad <= sorg_ad;
 				sel_shift <= sorg_sel_shift;
+				store_mod <= 1'b0;
 				tReturn();
 			end
 		end
